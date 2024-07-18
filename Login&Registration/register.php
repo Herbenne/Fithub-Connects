@@ -26,6 +26,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $error_message = "All fields are required.";
     } elseif ($password !== $confirm_password) {
         $error_message = "Passwords do not match.";
+    } elseif (!preg_match('/^(?=.*[A-Z])(?=.*\d).{8,}$/', $password)) {
+        $error_message = "Password must be at least 8 characters long, contain at least one capital letter and one number.";
     } else {
         $hashed_password = password_hash($password, PASSWORD_DEFAULT);
 
