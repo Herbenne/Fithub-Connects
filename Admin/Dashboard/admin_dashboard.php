@@ -27,25 +27,56 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['add_user'])) {
 
     // Fetch the membership plan details
     $stmt = $db_connection->prepare("SELECT duration FROM membership_plans WHERE id = ?");
-    $stmt->bind_param("i", $membership_plan_id);
-    $stmt->execute();
-    $stmt->bind_result($duration);
-    $stmt->fetch();
-    $stmt->close();
-
-    $end_date = date('Y-m-d', strtotime($current_date . ' + ' . $duration . ' days'));
-
-    // Insert or update user with membership details
-    $stmt = $db_connection->prepare("INSERT INTO users (username, membership_start_date, membership_end_date, membership_status) VALUES (?, ?, ?, 'active') ON DUPLICATE KEY UPDATE membership_start_date = VALUES(membership_start_date), membership_end_date = VALUES(membership_end_date), membership_status = VALUES(membership_status)");
-    $stmt->bind_param("sss", $username, $current_date, $end_date);
-
-    if ($stmt->execute()) {
-        echo "User added successfully!";
+    if ($stmt) {
+        $stmt->bind_param("i", $membership_plan_id);
+        $stmt->execute();
+        $stmt->bind_result($duration);
+        $stmt->fetch();
+        $stmt->close();
+    
+        $end_date = date('Y-m-d', strtotime($current_date . ' + ' . $duration . ' days'));
+    
+        // Insert or update user with membership details
+        $stmt = $db_connection->prepare("INSERT INTO users (username, membership_start_date, membership_end_date, membership_status) VALUES (?, ?, ?, 'active') ON DUPLICATE KEY UPDATE membership_start_date = VALUES(membership_start_date), membership_end_date = VALUES(membership_end_date), membership_status = VALUES(membership_status)");
+        if ($stmt) {
+            $stmt->bind_param("sss", $username, $current_date, $end_date);
+    
+            if ($stmt->execute()) {
+                echo "User added successfully!";
+            } else {
+                echo "Error: " . $stmt->error;
+            }
+    
+            $stmt->close();
+        } else {
+            echo "Error preparing statement: " . $db_connection->error;
+        }
     } else {
-        echo "Error: " . $stmt->error;
+        echo "Error preparing statement: " . $db_connection->error;
     }
+}
 
-    $stmt->close();
+// Handle the form submission for adding admins
+if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['add_admin'])) {
+    $admin_username = $_POST['admin_username'];
+    $admin_email = $_POST['admin_email'];
+    $admin_password = password_hash($_POST['admin_password'], PASSWORD_BCRYPT); // Hash the password for security
+
+    // Insert new admin
+    $stmt = $db_connection->prepare("INSERT INTO admins (username, email, password) VALUES (?, ?, ?)");
+    if ($stmt) {
+        $stmt->bind_param("sss", $admin_username, $admin_email, $admin_password);
+
+        if ($stmt->execute()) {
+            echo "Admin added successfully!";
+        } else {
+            echo "Error: " . $stmt->error;
+        }
+
+        $stmt->close();
+    } else {
+        echo "Error preparing statement: " . $db_connection->error;
+    }
 }
 
 // Fetch users and membership plans for display
@@ -55,6 +86,10 @@ $result = $db_connection->query($sql);
 // Fetch membership plans for display
 $sql_plans = "SELECT id, plan_name, duration, price FROM membership_plans";
 $plans_result = $db_connection->query($sql_plans);
+
+// Fetch admins for display
+$sql_admins = "SELECT id, username, email, created_at FROM admins";
+$admins_result = $db_connection->query($sql_admins);
 
 if ($plans_result === false) {
     echo "Error fetching membership plans: " . $db_connection->error;

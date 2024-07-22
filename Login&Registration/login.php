@@ -1,4 +1,6 @@
 <?php
+session_start();
+
 // Database connection code
 $user = 'root';
 $pass = ''; // Change this to the actual password if it's not empty
@@ -21,7 +23,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $error_message = "All fields are required.";
     } else {
         // Prepare and bind
-        $stmt = $db_connection->prepare("SELECT password FROM users WHERE email = ?");
+        $stmt = $db_connection->prepare("SELECT id, password FROM users WHERE email = ?");
         $stmt->bind_param("s", $email);
         $stmt->execute();
         $stmt->store_result();
@@ -29,13 +31,21 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         // Check if email exists
         if ($stmt->num_rows > 0) {
             // Fetch the hashed password
-            $stmt->bind_result($hashed_password);
+            $stmt->bind_result($user_id, $hashed_password);
             $stmt->fetch();
 
             // Verify the password
             if (password_verify($password, $hashed_password)) {
-                $success_message = "Login successful!";
-                // Here you can start a session or redirect to another page
+                $_SESSION['user_id'] = $user_id;
+
+                // Debugging: Check if the session is set
+                if (!isset($_SESSION['user_id'])) {
+                    die("Session user_id is not set.");
+                }
+
+                // Redirect to profile page
+                header("Location: profile.php");
+                exit();
             } else {
                 $error_message = "Invalid password.";
             }

@@ -40,6 +40,10 @@
     <?php endif; ?>
 
     <form action="register.php" method="post">
+
+        <label for="profile_picture">Profile Picture:</label><br>
+        <input type="file" id="profile_picture" name="profile_picture"><br><br>
+        
         <label for="username">Username:</label><br>
         <input type="text" id="username" name="username" required><br><br>
         
