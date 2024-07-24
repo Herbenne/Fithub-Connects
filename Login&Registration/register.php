@@ -63,7 +63,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $hashed_password = password_hash($password, PASSWORD_DEFAULT);
 
         $stmt = $db_connection->prepare("INSERT INTO users (username, email, password, full_name, age, contact_number, profile_picture) VALUES (?, ?, ?, ?, ?, ?, ?)");
-        $stmt->bind_param("ssssis", $username, $email, $hashed_password, $full_name, $age, $contact_number, $profile_picture);
+        $stmt->bind_param("ssssiss", $username, $email, $hashed_password, $full_name, $age, $contact_number, $profile_picture);
 
         if ($stmt->execute()) {
             // Redirect to confirmation page
