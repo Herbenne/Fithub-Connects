@@ -80,7 +80,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['add_admin'])) {
 }
 
 // Fetch users and membership plans for display
-$sql = "SELECT id, username, email, full_name, age, contact_number, membership_start_date, membership_end_date, membership_status FROM users";
+$sql = "SELECT id, unique_id, username, email, full_name, age, contact_number, membership_start_date, membership_end_date, membership_status FROM users";
 $result = $db_connection->query($sql);
 
 // Fetch membership plans for display
@@ -98,6 +98,6 @@ if ($plans_result === false) {
 // Include the HTML for displaying the admin dashboard
 include('admin_dashboard_view.php');
 
-// Close the connection
+// Close the connection at the end
 $db_connection->close();
 ?>

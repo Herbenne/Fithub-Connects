@@ -62,8 +62,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     } else {
         $hashed_password = password_hash($password, PASSWORD_DEFAULT);
 
-        $stmt = $db_connection->prepare("INSERT INTO users (username, email, password, full_name, age, contact_number, profile_picture) VALUES (?, ?, ?, ?, ?, ?, ?)");
-        $stmt->bind_param("ssssiss", $username, $email, $hashed_password, $full_name, $age, $contact_number, $profile_picture);
+        // Generate unique ID
+        $result = $db_connection->query("SELECT COUNT(*) AS count FROM users");
+        $row = $result->fetch_assoc();
+        $count = $row['count'] + 1000;
+        $unique_id = "SG-" . $count;
+
+        $stmt = $db_connection->prepare("INSERT INTO users (username, email, password, full_name, age, contact_number, profile_picture, unique_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
+        $stmt->bind_param("ssssisss", $username, $email, $hashed_password, $full_name, $age, $contact_number, $profile_picture, $unique_id);
 
         if ($stmt->execute()) {
             // Redirect to confirmation page

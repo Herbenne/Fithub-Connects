@@ -18,10 +18,10 @@ if ($db_connection->connect_error) {
 }
 
 $user_id = $_SESSION['user_id'];
-$stmt = $db_connection->prepare("SELECT username, email, full_name, age, contact_number, profile_picture, membership_end_date, membership_status FROM users WHERE id = ?");
+$stmt = $db_connection->prepare("SELECT username, unique_id, email, full_name, age, contact_number, profile_picture, membership_end_date, membership_status FROM users WHERE id = ?");
 $stmt->bind_param("i", $user_id);
 $stmt->execute();
-$stmt->bind_result($username, $email, $full_name, $age, $contact_number, $profile_picture, $membership_end_date, $membership_status);
+$stmt->bind_result($username, $unique_id, $email, $full_name, $age, $contact_number, $profile_picture, $membership_end_date, $membership_status);
 $stmt->fetch();
 $stmt->close();
 
@@ -269,6 +269,7 @@ $db_connection->close();
 
         <div class="profile-details">
             <p><strong>Username:</strong> <?php echo htmlspecialchars($username); ?></p>
+            <p><strong>Unique ID:</strong> <?php echo htmlspecialchars($unique_id); ?></p>
             <p><strong>Email:</strong> <?php echo htmlspecialchars($email); ?></p>
             <p><strong>Full Name:</strong> <?php echo htmlspecialchars($full_name); ?></p>
             <p><strong>Age:</strong> <?php echo htmlspecialchars($age); ?></p>

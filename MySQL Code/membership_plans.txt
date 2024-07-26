@@ -1,0 +1,34 @@
+CREATE TABLE `membership_plans` (
+  `id` int(11) NOT NULL,
+  `plan_name` varchar(255) NOT NULL,
+  `duration` int(11) NOT NULL,
+  `price` decimal(10,2) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `membership_plans`
+--
+
+INSERT INTO `membership_plans` (`id`, `plan_name`, `duration`, `price`) VALUES
+(1, '1 Month Membership', 30, 500.00),
+(2, '2 Month Membership', 60, 1000.00);
+
+--
+-- Indexes for dumped tables
+--
+
+--
+-- Indexes for table `membership_plans`
+--
+ALTER TABLE `membership_plans`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- AUTO_INCREMENT for dumped tables
+--
+
+--
+-- AUTO_INCREMENT for table `membership_plans`
+--
+ALTER TABLE `membership_plans`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;

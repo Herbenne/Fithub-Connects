@@ -41,6 +41,7 @@
     <table>
         <thead>
             <tr>
+                <th>Unique ID</th>
                 <th>Username</th>
                 <th>Email</th>
                 <th>Full Name</th>
@@ -53,7 +54,7 @@
         </thead>
         <tbody>
             <?php
-            if (isset($result)) {
+            if ($result) {
                 while ($row = $result->fetch_assoc()) {
                     // Determine membership status
                     $status = $row['membership_status'];
@@ -82,6 +83,7 @@
                     }
                     ?>
                     <tr>
+                        <td><?php echo htmlspecialchars($row['unique_id'] ?? 'N/A'); ?></td>
                         <td><?php echo htmlspecialchars($row['username']); ?></td>
                         <td><?php echo htmlspecialchars($row['email']); ?></td>
                         <td><?php echo htmlspecialchars($row['full_name']); ?></td>
@@ -96,7 +98,74 @@
                     </tr>
                 <?php }
             } else {
-                echo '<tr><td colspan="8">No users found.</td></tr>';
+                echo '<tr><td colspan="9">No users found.</td></tr>';
+            }
+            ?>
+        </tbody>
+    </table>
+
+    <!-- Attendance List Section -->
+    <h3>Attendance List</h3>
+    <form method="get" action="admin_dashboard_view.php">
+        <label for="attendance_date">Select Date:</label>
+        <input type="date" id="attendance_date" name="attendance_date">
+        <input type="submit" value="Filter">
+    </form>
+    <table>
+        <thead>
+            <tr>
+                <th>Unique ID</th>
+                <th>Username</th>
+                <th>Check In</th>
+                <th>Check Out</th>
+            </tr>
+        </thead>
+        <tbody>
+            <?php
+            if (isset($_GET['attendance_date']) && !empty($_GET['attendance_date'])) {
+                $selected_date = $_GET['attendance_date'];
+                $filtered_query = "SELECT attendance.id, users.unique_id, users.username, attendance.check_in, attendance.check_out 
+                                   FROM attendance 
+                                   JOIN users ON attendance.user_id = users.id
+                                   WHERE DATE(attendance.check_in) = ?
+                                   ORDER BY attendance.check_in DESC";
+                $stmt = $db_connection->prepare($filtered_query);
+                $stmt->bind_param('s', $selected_date);
+                $stmt->execute();
+                $filtered_result = $stmt->get_result();
+
+                if ($filtered_result->num_rows > 0) {
+                    while ($attendance = $filtered_result->fetch_assoc()) {
+                        echo '<tr>';
+                        echo '<td>' . htmlspecialchars($attendance['unique_id']) . '</td>';
+                        echo '<td>' . htmlspecialchars($attendance['username']) . '</td>';
+                        echo '<td>' . htmlspecialchars($attendance['check_in']) . '</td>';
+                        echo '<td>' . htmlspecialchars($attendance['check_out']) . '</td>';
+                        echo '</tr>';
+                    }
+                } else {
+                    echo '<tr><td colspan="4">No attendance records found for the selected date.</td></tr>';
+                }
+                $stmt->close();
+            } else {
+                $attendance_query = "SELECT attendance.id, users.unique_id, users.username, attendance.check_in, attendance.check_out 
+                                     FROM attendance 
+                                     JOIN users ON attendance.user_id = users.id
+                                     ORDER BY attendance.check_in DESC";
+                $attendance_result = $db_connection->query($attendance_query);
+
+                if ($attendance_result) {
+                    while ($attendance = $attendance_result->fetch_assoc()) {
+                        echo '<tr>';
+                        echo '<td>' . htmlspecialchars($attendance['unique_id']) . '</td>';
+                        echo '<td>' . htmlspecialchars($attendance['username']) . '</td>';
+                        echo '<td>' . htmlspecialchars($attendance['check_in']) . '</td>';
+                        echo '<td>' . htmlspecialchars($attendance['check_out']) . '</td>';
+                        echo '</tr>';
+                    }
+                } else {
+                    echo '<tr><td colspan="4">No attendance records found.</td></tr>';
+                }
             }
             ?>
         </tbody>
@@ -113,7 +182,10 @@
         <label for="membership_plan_id">Membership Plan:</label>
         <select id="membership_plan_id" name="membership_plan_id" required>
             <?php
-            if (isset($plans_result)) {
+            // Display membership plans
+            $plans_query = "SELECT id, plan_name FROM membership_plans";
+            $plans_result = $db_connection->query($plans_query);
+            if ($plans_result) {
                 while ($plan = $plans_result->fetch_assoc()) {
                     echo '<option value="' . htmlspecialchars($plan['id']) . '">' . htmlspecialchars($plan['plan_name']) . '</option>';
                 }
@@ -151,27 +223,28 @@
         </thead>
         <tbody>
             <?php
-            if (isset($plans_result)) {
-                $plans_result->data_seek(0); // Reset the result pointer
-                while ($plan = $plans_result->fetch_assoc()) { ?>
-                    <tr>
-                        <td><?php echo htmlspecialchars($plan['plan_name']); ?></td>
-                        <td><?php echo htmlspecialchars($plan['duration']); ?></td>
-                        <td><?php echo htmlspecialchars($plan['price']); ?></td>
-                        <td class="actions">
-                            <a href="edit_membership_plan.php?id=<?php echo $plan['id']; ?>">Edit</a>
-                            <a href="delete_membership_plan.php?id=<?php echo $plan['id']; ?>" onclick="return confirm('Are you sure you want to delete this plan?');">Delete</a>
-                        </td>
-                    </tr>
-                <?php }
+            $plans_query = "SELECT id, plan_name, duration, price FROM membership_plans";
+            $plans_result = $db_connection->query($plans_query);
+            if ($plans_result) {
+                while ($plan = $plans_result->fetch_assoc()) {
+                    echo '<tr>';
+                    echo '<td>' . htmlspecialchars($plan['plan_name']) . '</td>';
+                    echo '<td>' . htmlspecialchars($plan['duration']) . '</td>';
+                    echo '<td>' . htmlspecialchars($plan['price']) . '</td>';
+                    echo '<td class="actions">';
+                    echo '<a href="edit_membership_plan.php?id=' . $plan['id'] . '">Edit</a>';
+                    echo '<a href="delete_membership_plan.php?id=' . $plan['id'] . '">Delete</a>';
+                    echo '</td>';
+                    echo '</tr>';
+                }
             } else {
                 echo '<tr><td colspan="4">No membership plans found.</td></tr>';
             }
             ?>
         </tbody>
     </table>
-    
-    <!-- Payments Section -->
+
+        <!-- Payments Section -->
     <h3>Payments List</h3>
     <div class="card">
         <h4>Total Amount</h4>
@@ -368,4 +441,3 @@
     </form>
 </body>
 </html>
-
