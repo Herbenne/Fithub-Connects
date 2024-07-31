@@ -62,24 +62,38 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     } else {
         $hashed_password = password_hash($password, PASSWORD_DEFAULT);
 
-        // Generate unique ID
-        $result = $db_connection->query("SELECT COUNT(*) AS count FROM users");
-        $row = $result->fetch_assoc();
-        $count = $row['count'] + 1000;
-        $unique_id = "SG-" . $count;
+        // Get the highest existing user ID
+        $stmt = $db_connection->prepare("SELECT MAX(id) AS max_id FROM users");
+        if ($stmt) {
+            $stmt->execute();
+            $stmt->bind_result($max_id);
+            $stmt->fetch();
+            $stmt->close();
 
-        $stmt = $db_connection->prepare("INSERT INTO users (username, email, password, full_name, age, contact_number, profile_picture, unique_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
-        $stmt->bind_param("ssssisss", $username, $email, $hashed_password, $full_name, $age, $contact_number, $profile_picture, $unique_id);
+            // Calculate the next ID
+            $next_id = $max_id ? $max_id + 1 : 1000; // Default to 1000 if no IDs exist
+            $unique_id = "SG-" . str_pad($next_id, 4, '0', STR_PAD_LEFT); // Format to 4 digits
 
-        if ($stmt->execute()) {
-            // Redirect to confirmation page
-            header("Location: confirmation.php");
-            exit();
+            // Insert the new user
+            $stmt = $db_connection->prepare("INSERT INTO users (username, email, password, full_name, age, contact_number, profile_picture, unique_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
+            if ($stmt) {
+                $stmt->bind_param("ssssisss", $username, $email, $hashed_password, $full_name, $age, $contact_number, $profile_picture, $unique_id);
+
+                if ($stmt->execute()) {
+                    // Redirect to confirmation page
+                    header("Location: confirmation.php");
+                    exit();
+                } else {
+                    $error_message = "Error: " . $stmt->error;
+                }
+
+                $stmt->close();
+            } else {
+                $error_message = "Error preparing statement: " . $db_connection->error;
+            }
         } else {
-            $error_message = "Error: " . $stmt->error;
+            $error_message = "Error preparing statement: " . $db_connection->error;
         }
-
-        $stmt->close();
     }
 }
 
