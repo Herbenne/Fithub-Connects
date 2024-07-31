@@ -1,3 +1,16 @@
+<?php
+// Include the database connection file
+include 'db_connection.php';
+
+// Fetch users data from the database
+$user_query = "SELECT * FROM users";
+$result = $db_connection->query($user_query);
+
+// Verify if the query was successful
+if (!$result) {
+    die("Query failed: " . $db_connection->error);
+}
+?>
 <!DOCTYPE html>
 <html>
 <head>
@@ -35,7 +48,7 @@
 <body>
     <h2>Admin Dashboard</h2>
     <p>Welcome, Admin!</p>
-    
+
     <!-- User Management Section -->
     <h3>User Management</h3>
     <table>
@@ -106,7 +119,7 @@
 
     <!-- Attendance List Section -->
     <h3>Attendance List</h3>
-    <form method="get" action="admin_dashboard_view.php">
+    <form method="get" action="admin_dashboard.php">
         <label for="attendance_date">Select Date:</label>
         <input type="date" id="attendance_date" name="attendance_date">
         <input type="submit" value="Filter">
@@ -170,7 +183,6 @@
             ?>
         </tbody>
     </table>
-
     <!-- Add User Form -->
     <h3>Add User with Membership</h3>
     <form action="admin_dashboard.php" method="post">
