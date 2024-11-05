@@ -1,6 +1,7 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
     <title>User Registration</title>
     <script>
         function validatePassword() {
@@ -32,14 +33,14 @@
     <h2>Register</h2>
 
     <?php if (isset($error_message)): ?>
-        <p style="color: red;"><?php echo $error_message; ?></p>
+        <p style="color: red;"><?php echo htmlspecialchars($error_message); ?></p>
     <?php endif; ?>
 
     <?php if (isset($success_message)): ?>
-        <p style="color: green;"><?php echo $success_message; ?></p>
+        <p style="color: green;"><?php echo htmlspecialchars($success_message); ?></p>
     <?php endif; ?>
 
-    <form action="register.php" method="post">
+    <form action="register.php" method="post" enctype="multipart/form-data"> <!-- Added enctype for file upload -->
 
         <label for="profile_picture">Profile Picture:</label><br>
         <input type="file" id="profile_picture" name="profile_picture"><br><br>

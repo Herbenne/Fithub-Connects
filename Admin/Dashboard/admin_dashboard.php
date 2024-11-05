@@ -71,14 +71,16 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['add_user'])) {
             }
         } else {
             // User doesn't exist, add a new user
-            $stmt = $db_connection->prepare("SELECT MAX(id) AS max_id FROM users");
+            // Get the next unique ID
+            $stmt = $db_connection->prepare("SELECT MAX(CAST(SUBSTRING(unique_id, 4) AS UNSIGNED)) AS max_unique_id FROM users");
             $stmt->execute();
-            $stmt->bind_result($max_id);
+            $stmt->bind_result($max_unique_id);
             $stmt->fetch();
             $stmt->close();
 
-            $next_id = $max_id ? $max_id + 1 : 1000;
-            $unique_id = "SG-" . str_pad($next_id, 4, '0', STR_PAD_LEFT);
+            // Increment the unique ID starting from 1000
+            $next_unique_id = $max_unique_id ? $max_unique_id + 1 : 1000;
+            $unique_id = "SG-" . str_pad($next_unique_id, 4, '0', STR_PAD_LEFT);
 
             // Fetch membership plan duration
             $stmt = $db_connection->prepare("SELECT duration FROM membership_plans WHERE id = ?");

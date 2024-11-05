@@ -62,17 +62,17 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     } else {
         $hashed_password = password_hash($password, PASSWORD_DEFAULT);
 
-        // Get the highest existing user ID
-        $stmt = $db_connection->prepare("SELECT MAX(id) AS max_id FROM users");
+        // Get the highest existing unique_id
+        $stmt = $db_connection->prepare("SELECT MAX(CAST(SUBSTRING(unique_id, 4) AS UNSIGNED)) AS max_unique_id FROM users");
         if ($stmt) {
             $stmt->execute();
-            $stmt->bind_result($max_id);
+            $stmt->bind_result($max_unique_id);
             $stmt->fetch();
             $stmt->close();
 
-            // Calculate the next ID
-            $next_id = $max_id ? $max_id + 1 : 1000; // Default to 1000 if no IDs exist
-            $unique_id = "SG-" . str_pad($next_id, 4, '0', STR_PAD_LEFT); // Format to 4 digits
+            // Calculate the next unique ID
+            $next_unique_id = $max_unique_id ? $max_unique_id + 1 : 1000; // Default to 1000 if no unique IDs exist
+            $unique_id = "SG-" . str_pad($next_unique_id, 4, '0', STR_PAD_LEFT); // Format to 4 digits
 
             // Insert the new user
             $stmt = $db_connection->prepare("INSERT INTO users (username, email, password, full_name, age, contact_number, profile_picture, unique_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
