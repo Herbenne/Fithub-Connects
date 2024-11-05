@@ -1,7 +1,7 @@
 <?php
 session_start();
 
-// Enable error reporting
+// Enable error reporting for debugging
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
@@ -12,7 +12,7 @@ if (!isset($_SESSION['admin_logged_in'])) {
     exit();
 }
 
-// Database connection code
+// Database connection details
 $user = 'root';
 $pass = '';
 $db = 'gymdb';
@@ -24,103 +24,100 @@ if ($db_connection->connect_error) {
     die("Connection failed: " . $db_connection->connect_error);
 }
 
-// Handle the form submission for adding users with memberships
-if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['add_user'])) {
+// Add or Update Membership for Existing User
+if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['add_user'])) {
     $username = $_POST['username'];
     $membership_plan_id = $_POST['membership_plan_id'];
     $current_date = date('Y-m-d');
 
-    // Check if the username already exists
-    $stmt = $db_connection->prepare("SELECT COUNT(*) AS count FROM users WHERE username = ?");
+    // Check if the user already exists
+    $stmt = $db_connection->prepare("SELECT id FROM users WHERE username = ?");
     if ($stmt) {
         $stmt->bind_param("s", $username);
         $stmt->execute();
-        $stmt->bind_result($user_count);
+        $stmt->bind_result($user_id);
         $stmt->fetch();
         $stmt->close();
 
-        if ($user_count > 0) {
-            echo "Error: Username already exists!";
-        } else {
-            // Generate unique ID based on the highest existing ID
-            $stmt = $db_connection->prepare("SELECT MAX(id) AS max_id FROM users");
+        // If user exists, update their membership details
+        if ($user_id) {
+            // Fetch the duration of the selected membership plan
+            $stmt = $db_connection->prepare("SELECT duration FROM membership_plans WHERE id = ?");
             if ($stmt) {
+                $stmt->bind_param("i", $membership_plan_id);
                 $stmt->execute();
-                $stmt->bind_result($max_id);
+                $stmt->bind_result($duration);
                 $stmt->fetch();
                 $stmt->close();
 
-                // Calculate the next ID
-                $next_id = $max_id ? $max_id + 1 : 1000; // Default to 1000 if no IDs exist
-                $unique_id = "SG-" . str_pad($next_id, 4, '0', STR_PAD_LEFT); // Format to 4 digits
+                if ($duration) {
+                    $end_date = date('Y-m-d', strtotime($current_date . ' + ' . $duration . ' days'));
 
-                // Check if unique_id already exists (should be unnecessary, but good practice)
-                $stmt = $db_connection->prepare("SELECT COUNT(*) AS id_count FROM users WHERE unique_id = ?");
-                if ($stmt) {
-                    $stmt->bind_param("s", $unique_id);
-                    $stmt->execute();
-                    $stmt->bind_result($id_count);
-                    $stmt->fetch();
-                    $stmt->close();
+                    // Update user's membership details
+                    $stmt = $db_connection->prepare("UPDATE users SET membership_start_date = ?, membership_end_date = ?, membership_status = 'active' WHERE id = ?");
+                    $stmt->bind_param("ssi", $current_date, $end_date, $user_id);
 
-                    if ($id_count > 0) {
-                        echo "Error: Unique ID already exists!";
+                    if ($stmt->execute()) {
+                        echo "Membership updated successfully for existing user!";
                     } else {
-                        // Fetch the membership plan details
-                        $stmt = $db_connection->prepare("SELECT duration FROM membership_plans WHERE id = ?");
-                        if ($stmt) {
-                            $stmt->bind_param("i", $membership_plan_id);
-                            $stmt->execute();
-                            $stmt->bind_result($duration);
-                            $stmt->fetch();
-                            $stmt->close();
-
-                            $end_date = date('Y-m-d', strtotime($current_date . ' + ' . $duration . ' days'));
-
-                            // Insert new user with membership details
-                            $stmt = $db_connection->prepare("INSERT INTO users (unique_id, username, membership_start_date, membership_end_date, membership_status) VALUES (?, ?, ?, ?, 'active')");
-                            if ($stmt) {
-                                $stmt->bind_param("ssss", $unique_id, $username, $current_date, $end_date);
-
-                                if ($stmt->execute()) {
-                                    echo "User added successfully!";
-                                } else {
-                                    echo "Error: " . $stmt->error;
-                                }
-
-                                $stmt->close();
-                            } else {
-                                // Log the SQL error
-                                error_log("Error preparing statement: " . $db_connection->error);
-                            }
-                        } else {
-                            // Log the SQL error
-                            error_log("Error preparing statement: " . $db_connection->error);
-                        }
+                        echo "Error updating membership: " . $stmt->error;
                     }
+                    $stmt->close();
                 } else {
-                    // Log the SQL error
-                    error_log("Error preparing statement: " . $db_connection->error);
+                    echo "Error: Invalid membership plan selected.";
                 }
             } else {
-                // Log the SQL error
                 error_log("Error preparing statement: " . $db_connection->error);
+            }
+        } else {
+            // User doesn't exist, add a new user
+            $stmt = $db_connection->prepare("SELECT MAX(id) AS max_id FROM users");
+            $stmt->execute();
+            $stmt->bind_result($max_id);
+            $stmt->fetch();
+            $stmt->close();
+
+            $next_id = $max_id ? $max_id + 1 : 1000;
+            $unique_id = "SG-" . str_pad($next_id, 4, '0', STR_PAD_LEFT);
+
+            // Fetch membership plan duration
+            $stmt = $db_connection->prepare("SELECT duration FROM membership_plans WHERE id = ?");
+            $stmt->bind_param("i", $membership_plan_id);
+            $stmt->execute();
+            $stmt->bind_result($duration);
+            $stmt->fetch();
+            $stmt->close();
+
+            if ($duration) {
+                $end_date = date('Y-m-d', strtotime($current_date . ' + ' . $duration . ' days'));
+
+                // Insert new user with membership details
+                $stmt = $db_connection->prepare("INSERT INTO users (unique_id, username, membership_start_date, membership_end_date, membership_status) VALUES (?, ?, ?, ?, 'active')");
+                $stmt->bind_param("ssss", $unique_id, $username, $current_date, $end_date);
+
+                if ($stmt->execute()) {
+                    echo "User added successfully!";
+                } else {
+                    echo "Error: " . $stmt->error;
+                }
+                $stmt->close();
+            } else {
+                echo "Error: Invalid membership plan selected.";
             }
         }
     } else {
-        // Log the SQL error
         error_log("Error preparing statement: " . $db_connection->error);
     }
 }
 
-// Handle the form submission for adding admins
-if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['add_admin'])) {
+// Add Admin logic
+if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['add_admin'])) {
     $admin_username = $_POST['admin_username'];
     $admin_email = $_POST['admin_email'];
-    $admin_password = password_hash($_POST['admin_password'], PASSWORD_BCRYPT); // Hash the password for security
+    $admin_password = password_hash($_POST['admin_password'], PASSWORD_BCRYPT);
 
     // Insert new admin
-    $stmt = $db_connection->prepare("INSERT INTO admins (username, email, password) VALUES (?, ?, ?)");
+    $stmt = $db_connection->prepare("INSERT INTO admins (username, email, password, created_at) VALUES (?, ?, ?, NOW())");
     if ($stmt) {
         $stmt->bind_param("sss", $admin_username, $admin_email, $admin_password);
 
@@ -129,28 +126,30 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['add_admin'])) {
         } else {
             echo "Error: " . $stmt->error;
         }
-
         $stmt->close();
     } else {
-        // Log the SQL error
         error_log("Error preparing statement: " . $db_connection->error);
     }
 }
 
 // Fetch users and membership plans for display
-$sql = "SELECT id, unique_id, username, email, full_name, age, contact_number, membership_start_date, membership_end_date, membership_status FROM users";
-$result = $db_connection->query($sql);
+$user_query = "SELECT id, unique_id, username, email, full_name, age, contact_number, membership_start_date, membership_end_date, membership_status FROM users";
+$result = $db_connection->query($user_query);
 
-// Fetch membership plans for display
-$sql_plans = "SELECT id, plan_name, duration, price FROM membership_plans";
-$plans_result = $db_connection->query($sql_plans);
-
-// Fetch admins for display
-$sql_admins = "SELECT id, username, email, created_at FROM admins";
-$admins_result = $db_connection->query($sql_admins);
+// Fetch membership plans
+$plans_query = "SELECT id, plan_name, duration, price FROM membership_plans";
+$plans_result = $db_connection->query($plans_query);
 
 if ($plans_result === false) {
     echo "Error fetching membership plans: " . $db_connection->error;
+}
+
+// Fetch admins for display
+$admins_query = "SELECT id, username, email, created_at FROM admins";
+$admins_result = $db_connection->query($admins_query);
+
+if ($admins_result === false) {
+    echo "Error fetching admins: " . $db_connection->error;
 }
 
 // Include the HTML for displaying the admin dashboard
@@ -159,3 +158,4 @@ include('admin_dashboard_view.php');
 // Close the connection at the end
 $db_connection->close();
 ?>
+    
