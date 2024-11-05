@@ -257,89 +257,8 @@ if (!$result) {
     </table>
 
         <!-- Payments Section -->
-    <h3>Payments List</h3>
-    <div class="card">
-        <h4>Total Amount</h4>
-        <?php
-        // cURL request to fetch payment details
-        $curl = curl_init();
-
-        curl_setopt_array($curl, [
-            CURLOPT_URL => "https://api.paymongo.com/v1/payments?limit=10",
-            CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-            CURLOPT_HTTPHEADER => [
-                "accept: application/json",
-                "authorization: Basic c2tfdGVzdF9CeGRpRVpyeDRXOFRMUVBRSkpYN2hhVHQ6SGVyYmVubmUhMjM0"
-            ],
-        ]);
-
-        $response = curl_exec($curl);
-        $err = curl_error($curl);
-
-        curl_close($curl);
-
-        if ($err) {
-            echo "cURL Error #:" . $err;
-        } else {
-            // Decode the JSON response
-            $data = json_decode($response, true);
-            
-            // Calculate total amount
-            $total_amount = 0;
-            if (isset($data['data']) && is_array($data['data'])) {
-                foreach ($data['data'] as $payment) {
-                    $total_amount += $payment['attributes']['amount'];
-                }
-                echo '<p>Total Amount: ' . htmlspecialchars(number_format($total_amount / 100, 2)) . ' PHP</p>';
-            } else {
-                echo 'No payments found.';
-            }
-        }
-        ?>
-    </div>
-    
-    <table>
-        <thead>
-            <tr>
-                <th>ID</th>
-                <th>Amount</th>
-                <th>Currency</th>
-                <th>Status</th>
-                <th>Description</th>
-                <th>Created At</th>
-            </tr>
-        </thead>
-        <tbody>
-            <?php
-            if (isset($data['data']) && is_array($data['data'])) {
-                foreach ($data['data'] as $payment) {
-                    // Convert amount from cents to dollars
-                    $amount_in_dollars = $payment['attributes']['amount'] / 100;
-                    echo '<tr>';
-                    echo '<td>' . htmlspecialchars($payment['id']) . '</td>';
-                    echo '<td>' . htmlspecialchars(number_format($amount_in_dollars, 2)) . '</td>';
-                    echo '<td>' . htmlspecialchars($payment['attributes']['currency']) . '</td>';
-                    echo '<td>' . htmlspecialchars($payment['attributes']['status']) . '</td>';
-                    echo '<td>' . htmlspecialchars($payment['attributes']['description']) . '</td>';
-                    echo '<td>' . htmlspecialchars(date('Y-m-d H:i:s', strtotime($payment['attributes']['created_at']))) . '</td>';
-                    echo '</tr>';
-                }
-            } else {
-                echo '<tr><td colspan="6">No payments found.</td></tr>';
-            }
-            ?>
-        </tbody>
-    </table>
     
     <!-- Search Payment by Reference Number -->
-    <h3>Search Payment by Reference Number</h3>
-    <form method="post" action="">
-        <label for="reference_number">Reference Number:</label>
-        <input type="text" id="reference_number" name="reference_number" required>
-        <button type="submit">Get Payment Details</button>
-        <button type="button" onclick="window.location.href='admin_dashboard.php';">Cancel</button>
-    </form>
 
     <?php
     if ($_SERVER['REQUEST_METHOD'] == 'POST' && !empty($_POST['reference_number'])) {
