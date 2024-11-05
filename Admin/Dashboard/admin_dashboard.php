@@ -158,4 +158,3 @@ include('admin_dashboard_view.php');
 // Close the connection at the end
 $db_connection->close();
 ?>
-    

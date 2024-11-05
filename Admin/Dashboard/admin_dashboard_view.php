@@ -222,7 +222,7 @@ if (!$result) {
         <input type="submit" value="Add Plan">
     </form>
     
-    <!-- List of Membership -->
+<!-- Membership Management Section -->
     <h3>Existing Membership Plans</h3>
     <table>
         <thead>
