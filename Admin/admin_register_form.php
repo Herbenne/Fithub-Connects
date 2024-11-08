@@ -58,7 +58,7 @@
     </form>
 
     <br>
-    <form action="admin_login.php" method="get">
+    <form action="admin_login_form.php" method="get">
         <input type="submit" value="Login">
     </form>
 </body>
