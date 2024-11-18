@@ -40,7 +40,7 @@
     <?php endif; ?>
 
     <form action="admin_register.php" method="post">
-        <label for="username">Username:</label><br>
+        <label for="username">UsernameB:</label><br> 
         <input type="text" id="username" name="username" required><br><br>
         
         <label for="email">Email:</label><br>
