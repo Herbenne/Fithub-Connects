@@ -8,7 +8,7 @@ error_reporting(E_ALL);
 
 // Check if the admin is logged in
 if (!isset($_SESSION['admin_logged_in'])) {
-    header("Location: admin_login.php");
+    header("Location: ../Admin/admin_login.php"); // Fixed location path
     exit();
 }
 
@@ -159,4 +159,3 @@ include('admin_dashboard_view.php');
 
 // Close the connection at the end
 $db_connection->close();
-?>

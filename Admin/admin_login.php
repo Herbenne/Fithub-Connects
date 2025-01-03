@@ -17,10 +17,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $password = $_POST['password'];
 
     if (empty($email) || empty($password)) {
-        $error_message = "All fields are required.";
+        $_SESSION['error_message'] = "All fields are required.";  // Store in session
+        header("Location: admin_login_form.php"); // Redirect back to the form
+        exit();
     } else {
         $stmt = $db_connection->prepare("SELECT password FROM admins WHERE email = ?");
-        
+
         if ($stmt) {
             $stmt->bind_param("s", $email);
             $stmt->execute();
@@ -34,21 +36,27 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     $_SESSION['admin_logged_in'] = true;
                     $_SESSION['admin_email'] = $email;
 
-                    header("Location: ../Admin/Dashboard/admin_dashboard.php");
+                    // Redirect to the admin dashboard
+                    header("Location: Dashboard/admin_dashboard_view.php");
                     exit();
                 } else {
-                    $error_message = "Invalid password.";
+                    $_SESSION['error_message'] = "Invalid password.";  // Store in session
+                    header("Location: admin_login_form.php"); // Redirect back to the form
+                    exit();
                 }
             } else {
-                $error_message = "No admin found with that email.";
+                $_SESSION['error_message'] = "No admin found with that email."; // Store in session
+                header("Location: admin_login_form.php"); // Redirect back to the form
+                exit();
             }
 
             $stmt->close();
         } else {
-            $error_message = "Error preparing the SQL statement.";
+            $_SESSION['error_message'] = "Error preparing the SQL statement."; // Store in session
+            header("Location: admin_login_form.php"); // Redirect back to the form
+            exit();
         }
     }
 }
 
 $db_connection->close();
-?>
