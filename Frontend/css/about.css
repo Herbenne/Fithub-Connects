@@ -1,0 +1,99 @@
+.about-container {
+  height: 100vh;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.about {
+  height: 90%;
+  width: 100%;
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+}
+
+.about-us {
+  height: 100%;
+  width: 50%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.about-us h1 {
+  margin-top: 40px;
+  font-size: 40px;
+  color: #fab12f;
+}
+
+.about-descriptions {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 70%;
+  width: 80%;
+  padding: 20px;
+  font-size: 17px;
+}
+
+.about-descriptions p {
+  border: 1px solid #fab12f;
+  padding: 20px;
+}
+
+.map-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+  width: 50%;
+  border: 1px solid #fab12f;
+  margin: 20px;
+}
+
+.map {
+  height: 70%;
+  width: 60%;
+}
+
+@media (max-width: 750px) {
+  .about-descriptions {
+    height: 70%;
+    width: 100%;
+  }
+
+  .map {
+    height: 80%;
+    width: 100%;
+    padding: 20px;
+  }
+}
+
+@media (max-width: 570px) {
+  .about {
+    height: 90%;
+    width: 100%;
+    flex-direction: column;
+  }
+
+  .about-us {
+    height: 80%;
+    width: 100%;
+  }
+
+  .about-descriptions {
+    width: 100%;
+  }
+
+  .map-container {
+    height: 100%;
+    width: 100%;
+  }
+
+  .map {
+    height: 100%;
+  }
+}

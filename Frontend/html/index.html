@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <link rel="stylesheet" href="../css/nav.css" />
+    <link rel="stylesheet" href="../css/about.css" />
+    <link rel="stylesheet" href="../css/frontPage.css" />
+    <link rel="stylesheet" href="../css/postGym.css" />
+    <script
+      src="https://kit.fontawesome.com/b098b18a13.js"
+      crossorigin="anonymous"
+    ></script>
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet" />
+
+    <link
+      href="https://unpkg.com/maplibre-gl@2.4.0/dist/maplibre-gl.css"
+      rel="stylesheet"
+    />
+    <script src="https://unpkg.com/maplibre-gl@2.4.0/dist/maplibre-gl.js"></script>
+
+    <title>Fithub-Connects</title>
+  </head>
+  <body>
+    <nav>
+      <div class="logo" id="logo">
+        <h1>
+          <img class="logo-image" src="../img/FITHUB LOGO.png" alt="FITHUB" />
+        </h1>
+      </div>
+      <div class="openMenu"><i class="fa-solid fa-bars"></i></div>
+      <ul class="mainMenu">
+        <li><a href="#">HOME</a></li>
+        <li><a href="#about-us">ABOUT</a></li>
+        <li><a href="#">FIND GYM</a></li>
+        <li><a href="#">WHY FITHUB</a></li>
+        <div class="closeMenu"><i class="fa fa-times"></i></div>
+        <span class="icons">
+          <a href="https://www.facebook.com/qweqwetikorts"
+            ><i class="fa-brands fa-facebook"></i
+          ></a>
+          <a href="https://www.instagram.com/dyaalenzxc"
+            ><i class="fa-brands fa-instagram"></i
+          ></a>
+          <a href="https://github.com/Liebe3"
+            ><i class="fa-brands fa-github"></i
+          ></a>
+          <a href="mailto:jallenjoseph.portugal@tup.edu.ph"
+            ><i class="fa-regular fa-envelope"></i
+          ></a>
+        </span>
+      </ul>
+      <div class="auth-buttons">
+        <button class="login-button">LOGIN</button>
+        <button class="signup-button">SIGNUP</button>
+      </div>
+    </nav>
+
+    <main>
+      <div class="home-parent">
+        <div class="home-tagline">SUCCESS STARTS WITH DISCIPLINE</div>
+        <div class="home-description">
+          <p>
+            Lorem ipsum, dolor sit amet consectetur adipisicing elit. Facere
+            illum labore distinctio nulla iste quos, voluptatibus perspiciatis
+            aliquid a magnam.
+          </p>
+        </div>
+        <div class="home-buttons">
+          <button class="learn-more-button">Learn more</button>
+          <button class="join-now-button">Join now</button>
+        </div>
+        <div class="home-socials">
+          <div class="home-icons">
+            <p>SOCIAL</p>
+            <marquee></marquee>
+            <i class="fa-brands fa-facebook"></i>
+            <i class="fa-brands fa-instagram"></i>
+            <i class="fa-brands fa-x-twitter"></i>
+            <i class="fa-regular fa-envelope"></i>
+          </div>
+        </div>
+        <div class="home-gymGuy">
+          <img src="../img/young-fitness-man-studio.png" alt="" />
+        </div>
+      </div>
+    </main>
+
+    <section class="about-container">
+      <div class="about">
+        <div id="about-us" class="about-us">
+          <h1>About Us</h1>
+          <div class="about-descriptions">
+            <p>
+              Lorem, ipsum dolor sit amet consectetur adipisicing elit.
+              Recusandae repellendus officia nobis nostrum optio veritatis eos
+              eius autem consectetur rem saepe id sequi, excepturi dolores
+              fugiat eveniet, dolorem deserunt hic.
+            </p>
+          </div>
+        </div>
+        <div class="map-container">
+          <iframe
+            class="map"
+            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3859.747795512362!2d120.99468357510744!3d14.670249085824388!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3397b69876d12707%3A0x71c2930033703143!2sSterling%20Fitness-Araneta%20Malabon!5e0!3m2!1sen!2sph!4v1734877618999!5m2!1sen!2sph"
+            width="600"
+            height="450"
+            style="border: 0"
+            allowfullscreen=""
+            loading="lazy"
+            referrerpolicy="no-referrer-when-downgrade"
+          ></iframe>
+        </div>
+      </div>
+    </section>
+
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script>
+      AOS.init();
+    </script>
+    <script src="../js/map.js"></script>
+    <script src="../js/link.js"></script>
+    <script src="../js/nav.js"></script>
+  </body>
+</html>
