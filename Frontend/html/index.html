@@ -4,10 +4,11 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-    <link rel="stylesheet" href="../css/nav.css" />
-    <link rel="stylesheet" href="../css/about.css" />
-    <link rel="stylesheet" href="../css/frontPage.css" />
-    <link rel="stylesheet" href="../css/postGym.css" />
+    <link rel="stylesheet" href="../css/navs.css" />
+    <link rel="stylesheet" href="../css/Mainpage.css" />
+    <link rel="stylesheet" href="../css/abouts.css" />
+    <link rel="stylesheet" href="../css/offers.css" />
+    <link rel="stylesheet" href="../css/contact.css" />
     <script
       src="https://kit.fontawesome.com/b098b18a13.js"
       crossorigin="anonymous"
@@ -26,15 +27,17 @@
     <nav>
       <div class="logo" id="logo">
         <h1>
-          <img class="logo-image" src="../img/FITHUB LOGO.png" alt="FITHUB" />
+          <a href="#">
+            <img class="logo-image" src="../img/FITHUB LOGO.png" alt="FITHUB" />
+          </a>
         </h1>
       </div>
       <div class="openMenu"><i class="fa-solid fa-bars"></i></div>
       <ul class="mainMenu">
         <li><a href="#">HOME</a></li>
         <li><a href="#about-us">ABOUT</a></li>
-        <li><a href="#">FIND GYM</a></li>
-        <li><a href="#">WHY FITHUB</a></li>
+        <li><a href="#offers">OFFERS</a></li>
+        <li><a href="#come-together">CONTACT</a></li>
         <div class="closeMenu"><i class="fa fa-times"></i></div>
         <span class="icons">
           <a href="https://www.facebook.com/qweqwetikorts"
@@ -62,24 +65,20 @@
         <div class="home-tagline">SUCCESS STARTS WITH DISCIPLINE</div>
         <div class="home-description">
           <p>
-            Lorem ipsum, dolor sit amet consectetur adipisicing elit. Facere
-            illum labore distinctio nulla iste quos, voluptatibus perspiciatis
-            aliquid a magnam.
+            Every rep, every drop of sweat, every challenge you overcome brings
+            you one step closer to your goals. At
+            <span class="fithub">FitHub,</span> we don't just train we
+            transform. Push your limits and become the strongest version of
+            yourself.
           </p>
         </div>
         <div class="home-buttons">
-          <button class="learn-more-button">Learn more</button>
-          <button class="join-now-button">Join now</button>
-        </div>
-        <div class="home-socials">
-          <div class="home-icons">
-            <p>SOCIAL</p>
-            <marquee></marquee>
-            <i class="fa-brands fa-facebook"></i>
-            <i class="fa-brands fa-instagram"></i>
-            <i class="fa-brands fa-x-twitter"></i>
-            <i class="fa-regular fa-envelope"></i>
-          </div>
+          <a href="#about-us"
+            ><button class="learn-more-button">Learn more</button></a
+          >
+          <a href="../../Login&Registration/register_form.php">
+            <button class="join-now-button">Join now</button></a
+          >
         </div>
         <div class="home-gymGuy">
           <img src="../img/young-fitness-man-studio.png" alt="" />
@@ -93,10 +92,11 @@
           <h1>About Us</h1>
           <div class="about-descriptions">
             <p>
-              Lorem, ipsum dolor sit amet consectetur adipisicing elit.
-              Recusandae repellendus officia nobis nostrum optio veritatis eos
-              eius autem consectetur rem saepe id sequi, excepturi dolores
-              fugiat eveniet, dolorem deserunt hic.
+              At <span class="fithub">FitHub,</span> we believe in strength,
+              discipline, and progress. Whether you're lifting your first weight
+              or breaking personal records, our gym provides the equipment,
+              support, and motivation you need to push past your limits and
+              achieve your goals.
             </p>
           </div>
         </div>
@@ -115,11 +115,90 @@
       </div>
     </section>
 
+    <section id="offers" class="offers-container">
+      <h1 class="offers-title">Membership Offers</h1>
+      <div class="offers">
+        <div class="offer">
+          <h3>Member</h3>
+          <p>Daily Rate</p>
+          <div class="price">₱150</div>
+          <p class="per-day">per day</p>
+        </div>
+        <div class="offer">
+          <h3>Student Discount</h3>
+          <p>1 Month</p>
+          <div class="price">₱2,000</div>
+          <p class="per-day">Valid student ID required</p>
+        </div>
+        <div class="offer">
+          <h3>Regular</h3>
+          <p>1 Month</p>
+          <div class="price">₱2,300</div>
+          <p class="per-day">Non-student rate</p>
+        </div>
+        <div class="offer">
+          <h3>Extended</h3>
+          <p>2 Months</p>
+          <div class="price">₱3,200</div>
+          <p class="per-day">Save ₱1,400</p>
+        </div>
+        <div class="offer">
+          <h3>Quarter</h3>
+          <p>4 Months</p>
+          <div class="price">₱4,800</div>
+          <p class="per-day">Save ₱4,400</p>
+        </div>
+        <div class="offer">
+          <h3>Semester</h3>
+          <p>5 Months</p>
+          <div class="price">₱5,500</div>
+          <p class="per-day">Save ₱6,000</p>
+        </div>
+        <div class="offer">
+          <h3>Extended Semester</h3>
+          <p>7 Months</p>
+          <div class="price">₱6,200</div>
+          <p class="per-day">Save ₱9,900</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="come-together" id="come-together">
+      <div class="container">
+        <div class="content-wrapper">
+          <div class="text-content">
+            <h2 class="title">
+              Join FitHub - Your Fitness Journey Starts Here!
+            </h2>
+            <h3 class="subtitle">Every Rep Counts</h3>
+            <p class="description">
+              Transform your body, boost your energy, and build confidence. At
+              FitHub, we provide the best equipment, expert trainers, and a
+              supportive community to help you reach your fitness goals. No
+              excuses just results. Start your journey today!
+            </p>
+            <button class="talk-button">Let's talk</button>
+            <div class="social-links">
+              <a href="#"><i class="fa-brands fa-facebook"></i></a>
+              <a href="#"><i class="fa-brands fa-linkedin"></i></a>
+              <a href="#"><i class="fa-brands fa-instagram"></i></a>
+              <a href="#"><i class="fa-regular fa-envelope"></i></a>
+              <a href="#"><i class="fa-brands fa-x-twitter"></i></a>
+            </div>
+          </div>
+          <div class="illustration">
+            <img
+              src="../img/undraw_work-time_zbsw.svg"
+              alt="People collaborating"
+            />
+          </div>
+        </div>
+      </div>
+    </section>
     <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
     <script>
       AOS.init();
     </script>
-    <script src="../js/map.js"></script>
     <script src="../js/link.js"></script>
     <script src="../js/nav.js"></script>
   </body>

@@ -1,0 +1,69 @@
+.offers-container {
+  background-color: #f0f0f0;
+  padding: 40px 20px;
+  
+}
+.offers-title {
+  text-align: center;
+  color: #fab12f;
+  margin-bottom: 30px;
+}
+.offers {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+.offer {
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  padding: 20px;
+  width: 250px;
+  text-align: center;
+  transition: transform 0.3s ease;
+}
+.offer:hover {
+  transform: translateY(-5px);
+}
+.offer h3 {
+  color: #2c3e50;
+  margin-top: 0;
+}
+.offer p {
+  color: #34495e;
+  margin-bottom: 15px;
+}
+.price {
+  font-size: 24px;
+  font-weight: bold;
+  color: #fab12f;
+}
+.per-day {
+  font-size: 14px;
+  color: #7f8c8d;
+}
+.highligt {
+  background-color: #3498db;
+  color: #fff;
+}
+
+.offer:hover{
+  background-color: #3498db;
+  transition: 0.16s;
+}
+.highlight h3, .highlight p, .highlight .price, .highlight .per-day {
+  color: #fff;
+}
+@media (max-width: 768px) {
+  .offer {
+    width: calc(50% - 20px);
+  }
+}
+@media (max-width: 480px) {
+  .offer {
+    width: 100%;
+  }
+}

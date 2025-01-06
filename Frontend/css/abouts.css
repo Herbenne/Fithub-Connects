@@ -4,6 +4,7 @@
   display: flex;
   justify-content: center;
   align-items: center;
+  background: #f0f0f0;
 }
 
 .about {
@@ -37,6 +38,12 @@
   width: 80%;
   padding: 20px;
   font-size: 17px;
+}
+
+.fithub{
+  color: #fab12f;
+  font-weight: bold;
+
 }
 
 .about-descriptions p {

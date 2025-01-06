@@ -6,6 +6,7 @@
   list-style: none;
   font-family: Poppins;
   scroll-behavior: smooth;
+  color: #333;
 }
 
 body {
@@ -26,8 +27,9 @@ nav {
   background: #f5f5f5;
   position: fixed;
   width: 100%;
-  z-index: 1;
- 
+  z-index: 5;
+  
+  
 }
 
 .auth-buttons {
@@ -75,6 +77,13 @@ nav .logo h1 {
 .mainMenu {
   transition: top 0.3s ease;
 }
+.offers-contianer {
+  position: relative;
+}
+
+.dropdown {
+  position: absolute;
+}
 
 .mainMenu li a {
   display: inline-block;
@@ -88,7 +97,7 @@ nav .logo h1 {
   transition: 0.2s ease;
 }
 
-.mainMenu li a.active {
+.mainMenu li a:active {
   color: black;
 }
 
@@ -101,7 +110,7 @@ nav .logo h1 {
   }
 }
 
-nav ul {
+nav .mainMenu {
   margin-right: 30px;
 }
 
@@ -141,6 +150,11 @@ nav .mainMenu .closeMenu,
   display: none;
   cursor: pointer;
   transition: 0.5s;
+  
+}
+
+.fa-times{
+  color: #fab12f;
 }
 
 .icons a i {
@@ -164,7 +178,7 @@ nav .mainMenu .closeMenu,
     height: 100vh;
     position: fixed;
     top: 0px;
-    right: 0px;
+    right: -30px;
     left: 0px;
     z-index: 10;
     flex-direction: column;
@@ -206,7 +220,8 @@ nav .mainMenu .closeMenu,
 
   nav .mainMenu li a:hover {
     background: none;
-    background-color: #7fb5ff;
+    background-color: #fab12f;
+    transition: 0.16s;
   }
 
   .icons i {
