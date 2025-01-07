@@ -38,6 +38,7 @@
         <li><a href="#about-us">ABOUT</a></li>
         <li><a href="#offers">OFFERS</a></li>
         <li><a href="#come-together">CONTACT</a></li>
+        <li><a href="../forum/index.php">Forum</a></li>
         <div class="closeMenu"><i class="fa fa-times"></i></div>
         <span class="icons">
           <a href="https://www.facebook.com/qweqwetikorts"
@@ -115,53 +116,60 @@
       </div>
     </section>
 
-    <section id="offers" class="offers-container">
-      <h1 class="offers-title">Membership Offers</h1>
-      <div class="offers">
-        <div class="offer">
-          <h3>Member</h3>
-          <p>Daily Rate</p>
-          <div class="price">₱150</div>
-          <p class="per-day">per day</p>
-        </div>
-        <div class="offer">
-          <h3>Student Discount</h3>
-          <p>1 Month</p>
-          <div class="price">₱2,000</div>
-          <p class="per-day">Valid student ID required</p>
-        </div>
-        <div class="offer">
-          <h3>Regular</h3>
-          <p>1 Month</p>
-          <div class="price">₱2,300</div>
-          <p class="per-day">Non-student rate</p>
-        </div>
-        <div class="offer">
-          <h3>Extended</h3>
-          <p>2 Months</p>
-          <div class="price">₱3,200</div>
-          <p class="per-day">Save ₱1,400</p>
-        </div>
-        <div class="offer">
-          <h3>Quarter</h3>
-          <p>4 Months</p>
-          <div class="price">₱4,800</div>
-          <p class="per-day">Save ₱4,400</p>
-        </div>
-        <div class="offer">
-          <h3>Semester</h3>
-          <p>5 Months</p>
-          <div class="price">₱5,500</div>
-          <p class="per-day">Save ₱6,000</p>
-        </div>
-        <div class="offer">
-          <h3>Extended Semester</h3>
-          <p>7 Months</p>
-          <div class="price">₱6,200</div>
-          <p class="per-day">Save ₱9,900</p>
-        </div>
-      </div>
-    </section>
+<section id="offers" class="offers-container">
+  <h1 class="offers-title">Membership Offers</h1>
+  <div class="offers">
+    <div class="offer" onclick="redirectToPayment('Member', 'Daily Rate', 150)">
+      <h3>Member</h3>
+      <p>Daily Rate</p>
+      <div class="price">₱150</div>
+      <p class="per-day">per day</p>
+    </div>
+    <div class="offer" onclick="redirectToPayment('Student Discount', '1 Month', 2000)">
+      <h3>Student Discount</h3>
+      <p>1 Month</p>
+      <div class="price">₱2,000</div>
+      <p class="per-day">Valid student ID required</p>
+    </div>
+    <div class="offer" onclick="redirectToPayment('Regular', '1 Month', 2300)">
+      <h3>Regular</h3>
+      <p>1 Month</p>
+      <div class="price">₱2,300</div>
+      <p class="per-day">Non-student rate</p>
+    </div>
+    <div class="offer" onclick="redirectToPayment('Extended', '2 Months', 3200)">
+      <h3>Extended</h3>
+      <p>2 Months</p>
+      <div class="price">₱3,200</div>
+      <p class="per-day">Save ₱1,400</p>
+    </div>
+    <div class="offer" onclick="redirectToPayment('Quarter', '4 Months', 4800)">
+      <h3>Quarter</h3>
+      <p>4 Months</p>
+      <div class="price">₱4,800</div>
+      <p class="per-day">Save ₱4,400</p>
+    </div>
+    <div class="offer" onclick="redirectToPayment('Semester', '5 Months', 5500)">
+      <h3>Semester</h3>
+      <p>5 Months</p>
+      <div class="price">₱5,500</div>
+      <p class="per-day">Save ₱6,000</p>
+    </div>
+    <div class="offer" onclick="redirectToPayment('Extended Semester', '7 Months', 6200)">
+      <h3>Extended Semester</h3>
+      <p>7 Months</p>
+      <div class="price">₱6,200</div>
+      <p class="per-day">Save ₱9,900</p>
+    </div>
+  </div>
+</section>
+
+<script>
+  function redirectToPayment(plan, duration, price) {
+    const url = `payment_test.php?plan=${encodeURIComponent(plan)}&duration=${encodeURIComponent(duration)}&price=${price}`;
+    window.location.href = url;
+  }
+</script>
 
     <section class="come-together" id="come-together">
       <div class="container">
@@ -179,7 +187,7 @@
             </p>
             <button class="talk-button">Let's talk</button>
             <div class="social-links">
-              <a href="#"><i class="fa-brands fa-facebook"></i></a>
+              <a href="https://www.facebook.com/sterlingfitnessmalabon" target="_blank"><i class="fa-brands fa-facebook"></i></a>
               <a href="#"><i class="fa-brands fa-linkedin"></i></a>
               <a href="#"><i class="fa-brands fa-instagram"></i></a>
               <a href="#"><i class="fa-regular fa-envelope"></i></a>

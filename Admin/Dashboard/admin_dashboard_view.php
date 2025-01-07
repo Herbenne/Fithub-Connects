@@ -13,6 +13,7 @@ if (!$result) {
 ?>
 <!DOCTYPE html>
 <html>
+
 <head>
     <title>Admin Dashboard</title>
     <style>
@@ -20,22 +21,30 @@ if (!$result) {
             width: 100%;
             border-collapse: collapse;
         }
-        table, th, td {
+
+        table,
+        th,
+        td {
             border: 1px solid black;
             padding: 8px;
         }
+
         th {
             background-color: #f2f2f2;
         }
+
         td {
             text-align: left;
         }
+
         .actions {
             white-space: nowrap;
         }
+
         .actions a {
             margin-right: 5px;
         }
+
         .card {
             border: 1px solid #ddd;
             padding: 10px;
@@ -45,6 +54,7 @@ if (!$result) {
         }
     </style>
 </head>
+
 <body>
     <h2>Admin Dashboard</h2>
     <p>Welcome, Admin!</p>
@@ -94,7 +104,7 @@ if (!$result) {
                             $remaining_days = 0;
                         }
                     }
-                    ?>
+            ?>
                     <tr>
                         <td><?php echo htmlspecialchars($row['unique_id'] ?? 'N/A'); ?></td>
                         <td><?php echo htmlspecialchars($row['username']); ?></td>
@@ -109,7 +119,7 @@ if (!$result) {
                             <a href="delete_user.php?id=<?php echo $row['id']; ?>">Delete</a>
                         </td>
                     </tr>
-                <?php }
+            <?php }
             } else {
                 echo '<tr><td colspan="9">No users found.</td></tr>';
             }
@@ -187,10 +197,10 @@ if (!$result) {
     <h3>Add User with Membership</h3>
     <form action="admin_dashboard.php" method="post">
         <input type="hidden" name="add_user" value="1">
-        
+
         <label for="username">Username:</label>
         <input type="text" id="username" name="username" required><br><br>
-        
+
         <label for="membership_plan_id">Membership Plan:</label>
         <select id="membership_plan_id" name="membership_plan_id" required>
             <?php
@@ -204,7 +214,7 @@ if (!$result) {
             }
             ?>
         </select><br><br>
-        
+
         <input type="submit" value="Add User">
     </form>
     <!-- Membership Management Section -->
@@ -212,17 +222,17 @@ if (!$result) {
     <form action="add_membership_plan.php" method="post">
         <label for="plan_name">Plan Name:</label>
         <input type="text" id="plan_name" name="plan_name" required><br><br>
-        
+
         <label for="duration">Duration (days):</label>
         <input type="number" id="duration" name="duration" required><br><br>
-        
+
         <label for="price">Price:</label>
         <input type="number" id="price" name="price" step="0.01" required><br><br>
-        
+
         <input type="submit" value="Add Plan">
     </form>
-    
-<!-- Membership Management Section -->
+
+    <!-- Membership Management Section -->
     <h3>Existing Membership Plans</h3>
     <table>
         <thead>
@@ -254,62 +264,160 @@ if (!$result) {
             }
             ?>
         </tbody>
-        </table>
-    
+    </table>
+
     <!-- Admin Management Section -->
-<h3>Admin Management</h3>
-<form action="admin_dashboard.php" method="post">
-    <h4>Add New Admin</h4>
-    <label for="admin_username">Username:</label>
-    <input type="text" id="admin_username" name="admin_username" required><br><br>
+    <h3>Admin Management</h3>
+    <form action="admin_dashboard.php" method="post">
+        <h4>Add New Admin</h4>
+        <label for="admin_username">Username:</label>
+        <input type="text" id="admin_username" name="admin_username" required><br><br>
 
-    <label for="admin_email">Email:</label>
-    <input type="email" id="admin_email" name="admin_email" required><br><br>
+        <label for="admin_email">Email:</label>
+        <input type="email" id="admin_email" name="admin_email" required><br><br>
 
-    <label for="admin_password">Password:</label>
-    <input type="password" id="admin_password" name="admin_password" required><br><br>
+        <label for="admin_password">Password:</label>
+        <input type="password" id="admin_password" name="admin_password" required><br><br>
 
-    <label for="admin_password_confirm">Confirm Password:</label>
-    <input type="password" id="admin_password_confirm" name="admin_password_confirm" required><br><br>
+        <label for="admin_password_confirm">Confirm Password:</label>
+        <input type="password" id="admin_password_confirm" name="admin_password_confirm" required><br><br>
 
-    <input type="submit" name="add_admin" value="Add Admin">
-</form>
+        <input type="submit" name="add_admin" value="Add Admin">
+    </form>
 
-<h4>Existing Admins</h4>
-<table>
-    <thead>
-        <tr>
-            <th>Username</th>
-            <th>Email</th>
-            <th>Created At</th>
-            <th>Actions</th>
-        </tr>
-    </thead>
-    <tbody>
-        <?php
-        if (isset($admins_result)) {
-            while ($admin = $admins_result->fetch_assoc()) {
-                ?>
-                <tr>
-                    <td><?php echo htmlspecialchars($admin['username']); ?></td>
-                    <td><?php echo htmlspecialchars($admin['email']); ?></td>
-                    <td><?php echo htmlspecialchars($admin['created_at']); ?></td>
-                    <td>
-                        <a href="edit_admin.php?id=<?php echo $admin['id']; ?>">Edit</a>
-                        <a href="delete_admin.php?id=<?php echo $admin['id']; ?>" onclick="return confirm('Are you sure you want to delete this admin?');">Delete</a>
-                    </td>
-                </tr>
+    <h4>Existing Admins</h4>
+    <table>
+        <thead>
+            <tr>
+                <th>Username</th>
+                <th>Email</th>
+                <th>Created At</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            <?php
+            if (isset($admins_result)) {
+                while ($admin = $admins_result->fetch_assoc()) {
+            ?>
+                    <tr>
+                        <td><?php echo htmlspecialchars($admin['username']); ?></td>
+                        <td><?php echo htmlspecialchars($admin['email']); ?></td>
+                        <td><?php echo htmlspecialchars($admin['created_at']); ?></td>
+                        <td>
+                            <a href="edit_admin.php?id=<?php echo $admin['id']; ?>">Edit</a>
+                            <a href="delete_admin.php?id=<?php echo $admin['id']; ?>" onclick="return confirm('Are you sure you want to delete this admin?');">Delete</a>
+                        </td>
+                    </tr>
             <?php }
+            } else {
+                echo '<tr><td colspan="4">No admins found.</td></tr>';
+            }
+            ?>
+        </tbody>
+    </table>
+
+    <h3>Payments List</h3>
+    <div class="card">
+        <h4>Total Amount</h4>
+        <?php
+        // Initialize variables
+        $search_reference = isset($_GET['reference']) ? trim($_GET['reference']) : '';
+        $filtered_payments = [];
+        $total_amount = 0;
+
+        // cURL request to fetch payment details
+        $curl = curl_init();
+
+        curl_setopt_array($curl, [
+            CURLOPT_URL => "https://api.paymongo.com/v1/payments?limit=10",
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+            CURLOPT_HTTPHEADER => [
+                "accept: application/json",
+                "authorization: Basic c2tfdGVzdF9CeGRpRVpyeDRXOFRMUVBRSkpYN2hhVHQ6SGVyYmVubmUhMjM0"
+            ],
+        ]);
+
+        $response = curl_exec($curl);
+        $err = curl_error($curl);
+
+        curl_close($curl);
+
+        if ($err) {
+            echo "cURL Error #:" . $err;
         } else {
-            echo '<tr><td colspan="4">No admins found.</td></tr>';
+            // Decode the JSON response
+            $data = json_decode($response, true);
+
+            // Filter payments by reference number if a search query exists
+            if (isset($data['data']) && is_array($data['data'])) {
+                foreach ($data['data'] as $payment) {
+                    // If searching, add only matching payments to filtered array
+                    if (!empty($search_reference)) {
+                        if (strpos($payment['id'], $search_reference) !== false) {
+                            $filtered_payments[] = $payment;
+                            $total_amount += $payment['attributes']['amount']; // Sum for filtered payments
+                        }
+                    } else {
+                        // Add all payments to filtered array and calculate total
+                        $filtered_payments[] = $payment;
+                        $total_amount += $payment['attributes']['amount'];
+                    }
+                }
+            }
         }
+
+        // Display total amount
+        echo '<p>Total Amount: ' . htmlspecialchars(number_format($total_amount / 100, 2)) . ' PHP</p>';
         ?>
-    </tbody>
-</table>
+    </div>
+
+    <!-- Search Form -->
+    <form method="GET">
+        <label for="reference">Search by Reference Number:</label>
+        <input type="text" id="reference" name="reference" value="<?php echo htmlspecialchars($search_reference); ?>">
+        <button type="submit">Search</button>
+    </form>
+
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Amount</th>
+                <th>Currency</th>
+                <th>Status</th>
+                <th>Description</th>
+                <th>Created At</th>
+            </tr>
+        </thead>
+        <tbody>
+            <?php
+            if (!empty($filtered_payments)) {
+                foreach ($filtered_payments as $payment) {
+                    // Convert amount from cents to dollars
+                    $amount_in_dollars = $payment['attributes']['amount'] / 100;
+                    echo '<tr>';
+                    echo '<td>' . htmlspecialchars($payment['id']) . '</td>';
+                    echo '<td>' . htmlspecialchars(number_format($amount_in_dollars, 2)) . '</td>';
+                    echo '<td>' . htmlspecialchars($payment['attributes']['currency']) . '</td>';
+                    echo '<td>' . htmlspecialchars($payment['attributes']['status']) . '</td>';
+                    echo '<td>' . htmlspecialchars($payment['attributes']['description']) . '</td>';
+                    echo '<td>' . htmlspecialchars(date('Y-m-d H:i:s', strtotime($payment['attributes']['created_at']))) . '</td>';
+                    echo '</tr>';
+                }
+            } else {
+                echo '<tr><td colspan="6">No payments found.</td></tr>';
+            }
+            ?>
+        </tbody>
+    </table>
+
 
     <br>
     <form action="../admin_logout.php" method="post">
         <input type="submit" value="Logout">
     </form>
 </body>
+
 </html>
