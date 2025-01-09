@@ -28,8 +28,8 @@ if ($result->num_rows === 0) {
 
 $gym = $result->fetch_assoc();
 
-// Query for membership plans specific to the gym
-$offers_query = "SELECT plan_name, duration, price FROM membership_plans WHERE gym_id = ?";
+// Query for membership plans based on gym_id
+$offers_query = "SELECT * FROM membership_plans WHERE gym_id = ?";
 $offers_stmt = $db_connection->prepare($offers_query);
 
 if (!$offers_stmt) {
@@ -40,18 +40,17 @@ $offers_stmt->bind_param("i", $gym_id);
 $offers_stmt->execute();
 $offers_result = $offers_stmt->get_result();
 
-// Query for gym image (profile picture)
-$image_query = "SELECT image_path FROM gym_equipment_images WHERE gym_id = ? LIMIT 1"; // Assuming one profile image per gym
+// Query for gym images
+$image_query = "SELECT image_path FROM gym_equipment_images WHERE gym_id = ?";
 $image_stmt = $db_connection->prepare($image_query);
 $image_stmt->bind_param("i", $gym_id);
 $image_stmt->execute();
 $image_result = $image_stmt->get_result();
-$image = $image_result->fetch_assoc();
 
 // Close the database connection after all queries are done
 $stmt->close();
-$image_stmt->close();
 $offers_stmt->close();
+$image_stmt->close();
 $db_connection->close();
 ?>
 
@@ -69,14 +68,18 @@ $db_connection->close();
 <body>
     <h1><?php echo htmlspecialchars($gym['gym_name'] ?? 'Unknown Gym'); ?></h1>
 
-    <!-- Display Gym Image (Profile Picture) -->
-    <?php if (isset($image['image_path']) && !empty($image['image_path'])): ?>
-        <div class="gym-image">
-            <img src="<?php echo htmlspecialchars($image['image_path']); ?>" alt="Gym Image" style="max-width: 100%; height: auto;">
-        </div>
-    <?php else: ?>
-        <p>No gym image available.</p>
-    <?php endif; ?>
+    <!-- Display Gym Images -->
+    <div class="gym-images">
+        <?php if ($image_result->num_rows > 0): ?>
+            <?php while ($image = $image_result->fetch_assoc()): ?>
+                <div class="gym-image">
+                    <img src="<?php echo htmlspecialchars($image['image_path']); ?>" alt="Gym Image" style="max-width: 100%; height: auto;">
+                </div>
+            <?php endwhile; ?>
+        <?php else: ?>
+            <p>No gym images available.</p>
+        <?php endif; ?>
+    </div>
 
     <p><strong>Location:</strong> <?php echo htmlspecialchars($gym['gym_location'] ?? 'No location provided'); ?></p>
     <p><strong>Description:</strong> <?php echo htmlspecialchars($gym['gym_description'] ?? 'No description available'); ?></p>
@@ -90,13 +93,17 @@ $db_connection->close();
         <div class="offers">
             <!-- Loop through offers dynamically -->
             <?php
-            while ($offer = $offers_result->fetch_assoc()) {
-                echo '<div class="offer" onclick="redirectToPayment(\'' . $offer['plan_name'] . '\', \'' . $offer['duration'] . '\', ' . $offer['price'] . ')">
-                  <h3>' . htmlspecialchars($offer['plan_name']) . '</h3>
-                  <p>' . htmlspecialchars($offer['duration']) . '</p>
-                  <div class="price">₱' . htmlspecialchars($offer['price']) . '</div>
-                  <p class="per-day">per ' . htmlspecialchars($offer['duration']) . '</p>
-                </div>';
+            if ($offers_result->num_rows > 0) {
+                while ($offer = $offers_result->fetch_assoc()) {
+                    echo '<div class="offer" onclick="redirectToPayment(\'' . $offer['plan_name'] . '\', \'' . $offer['duration'] . '\', ' . $offer['price'] . ')">
+                        <h3>' . htmlspecialchars($offer['plan_name']) . '</h3>
+                        <p>' . htmlspecialchars($offer['duration']) . '</p>
+                        <div class="price">₱' . htmlspecialchars($offer['price']) . '</div>
+                        <p class="per-day">per ' . htmlspecialchars($offer['duration']) . '</p>
+                    </div>';
+                }
+            } else {
+                echo '<p>No membership plans available for this gym.</p>';
             }
             ?>
         </div>
