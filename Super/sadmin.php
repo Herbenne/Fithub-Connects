@@ -23,19 +23,17 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     // Capture all settings
     $new_site_title = $_POST['site_title'];
     $new_site_logo = $_POST['site_logo'];
-    $new_site_theme = $_POST['site_theme'];
     $new_site_tagline = $_POST['site_tagline'];
     $new_contact_email = $_POST['contact_email'];
     $new_contact_phone = $_POST['contact_phone'];
     $new_facebook_url = $_POST['facebook_url'];
     $new_instagram_url = $_POST['instagram_url'];
     $new_linkedin_url = $_POST['linkedin_url'];
-    $new_google_analytics_id = $_POST['google_analytics_id'];
     $new_home_description = $_POST['home_description'];
     $new_about_us_description = $_POST['about_us_description'];
     $new_location_map_url = $_POST['location_map_url'];
     $new_footer_content = $_POST['footer_content'];
-    $new_banner_image = $_POST['banner_image'];
+
 
     // Prepare the update query with all the settings
     $update_query = "UPDATE settings SET setting_value = CASE
