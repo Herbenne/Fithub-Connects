@@ -28,9 +28,17 @@ if ($result->num_rows === 0) {
 
 $gym = $result->fetch_assoc();
 
-// Query for membership plans
-$offers_query = "SELECT * FROM membership_plans";
-$offers_result = $db_connection->query($offers_query);
+// Query for membership plans specific to the gym
+$offers_query = "SELECT plan_name, duration, price FROM membership_plans WHERE gym_id = ?";
+$offers_stmt = $db_connection->prepare($offers_query);
+
+if (!$offers_stmt) {
+    die("Error preparing statement: " . $db_connection->error);
+}
+
+$offers_stmt->bind_param("i", $gym_id);
+$offers_stmt->execute();
+$offers_result = $offers_stmt->get_result();
 
 // Query for gym image (profile picture)
 $image_query = "SELECT image_path FROM gym_equipment_images WHERE gym_id = ? LIMIT 1"; // Assuming one profile image per gym
@@ -43,6 +51,7 @@ $image = $image_result->fetch_assoc();
 // Close the database connection after all queries are done
 $stmt->close();
 $image_stmt->close();
+$offers_stmt->close();
 $db_connection->close();
 ?>
 

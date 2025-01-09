@@ -106,7 +106,6 @@ $db_connection->close();
         </div>
     </section>
 
-
     <section id="gyms" class="gyms-container">
         <h1 class="gyms-title">Our Partner Gyms</h1>
         <div class="gyms">
