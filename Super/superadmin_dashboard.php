@@ -43,9 +43,36 @@ $total_attendance_result = $db_connection->query($total_attendance_query);
 $total_attendance = $total_attendance_result->fetch_row()[0];
 $total_attendance_result->free();
 
+// Handle gym creation form submission
+$gym_creation_message = "";
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_gym'])) {
+    $gym_name = $_POST['gym_name'];
+    $gym_location = $_POST['gym_location'];
+    $gym_phone_number = $_POST['gym_phone_number'];
+    $gym_description = $_POST['gym_description'];
+    $gym_amenities = $_POST['gym_amenities'];
+
+    // Insert new gym into the database
+    $stmt = $db_connection->prepare("INSERT INTO gyms (gym_name, gym_location, gym_phone_number, gym_description, gym_amenities) 
+                                     VALUES (?, ?, ?, ?, ?)");
+    $stmt->bind_param("sssss", $gym_name, $gym_location, $gym_phone_number, $gym_description, $gym_amenities);
+
+    if ($stmt->execute()) {
+        $gym_creation_message = "Gym added successfully!";
+    } else {
+        $gym_creation_message = "Error: " . $stmt->error;
+    }
+
+    $stmt->close();
+}
+
+// Fetch all gyms for display
+$gyms_query = "SELECT * FROM gyms";
+$gyms_result = $db_connection->query($gyms_query);
+
 // Handle password change form submission
 $password_change_message = "";
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['current_password']) && isset($_POST['new_password'])) {
     $current_password = $_POST['current_password'];
     $new_password = $_POST['new_password'];
 
@@ -80,6 +107,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 $db_connection->close();
 ?>
+
 <!DOCTYPE html>
 <html lang="en">
 
@@ -99,18 +127,18 @@ $db_connection->close();
         <a href="manage_admins.php">Manage Admins</a>
         <a href="manage_users.php">Manage Users</a>
         <a href="manage_membership_plans.php">Manage Membership Plans</a>
-        <a href="attendance_logs.php">View Attendance Logs</a>
+        <a href="paymentlist.php">View Payment</a>
         <a href="../Admin/admin_login_form.php">Logout</a>
     </nav>
 
     <div class="container">
-
-
+        <!-- Display Admin Information -->
         <div class="card">
             <h2>Admin Email: <?php echo htmlspecialchars($admin_email); ?></h2>
             <p>Use the navigation menu to access various sections of the dashboard.</p>
         </div>
 
+        <!-- Display System Statistics -->
         <div class="card">
             <h2>System Statistics</h2>
             <ul>
@@ -123,6 +151,62 @@ $db_connection->close();
             </ul>
         </div>
 
+        <!-- Gym Management Section -->
+        <div class="card">
+            <h2>Manage Gyms</h2>
+
+            <!-- Gym Creation Form -->
+            <h3>Add a New Gym</h3>
+            <form method="POST" action="">
+                <label for="gym_name">Gym Name:</label>
+                <input type="text" id="gym_name" name="gym_name" required>
+
+                <label for="gym_location">Gym Location:</label>
+                <input type="text" id="gym_location" name="gym_location" required>
+
+                <label for="gym_phone_number">Gym Phone Number:</label>
+                <input type="text" id="gym_phone_number" name="gym_phone_number" required>
+
+                <label for="gym_description">Gym Description:</label>
+                <textarea id="gym_description" name="gym_description" required></textarea>
+
+                <label for="gym_amenities">Gym Amenities:</label>
+                <textarea id="gym_amenities" name="gym_amenities" required></textarea>
+
+                <button type="submit" name="add_gym">Add Gym</button>
+            </form>
+            <?php if (!empty($gym_creation_message)) : ?>
+                <p><?= htmlspecialchars($gym_creation_message) ?></p>
+            <?php endif; ?>
+
+            <!-- Display Existing Gyms -->
+            <h3>Existing Gyms</h3>
+            <table border="1">
+                <tr>
+                    <th>Gym Name</th>
+                    <th>Location</th>
+                    <th>Phone Number</th>
+                    <th>Description</th>
+                    <th>Amenities</th>
+                    <th>Actions</th>
+                </tr>
+                <?php while ($row = $gyms_result->fetch_assoc()) { ?>
+                    <tr>
+                        <td><?php echo htmlspecialchars($row['gym_name']); ?></td>
+                        <td><?php echo htmlspecialchars($row['gym_location']); ?></td>
+                        <td><?php echo htmlspecialchars($row['gym_phone_number']); ?></td>
+                        <td><?php echo htmlspecialchars($row['gym_description']); ?></td>
+                        <td><?php echo htmlspecialchars($row['gym_amenities']); ?></td>
+                        <td>
+                            <a href="edit_gym.php?gym_id=<?php echo $row['gym_id']; ?>">Edit</a> |
+                            <a href="delete_gym.php?gym_id=<?php echo $row['gym_id']; ?>">Delete</a>
+                        </td>
+                    </tr>
+                <?php } ?>
+            </table>
+        </div>
+
+        <!-- Change Password Section -->
         <div class="card">
             <h2>Change Password</h2>
             <form method="POST" action="superadmin_dashboard.php">
@@ -139,22 +223,19 @@ $db_connection->close();
             <?php endif; ?>
         </div>
 
+        <!-- Backup & Restore Section -->
         <div class="card">
             <h2>Backup & Restore</h2>
-
-            <!-- Backup Section -->
             <form method="POST" action="backup_restore.php">
                 <button type="submit" name="backup" class="button">Backup Database</button>
             </form>
-
-            <!-- Restore Section -->
             <form method="POST" action="backup_restore.php" enctype="multipart/form-data">
-                <a href="backup_restore.php">Restore Backup</a>
-                <a href="sadmin.php">Site Settings</a>
+                <label for="backup_file">Restore Database:</label>
+                <input type="file" name="backup_file" id="backup_file" accept=".sql" required>
+                <button type="submit" name="restore" class="button">Restore</button>
             </form>
         </div>
     </div>
-
 </body>
 
 </html>
