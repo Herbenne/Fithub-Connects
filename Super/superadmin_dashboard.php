@@ -126,7 +126,7 @@ $db_connection->close();
     <nav>
         <a href="manage_admins.php">Manage Admins</a>
         <a href="manage_users.php">Manage Users</a>
-        <a href="manage_membership_plans.php">Manage Membership Plans</a>
+        <a href="manage_gym_applications.php">Applications</a>
         <a href="paymentlist.php">View Payment</a>
         <a href="../Admin/admin_login_form.php">Logout</a>
     </nav>
