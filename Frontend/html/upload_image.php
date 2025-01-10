@@ -2,18 +2,37 @@
 session_start();
 include('db_connection.php'); // Include your database connection
 
-if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    if (!isset($_FILES['image'])) {
-        echo "Image file not provided!";
+// Ensure the admin is logged in
+if (!isset($_SESSION['admin_id'])) {
+    echo "Access denied. Please log in.";
+    exit();
+}
+
+// Fetch gym_id for the logged-in admin
+$admin_id = $_SESSION['admin_id'];
+$query = "SELECT gym_id, role FROM admins WHERE id = ?";
+$stmt = $db_connection->prepare($query);
+
+if ($stmt) {
+    $stmt->bind_param("i", $admin_id);
+    $stmt->execute();
+    $stmt->bind_result($gym_id, $role);
+    $stmt->fetch();
+    $stmt->close();
+
+    // Check if the admin is associated with a gym
+    if ($role !== 'superadmin' && (!$gym_id || $gym_id == 0)) {
+        echo "You do not have permission to manage gyms.";
         exit();
     }
+} else {
+    echo "Error fetching admin data.";
+    exit();
+}
 
-    // Fetch gym_id from the form
-    $gym_id = $_POST['gym_id'] ?? null;
-
-    // Validate gym_id
-    if (!$gym_id) {
-        echo "Gym ID is missing!";
+if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+    if (!isset($_FILES['image']) || empty($_FILES['image']['name'])) {
+        echo "Image file not provided!";
         exit();
     }
 
