@@ -66,7 +66,7 @@ $db_connection->close();
     ></script>
     <link rel="stylesheet" href="styles/gym<?php echo $gym_id; ?>.css"> <!-- Unique stylesheet for the gym -->
     <title><?php echo htmlspecialchars($gym['gym_name'] ?? 'Gym Details'); ?> - Details</title>
-    <link rel="stylesheet" href="../css/gymPhp.css" />
+    <link rel="stylesheet" href="../css/gymphp.css" />
 </head>
 
 <body>
@@ -74,6 +74,7 @@ $db_connection->close();
 
     <!-- Display Gym Images -->
     <div class="gym-maincontent">
+    <a href="index1.php#gyms"><i class="fa-solid fa-circle-info"></i></a> 
 			<div class="gym-images">
         <?php if ($image_result->num_rows > 0): ?>
             <?php while ($image = $image_result->fetch_assoc()): ?>
@@ -87,7 +88,6 @@ $db_connection->close();
     </div>
 
     <div class="gym-details">  
-		<a href="index1.php#gyms"><i class="fa-solid fa-house"></i></a> 
         <p class="description"><?php echo htmlspecialchars($gym['gym_description'] ?? 'No description available'); ?></p>
         <div class="gym-info">
 					<p><i class="fa-solid fa-location-dot"></i><?php echo htmlspecialchars($gym['gym_location'] ?? 'No location provided'); ?></p>

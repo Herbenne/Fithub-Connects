@@ -111,29 +111,30 @@ $stmt->close();
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="../css/gymDetailsPhp.css">
     <title>Gym Details</title>
 </head>
 
 <body>
 
-    <h2>Gym Details: <?php echo htmlspecialchars($gym['gym_name']); ?></h2>
+    <h2 class ="gymh2">Gym Details: <span class="fithub"><?php echo htmlspecialchars($gym['gym_name']); ?></span></h2>
 
     <?php if ($_SESSION['admin_role'] == 'superadmin' || $_SESSION['gym_id'] == $gym_id): ?>
         <form method="POST">
-            <label for="gym_name">Gym Name:</label><br>
-            <input type="text" id="gym_name" name="gym_name" value="<?php echo htmlspecialchars($gym['gym_name']); ?>" required><br><br>
+            <label for="gym_name">Gym Name:</label>
+            <input type="text" id="gym_name" name="gym_name" value="<?php echo htmlspecialchars($gym['gym_name']); ?>" required>
 
-            <label for="location">Location:</label><br>
-            <input type="text" id="location" name="location" value="<?php echo htmlspecialchars($gym['gym_location']); ?>" required><br><br>
+            <label for="location">Location:</label>
+            <input type="text" id="location" name="location" value="<?php echo htmlspecialchars($gym['gym_location']); ?>" required>
 
-            <label for="phone_number">Phone Number:</label><br>
-            <input type="text" id="phone_number" name="phone_number" value="<?php echo htmlspecialchars($gym['gym_phone_number']); ?>" required><br><br>
+            <label for="phone_number">Phone Number:</label>
+            <input type="text" id="phone_number" name="phone_number" value="<?php echo htmlspecialchars($gym['gym_phone_number']); ?>" required>
 
-            <label for="description">Description:</label><br>
-            <textarea id="description" name="description" rows="4" required><?php echo htmlspecialchars($gym['gym_description']); ?></textarea><br><br>
+            <label for="description">Description:</label>
+            <textarea id="description" name="description" rows="4" required><?php echo htmlspecialchars($gym['gym_description']); ?></textarea>
 
-            <label for="amenities">Amenities:</label><br>
-            <textarea id="amenities" name="amenities" rows="4" required><?php echo htmlspecialchars($gym['gym_amenities']); ?></textarea><br><br>
+            <label for="amenities">Amenities:</label>
+            <textarea id="amenities" name="amenities" rows="4" required><?php echo htmlspecialchars($gym['gym_amenities']); ?></textarea>
 
             <button type="submit" name="update">Update Gym Details</button>
         </form>
@@ -141,7 +142,7 @@ $stmt->close();
         <p>You do not have permission to edit these details.</p>
     <?php endif; ?>
 
-    <h3>Current Gym Details:</h3>
+    <h3 class="currentGymh3">Current Gym Details:</h3>
     <ul>
         <li><strong>Location:</strong> <?php echo htmlspecialchars($gym['gym_location']); ?></li>
         <li><strong>Phone:</strong> <?php echo htmlspecialchars($gym['gym_phone_number']); ?></li>
@@ -150,54 +151,62 @@ $stmt->close();
     </ul>
 
     <!-- Equipment Images Section -->
-    <h3>Equipment Images</h3>
-    <?php while ($image = $images_result->fetch_assoc()): ?>
-        <div>
-            <img src="<?php echo htmlspecialchars($image['image_path']); ?>" alt="Equipment Image" width="150"><br>
-            <a href="delete_image.php?image_id=<?php echo $image['id']; ?>&gym_id=<?php echo $gym_id; ?>">Delete</a>
+    <h3 class="Equipmenth3">Equipment Images</h3>
+  <div class="equipment-images">
+  <?php while ($image = $images_result->fetch_assoc()): ?>
+        <div class="equipment-image">
+                <img src="<?php echo htmlspecialchars($image['image_path']); ?>" alt="Equipment Image" width="150">
+            <a href="delete_image.php?image_id=<?php echo $image['id']; ?>&gym_id=<?php echo $gym_id; ?>"><button>Delete</button></a>
         </div>
     <?php endwhile; ?>
+  </div>
 
     <!-- Add Equipment Image Form -->
-    <h3>Upload Equipment Image</h3>
+    <h3 class="uploadh3">Upload Equipment Image</h3>
     <form action="upload_image.php" method="POST" enctype="multipart/form-data">
         <input type="hidden" name="gym_id" value="1"> <!-- Example gym_id -->
-        <label for="image">Choose Image:</label><br>
+        <label for="image">Choose Image:</label>
         <input type="file" name="image" id="image" required><br><br>
         <button type="submit">Upload Image</button>
     </form>
 
     <!-- Membership Plans Section -->
-    <h3>Membership Plans</h3>
-    <table>
+    <h3 class="Membershiph3">Membership Plans</h3>
+<div class="membership-container">
+<table class="membership-table">
+    <thead>
         <tr>
             <th>Plan Name</th>
             <th>Duration (Days)</th>
             <th>Price</th>
             <th>Action</th>
         </tr>
+    </thead>
+    <tbody>
         <?php while ($plan = $plans_result->fetch_assoc()): ?>
             <tr>
                 <td><?php echo htmlspecialchars($plan['plan_name']); ?></td>
                 <td><?php echo htmlspecialchars($plan['duration']); ?></td>
                 <td>₱<?php echo htmlspecialchars($plan['price']); ?></td>
                 <td>
-                    <a href="delete_plan.php?plan_id=<?php echo $plan['id']; ?>&gym_id=<?php echo $gym_id; ?>">Delete</a>
+                    <a href="delete_plan.php?plan_id=<?php echo $plan['id']; ?>&gym_id=<?php echo $gym_id; ?>" class="delete-btn">Delete</a>
                 </td>
             </tr>
         <?php endwhile; ?>
-    </table>
+    </tbody>
+</table>
+</div>
 
     <!-- Add Membership Plan Form -->
-    <h3>Add Membership Plan</h3>
+    <h3 class="addMembershiph3">Add Membership Plan</h3>
     <form action="add_plan.php" method="POST">
         <input type="hidden" name="gym_id" value="<?php echo $gym_id; ?>">
-        <label for="plan_name">Plan Name:</label><br>
-        <input type="text" id="plan_name" name="plan_name" required><br><br>
-        <label for="duration">Duration (Days):</label><br>
-        <input type="number" id="duration" name="duration" required><br><br>
-        <label for="price">Price:</label><br>
-        <input type="number" id="price" name="price" required><br><br>
+        <label for="plan_name">Plan Name:</label>
+        <input type="text" id="plan_name" name="plan_name" required>
+        <label for="duration">Duration (Days):</label>
+        <input type="number" id="duration" name="duration" required>
+        <label for="price">Price:</label>
+        <input type="number" id="price" name="price" required>
         <input type="submit" value="Add Plan">
     </form>
 

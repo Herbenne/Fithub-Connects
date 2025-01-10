@@ -53,7 +53,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gym Application Form</title>
-    <link rel="stylesheet" href="styles.css"> <!-- Link to your CSS file -->
+    <link rel="stylesheet" href="../css/gymApplicationFrom.css"> <!-- Link to your CSS file -->
 </head>
 
 <body>
@@ -77,7 +77,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <label for="gym_amenities">Gym Amenities:</label>
         <textarea id="gym_amenities" name="gym_amenities" required></textarea>
 
-        <button type="submit">Submit Application</button>
+        <a href="../../Admin/admin_confirmation.php"><button type="submit">Submit Application</button></a>
     </form>
 
 </body>
