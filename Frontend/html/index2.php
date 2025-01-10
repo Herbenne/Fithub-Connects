@@ -72,7 +72,7 @@ $db_connection->close();
         <div class="auth-buttons">
             <span>Welcome, <?php echo htmlspecialchars($user_name); ?>!</span>
             <?php if ($is_logged_in): ?>
-                <a href="../../Login&Registration/profile.php"><button class="profile-button">Profile</button></a>
+                <a href="user_profile.php"><button class="profile-button">Profile</button></a>
                 <a href="../../Login&Registration/login_form.php"><button class="logout-button">Logout</button></a>
             <?php else: ?>
                 <button class="login-button">LOGIN</button>
