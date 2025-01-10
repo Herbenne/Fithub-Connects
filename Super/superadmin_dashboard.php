@@ -18,57 +18,20 @@ $total_users_result = $db_connection->query($total_users_query);
 $total_users = $total_users_result->fetch_row()[0];
 $total_users_result->free();
 
-$active_members_query = "SELECT COUNT(*) FROM users WHERE membership_status = 'active'";
-$active_members_result = $db_connection->query($active_members_query);
-$active_members = $active_members_result->fetch_row()[0];
-$active_members_result->free();
-
-$expired_members_query = "SELECT COUNT(*) FROM users WHERE membership_status = 'expired'";
-$expired_members_result = $db_connection->query($expired_members_query);
-$expired_members = $expired_members_result->fetch_row()[0];
-$expired_members_result->free();
-
 $total_admins_query = "SELECT COUNT(*) FROM admins";
 $total_admins_result = $db_connection->query($total_admins_query);
 $total_admins = $total_admins_result->fetch_row()[0];
 $total_admins_result->free();
 
-$total_plans_query = "SELECT COUNT(*) FROM membership_plans";
-$total_plans_result = $db_connection->query($total_plans_query);
-$total_plans = $total_plans_result->fetch_row()[0];
-$total_plans_result->free();
+$total_gyms_query = "SELECT COUNT(*) FROM gyms";
+$total_gyms_result = $db_connection->query($total_gyms_query);
+$total_gyms = $total_gyms_result->fetch_row()[0];
+$total_gyms_result->free();
 
-$total_attendance_query = "SELECT COUNT(*) FROM attendance";
-$total_attendance_result = $db_connection->query($total_attendance_query);
-$total_attendance = $total_attendance_result->fetch_row()[0];
-$total_attendance_result->free();
-
-// Handle gym creation form submission
-$gym_creation_message = "";
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_gym'])) {
-    $gym_name = $_POST['gym_name'];
-    $gym_location = $_POST['gym_location'];
-    $gym_phone_number = $_POST['gym_phone_number'];
-    $gym_description = $_POST['gym_description'];
-    $gym_amenities = $_POST['gym_amenities'];
-
-    // Insert new gym into the database
-    $stmt = $db_connection->prepare("INSERT INTO gyms (gym_name, gym_location, gym_phone_number, gym_description, gym_amenities) 
-                                     VALUES (?, ?, ?, ?, ?)");
-    $stmt->bind_param("sssss", $gym_name, $gym_location, $gym_phone_number, $gym_description, $gym_amenities);
-
-    if ($stmt->execute()) {
-        $gym_creation_message = "Gym added successfully!";
-    } else {
-        $gym_creation_message = "Error: " . $stmt->error;
-    }
-
-    $stmt->close();
-}
-
-// Fetch all gyms for display
-$gyms_query = "SELECT * FROM gyms";
-$gyms_result = $db_connection->query($gyms_query);
+$total_gyms_applications_query = "SELECT COUNT(*) FROM gyms_applications";
+$total_gyms_applications_result = $db_connection->query($total_gyms_applications_query);
+$total_gyms_applications = $total_gyms_applications_result->fetch_row()[0];
+$total_gyms_applications_result->free();
 
 // Handle password change form submission
 $password_change_message = "";
@@ -128,6 +91,9 @@ $db_connection->close();
         <a href="manage_users.php">Manage Users</a>
         <a href="manage_gym_applications.php">Applications</a>
         <a href="paymentlist.php">View Payment</a>
+        <a href="sadmin.php">Site Settings</a>
+        <a href="manage_gyms.php">Gyms</a>
+        <a href="backup_restore.php">Backup & Restore</a>
         <a href="../Admin/admin_login_form.php">Logout</a>
     </nav>
 
@@ -143,67 +109,10 @@ $db_connection->close();
             <h2>System Statistics</h2>
             <ul>
                 <li>Total Users: <?= $total_users ?></li>
-                <li>Active Members: <?= $active_members ?></li>
-                <li>Expired Members: <?= $expired_members ?></li>
                 <li>Total Admins: <?= $total_admins ?></li>
-                <li>Total Membership Plans: <?= $total_plans ?></li>
-                <li>Total Attendance Logs: <?= $total_attendance ?></li>
+                <li>Total Gyms: <?= $total_gyms ?></li>
+                <li>Total Gym Applications: <?= $total_gyms_applications ?></li>
             </ul>
-        </div>
-
-        <!-- Gym Management Section -->
-        <div class="card">
-            <h2>Manage Gyms</h2>
-
-            <!-- Gym Creation Form -->
-            <h3>Add a New Gym</h3>
-            <form method="POST" action="">
-                <label for="gym_name">Gym Name:</label>
-                <input type="text" id="gym_name" name="gym_name" required>
-
-                <label for="gym_location">Gym Location:</label>
-                <input type="text" id="gym_location" name="gym_location" required>
-
-                <label for="gym_phone_number">Gym Phone Number:</label>
-                <input type="text" id="gym_phone_number" name="gym_phone_number" required>
-
-                <label for="gym_description">Gym Description:</label>
-                <textarea id="gym_description" name="gym_description" required></textarea>
-
-                <label for="gym_amenities">Gym Amenities:</label>
-                <textarea id="gym_amenities" name="gym_amenities" required></textarea>
-
-                <button type="submit" name="add_gym">Add Gym</button>
-            </form>
-            <?php if (!empty($gym_creation_message)) : ?>
-                <p><?= htmlspecialchars($gym_creation_message) ?></p>
-            <?php endif; ?>
-
-            <!-- Display Existing Gyms -->
-            <h3>Existing Gyms</h3>
-            <table border="1">
-                <tr>
-                    <th>Gym Name</th>
-                    <th>Location</th>
-                    <th>Phone Number</th>
-                    <th>Description</th>
-                    <th>Amenities</th>
-                    <th>Actions</th>
-                </tr>
-                <?php while ($row = $gyms_result->fetch_assoc()) { ?>
-                    <tr>
-                        <td><?php echo htmlspecialchars($row['gym_name']); ?></td>
-                        <td><?php echo htmlspecialchars($row['gym_location']); ?></td>
-                        <td><?php echo htmlspecialchars($row['gym_phone_number']); ?></td>
-                        <td><?php echo htmlspecialchars($row['gym_description']); ?></td>
-                        <td><?php echo htmlspecialchars($row['gym_amenities']); ?></td>
-                        <td>
-                            <a href="edit_gym.php?gym_id=<?php echo $row['gym_id']; ?>">Edit</a> |
-                            <a href="delete_gym.php?gym_id=<?php echo $row['gym_id']; ?>">Delete</a>
-                        </td>
-                    </tr>
-                <?php } ?>
-            </table>
         </div>
 
         <!-- Change Password Section -->
@@ -223,18 +132,6 @@ $db_connection->close();
             <?php endif; ?>
         </div>
 
-        <!-- Backup & Restore Section -->
-        <div class="card">
-            <h2>Backup & Restore</h2>
-            <form method="POST" action="backup_restore.php">
-                <button type="submit" name="backup" class="button">Backup Database</button>
-            </form>
-            <form method="POST" action="backup_restore.php" enctype="multipart/form-data">
-                <label for="backup_file">Restore Database:</label>
-                <input type="file" name="backup_file" id="backup_file" accept=".sql" required>
-                <button type="submit" name="restore" class="button">Restore</button>
-            </form>
-        </div>
     </div>
 </body>
 

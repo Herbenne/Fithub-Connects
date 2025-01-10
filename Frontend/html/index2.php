@@ -20,6 +20,7 @@ $gyms_result = $db_connection->query($gyms_query);
 // Check if the user is logged in
 session_start();
 $is_logged_in = isset($_SESSION['user_id']); // Check if user_id session exists
+$user_name = $is_logged_in && isset($_SESSION['username']) ? $_SESSION['username'] : 'Guest'; // Fetch logged-in username
 
 // Close the database connection after all queries are done
 $db_connection->close();
@@ -31,7 +32,6 @@ $db_connection->close();
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
     <link rel="stylesheet" href="../css/navs.css" />
     <link rel="stylesheet" href="../css/Mainpage.css" />
     <link rel="stylesheet" href="../css/abouts.css" />
@@ -41,7 +41,6 @@ $db_connection->close();
     <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet" />
     <link href="https://unpkg.com/maplibre-gl@2.4.0/dist/maplibre-gl.css" rel="stylesheet" />
     <script src="https://unpkg.com/maplibre-gl@2.4.0/dist/maplibre-gl.js"></script>
-
     <title><?php echo htmlspecialchars($settings['site_title']); ?></title>
 </head>
 
@@ -61,11 +60,7 @@ $db_connection->close();
             <li><a href="#about-us">ABOUT</a></li>
             <li><a href="#offers">OFFERS</a></li>
             <li><a href="#come-together">CONTACT</a></li>
-            <?php if ($is_logged_in): ?>
-                <li><a href="../forum/index.php">Forum</a></li>
-            <?php else: ?>
-                <li><a href="../../Login&Registration/login_form.php">Forum</a></li>
-            <?php endif; ?>
+            <li><a href="../forum/index.php">Forum</a></li>
             <div class="closeMenu"><i class="fa fa-times"></i></div>
             <span class="icons">
                 <a href="<?php echo htmlspecialchars($settings['facebook_url']); ?>"><i class="fa-brands fa-facebook"></i></a>
@@ -75,8 +70,14 @@ $db_connection->close();
             </span>
         </ul>
         <div class="auth-buttons">
-            <button class="login-button">LOGIN</button>
-            <button class="signup-button">SIGNUP</button>
+            <span>Welcome, <?php echo htmlspecialchars($user_name); ?>!</span>
+            <?php if ($is_logged_in): ?>
+                <a href="../../Login&Registration/profile.php"><button class="profile-button">Profile</button></a>
+                <a href="../../Login&Registration/login_form.php"><button class="logout-button">Logout</button></a>
+            <?php else: ?>
+                <button class="login-button">LOGIN</button>
+                <button class="signup-button">SIGNUP</button>
+            <?php endif; ?>
         </div>
     </nav>
 
