@@ -1,7 +1,11 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Admin Registration</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Register</title>
+    <link rel="stylesheet" href="../Frontend/AuthCss/adminRegister.css" />
+    <script src="https://kit.fontawesome.com/b098b18a13.js" crossorigin="anonymous"></script>
     <script>
         function validatePassword() {
             const password = document.getElementById('password').value;
@@ -29,37 +33,53 @@
     </script>
 </head>
 <body>
-    <h2>Admin Register</h2>
+    <div class="card">
+        <div class="card-header">
+            <div class="welcome-text-container">
+                <h2>Admin Register</h2>
+								<i class="fa-solid fa-lock"></i>
+                <p class="welcome-text">Join the Admin Panel</p>
+            </div>
+            <a href="../Frontend/html/index1.php"><i class="fa-solid fa-house"></i></a>
+        </div>
 
-    <?php if (isset($error_message)): ?>
-        <p style="color: red;"><?php echo $error_message; ?></p>
-    <?php endif; ?>
+        <?php if (isset($error_message)): ?>
+            <p class="error-message"><?php echo htmlspecialchars($error_message); ?></p>
+        <?php endif; ?>
 
-    <?php if (isset($success_message)): ?>
-        <p style="color: green;"><?php echo $success_message; ?></p>
-    <?php endif; ?>
+        <?php if (isset($success_message)): ?>
+            <p class="success-message"><?php echo htmlspecialchars($success_message); ?></p>
+        <?php endif; ?>
 
-    <form action="admin_register.php" method="post">
-        <label for="username">Username:</label><br>
-        <input type="text" id="username" name="username" required><br><br>
-        
-        <label for="email">Email:</label><br>
-        <input type="email" id="email" name="email" required><br><br>
-        
-        <label for="password">Password:</label><br>
-        <input type="password" id="password" name="password" required oninput="validatePassword()"><br><br>
-        <div id="complexity-message"></div>
-        
-        <label for="confirm_password">Confirm Password:</label><br>
-        <input type="password" id="confirm_password" name="confirm_password" required oninput="validatePassword()">
-        <div id="password-message"></div><br>
-        
-        <input type="submit" value="Register">
-    </form>
+        <form action="admin_register.php" method="post">
+            <div class="form-group">
+                <label for="username">Username</label>
+                <input type="text" id="username" name="username" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="email">Email</label>
+                <input type="email" id="email" name="email" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" name="password" required oninput="validatePassword()">
+                <div id="complexity-message"></div>
+            </div>
+            
+            <div class="form-group">
+                <label for="confirm_password">Confirm Password</label>
+                <input type="password" id="confirm_password" name="confirm_password" required oninput="validatePassword()">
+                <div id="password-message"></div>
+            </div>
 
-    <br>
-    <form action="admin_login_form.php" method="get">
-        <input type="submit" value="Login">
-    </form>
+            <button type="submit" class="primary-button">Register</button>
+        </form>
+
+        <form action="admin_login_form.php" method="get">
+            <button type="submit" class="secondary-button">Login</button>
+        </form>
+    </div>
 </body>
 </html>

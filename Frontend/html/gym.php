@@ -60,16 +60,21 @@ $db_connection->close();
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<script
+      src="https://kit.fontawesome.com/b098b18a13.js"
+      crossorigin="anonymous"
+    ></script>
     <link rel="stylesheet" href="styles/gym<?php echo $gym_id; ?>.css"> <!-- Unique stylesheet for the gym -->
     <title><?php echo htmlspecialchars($gym['gym_name'] ?? 'Gym Details'); ?> - Details</title>
-    <link rel="stylesheet" href="../css/offers.css" />
+    <link rel="stylesheet" href="../css/gymPhp.css" />
 </head>
 
 <body>
     <h1><?php echo htmlspecialchars($gym['gym_name'] ?? 'Unknown Gym'); ?></h1>
 
     <!-- Display Gym Images -->
-    <div class="gym-images">
+    <div class="gym-maincontent">
+			<div class="gym-images">
         <?php if ($image_result->num_rows > 0): ?>
             <?php while ($image = $image_result->fetch_assoc()): ?>
                 <div class="gym-image">
@@ -81,11 +86,17 @@ $db_connection->close();
         <?php endif; ?>
     </div>
 
-    <p><strong>Location:</strong> <?php echo htmlspecialchars($gym['gym_location'] ?? 'No location provided'); ?></p>
-    <p><strong>Description:</strong> <?php echo htmlspecialchars($gym['gym_description'] ?? 'No description available'); ?></p>
-    <p><strong>Contact:</strong> <?php echo htmlspecialchars($gym['gym_phone_number'] ?? 'No contact information'); ?></p>
-    <p><strong>Amenities:</strong> <?php echo htmlspecialchars($gym['gym_amenities'] ?? 'No amenities available'); ?></p>
-    <a href="index1.php">Back to Gym List</a>
+    <div class="gym-details">  
+		<a href="index1.php#gyms"><i class="fa-solid fa-house"></i></a> 
+        <p class="description"><?php echo htmlspecialchars($gym['gym_description'] ?? 'No description available'); ?></p>
+        <div class="gym-info">
+					<p><i class="fa-solid fa-location-dot"></i><?php echo htmlspecialchars($gym['gym_location'] ?? 'No location provided'); ?></p>
+					<p><i class="fa-solid fa-phone"></i><?php echo htmlspecialchars($gym['gym_phone_number'] ?? 'No contact information'); ?></p>
+					<p><i class="fa-solid fa-screwdriver-wrench"></i><?php echo htmlspecialchars($gym['gym_amenities'] ?? 'No amenities available'); ?></p>
+				</div>
+				</div>
+						
+		</div>
 
     <!-- Membership Offers Section -->
     <section id="offers" class="offers-container">

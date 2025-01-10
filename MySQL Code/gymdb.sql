@@ -155,7 +155,7 @@ INSERT INTO `settings` (`setting_id`, `setting_name`, `setting_value`) VALUES
 (12, 'home_description', 'Every rep, every drop of sweat, every challenge you overcome brings\r\nYou one step closer to your goals. '),
 (13, 'about_us_description', 'At FitHub, we believe in empowering individuals to achieve their fitness goals. CHECHEHCEHCEHCEHC'),
 (14, 'location_map_url', 'https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3859.747795512362!2d120.99468357510744!3d14.670249085824388!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3397b69876d12707%3A0x71c2930033703143!2sSterling%20Fitness-Araneta%20Malabon!5e0!3m2!1sen!2sph!4v1734877618999!5m2!1sen!2sph'),
-(15, 'footer_content', '© 2025 FitHub. All Rights Reserved.');
+(15, 'footer_content', 'Â© 2025 FitHub. All Rights Reserved.');
 
 -- --------------------------------------------------------
 

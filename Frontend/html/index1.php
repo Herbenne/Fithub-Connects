@@ -35,8 +35,10 @@ $db_connection->close();
     <link rel="stylesheet" href="../css/navs.css" />
     <link rel="stylesheet" href="../css/Mainpage.css" />
     <link rel="stylesheet" href="../css/abouts.css" />
-    <link rel="stylesheet" href="../css/offers.css" />
+    <link rel="stylesheet" href="../css/gymsPartner.css" />
     <link rel="stylesheet" href="../css/contact.css" />
+		<link rel="stylesheet" href="../AuthCss/modals.css" />
+		
     <script src="https://kit.fontawesome.com/b098b18a13.js" crossorigin="anonymous"></script>
     <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet" />
     <link href="https://unpkg.com/maplibre-gl@2.4.0/dist/maplibre-gl.css" rel="stylesheet" />
@@ -59,7 +61,7 @@ $db_connection->close();
         <ul class="mainMenu">
             <li><a href="#">HOME</a></li>
             <li><a href="#about-us">ABOUT</a></li>
-            <li><a href="#offers">OFFERS</a></li>
+            <li><a href="#gyms">PARTERS</a></li>
             <li><a href="#come-together">CONTACT</a></li>
             <?php if ($is_logged_in): ?>
                 <li><a href="../forum/index.php">Forum</a></li>
@@ -75,10 +77,26 @@ $db_connection->close();
             </span>
         </ul>
         <div class="auth-buttons">
-            <button class="login-button">LOGIN</button>
-            <button class="signup-button">SIGNUP</button>
+        <a href="#login-modal"><button class="login-button">LOGIN</button></a>
+        <a href="#register-modal"><button class="login-button">SIGNUP</button></a>
+			</div>
+
+			<div id="login-modal" class="modal">
+        <div class="modal-content">
+          <iframe src="login-modal.html" frameborder="0"></iframe>
+          <a href="#" class="close-modal">&times;</a>
         </div>
+      </div>
+
+      <div id="register-modal" class="modal">
+        <div class="modal-content">
+          <iframe src="register-modals.html" frameborder="0"></iframe>
+          <a href="#" class="close-modal">&times;</a>
+        </div>
+      </div>
+
     </nav>
+
 
     <main>
         <div class="home-parent">
@@ -115,7 +133,7 @@ $db_connection->close();
     </section>
 
     <section id="gyms" class="gyms-container">
-        <h1 class="gyms-title">Our Partner Gyms</h1>
+        <h1 class="gyms-title">Our Gym Partners</h1>
         <div class="gyms">
             <?php while ($gym = $gyms_result->fetch_assoc()): ?>
                 <div class="gym">

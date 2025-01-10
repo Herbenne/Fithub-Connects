@@ -38,9 +38,9 @@ nav {
   margin-right: 30px;
 }
 
-.login-button,
-.signup-button {
-  padding: 0px 20px;
+
+.auth-buttons a button{
+  padding: 10px 20px;
   margin: 0 5px;
   background: #fab12f;
   border: none;
@@ -49,6 +49,19 @@ nav {
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Add shadow */
   transition: box-shadow 0.3s ease, background-color 0.3s ease;
 }
+
+
+/* .login-button,
+.signup-button {
+  padding: 0px 20px;
+  margin: 0 5px;
+  background: #fab12f;
+  border: none;
+  font-weight: bold;
+  cursor: pointer;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); 
+  transition: box-shadow 0.3s ease, background-color 0.3s ease;
+} */
 
 nav .logo {
   color: white;

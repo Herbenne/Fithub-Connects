@@ -94,7 +94,11 @@ $gyms_result = $db_connection->query($gyms_query);
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Edit Admin</title>
+<<<<<<< Updated upstream
     <link rel="stylesheet" href="styles.css"> <!-- Link to CSS -->
+=======
+
+>>>>>>> Stashed changes
 </head>
 
 <body>

@@ -31,8 +31,12 @@ if ($admins_result->num_rows > 0) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="admin.css">   
     <title>Manage Admins</title>
+<<<<<<< Updated upstream
     <link rel="stylesheet" href="styles.css"> <!-- Link to your CSS -->
+=======
+>>>>>>> Stashed changes
 </head>
 
 <body>
