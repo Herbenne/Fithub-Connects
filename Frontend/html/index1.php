@@ -32,12 +32,12 @@ $db_connection->close();
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-    <link rel="stylesheet" href="../css/navs.css" />
+    <link rel="stylesheet" href="../css/nav.css" />
     <link rel="stylesheet" href="../css/Mainpage.css" />
     <link rel="stylesheet" href="../css/abouts.css" />
     <link rel="stylesheet" href="../css/gymsPartner.css" />
     <link rel="stylesheet" href="../css/contact.css" />
-		<link rel="stylesheet" href="../AuthCss/modals.css" />
+		<link rel="stylesheet" href="../AuthCss/modal.css" />
 		
     <script src="https://kit.fontawesome.com/b098b18a13.js" crossorigin="anonymous"></script>
     <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet" />
@@ -83,14 +83,14 @@ $db_connection->close();
 
 			<div id="login-modal" class="modal">
         <div class="modal-content">
-          <iframe src="login-modal.html" frameborder="0"></iframe>
+          <iframe src="logins-modal.html" frameborder="0"></iframe>
           <a href="#" class="close-modal">&times;</a>
         </div>
       </div>
 
       <div id="register-modal" class="modal">
         <div class="modal-content">
-          <iframe src="register-modals.html" frameborder="0"></iframe>
+          <iframe src="registers-modals.html" frameborder="0"></iframe>
           <a href="#" class="close-modal">&times;</a>
         </div>
       </div>

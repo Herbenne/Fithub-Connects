@@ -161,9 +161,9 @@ $stmt->close();
     <!-- Add Equipment Image Form -->
     <h3>Upload Equipment Image</h3>
     <form action="upload_image.php" method="POST" enctype="multipart/form-data">
-        <input type="hidden" name="gym_id" value="<?php echo $gym_id; ?>">
-        <label for="equipment_image">Choose Image:</label><br>
-        <input type="file" name="equipment_image" id="equipment_image" required><br><br>
+        <input type="hidden" name="gym_id" value="1"> <!-- Example gym_id -->
+        <label for="image">Choose Image:</label><br>
+        <input type="file" name="image" id="image" required><br><br>
         <button type="submit">Upload Image</button>
     </form>
 
