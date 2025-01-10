@@ -1,32 +1,3 @@
--- phpMyAdmin SQL Dump
--- version 5.2.1
--- https://www.phpmyadmin.net/
---
--- Host: 127.0.0.1:3307
--- Generation Time: Jan 09, 2025 at 01:05 PM
--- Server version: 10.4.32-MariaDB
--- PHP Version: 8.0.30
-
-SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
-START TRANSACTION;
-SET time_zone = "+00:00";
-
-
-/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
-/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
-/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
-/*!40101 SET NAMES utf8mb4 */;
-
---
--- Database: `gymdb`
---
-
--- --------------------------------------------------------
-
---
--- Table structure for table `admins`
---
-
 CREATE TABLE `admins` (
   `id` int(11) NOT NULL,
   `username` varchar(50) NOT NULL,
@@ -44,9 +15,10 @@ CREATE TABLE `admins` (
 INSERT INTO `admins` (`id`, `username`, `email`, `password`, `created_at`, `role`, `gym_id`) VALUES
 (1, 'SuperAdmin', 'superadmin@example.com', '$2y$10$Ud0dYJnc3JN5X1rg1xt4seXC/HkSK1iaScsxDTEJnGOLHl.VhBqc6', '2025-01-09 04:05:35', 'superadmin', 0),
 (5, 'Admin', 'admin1@gmail.com', '$2y$10$kdI4hHRQPoQCW7L5sbnnZeYmcA2CYmbkYXDVSXWdn0QxUcweEm3U2', '2024-11-05 11:07:28', 'admin', 1),
-(6, 'Admin2', 'admin2@gmail.com', '$2y$10$TQ2kZmgB88IF5nRNgFPxDu.RFRqvLUfXDIdcbjNnnpjlhhDwyvXFu', '2024-11-08 08:56:46', 'admin', 2),
-(8, 'Admin3', 'admin3@gmail.com', '$2y$10$uOH3VzOdYYrDwA7kx6eqsOdvwop/8f7XfxkjveuUc9rXlRNO3GQJe', '2025-01-08 18:26:42', 'admin', 0),
-(9, 'New Admin', 'newadmin@gmail.com', '$2y$10$blrzaoHjf3NPpeJdIrGoMeX3mXJXR2/RmLKE3DWlpq.IBHPHBmlfq', '2025-01-09 12:03:41', 'admin', 0);
+(9, 'New Admin', 'newadmin@gmail.com', '$2y$10$blrzaoHjf3NPpeJdIrGoMeX3mXJXR2/RmLKE3DWlpq.IBHPHBmlfq', '2025-01-09 12:03:41', 'admin', 2),
+(11, 'Admin99', 'admin99@gmail.com', '$2y$10$nqZruXAhOf8npS4HzVA4qO4hLBkd.Y8JQLgpXKF4EQRiZTCiE1aj.', '2025-01-09 15:38:44', 'admin', 0),
+(12, 'Admin123', 'admin123@gmail.com', '$2y$10$EGlTr9iLunFQQb3Rk0xgMeY7OuW5SKJS8yMa7MAoa4KWP8CkJ.Yoq', '2025-01-09 16:10:04', 'admin', 3),
+(13, 'Hadmin', 'hadmin@gmail.com', '$2y$10$x6BLRpqxqo42KXWqlR2i0.fURFU4K/QFtew9DGlN3AaJRG7ogzos.', '2025-01-10 03:45:06', 'admin', 4);
 
 -- --------------------------------------------------------
 
@@ -82,7 +54,33 @@ CREATE TABLE `gyms` (
 
 INSERT INTO `gyms` (`gym_id`, `gym_name`, `gym_location`, `gym_phone_number`, `gym_description`, `gym_amenities`) VALUES
 (1, 'FitHub Gym', '123 Fitness Street, Cityville', '+1234567890', 'FitHub Gym is a state-of-the-art facility offering various fitness services.', 'Free Wi-Fi, Locker Rooms, Showers, Bembang'),
-(2, 'Peak Performance Gym', '456 Power Road, Metropolis', '+0987654321', 'Peak Performance Gym focuses on personalized fitness plans and high-performance training.', 'Sauna, Personal Trainers, Pool');
+(2, 'Peak Performance Gym', '456 Power Road, Metropolis', '+0987654321', 'Peak Performance Gym focuses on personalized fitness plans and high-performance training.', 'Sauna, Personal Trainers, Pool'),
+(3, 'Raffyroad Gymnasium', '123 Munoz City', '+09999999999', 'Si Nyl na ang may ari yun naman ang asawa ni raf', 'Free Wi-Fi, Free Bed, Free Monster Hunter, Investment, Mary Grace, and Kenny Rogers'),
+(4, 'Request Gym', 'Request Lcoation', '09090909090', 'Testing lang lods', 'Libreng Sapak');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `gyms_applications`
+--
+
+CREATE TABLE `gyms_applications` (
+  `id` int(11) NOT NULL,
+  `gym_name` varchar(255) NOT NULL,
+  `gym_location` varchar(255) NOT NULL,
+  `gym_phone_number` varchar(15) NOT NULL,
+  `gym_description` text NOT NULL,
+  `gym_amenities` text NOT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `status` enum('pending','approved','rejected') NOT NULL DEFAULT 'pending'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `gyms_applications`
+--
+
+INSERT INTO `gyms_applications` (`id`, `gym_name`, `gym_location`, `gym_phone_number`, `gym_description`, `gym_amenities`, `created_at`, `status`) VALUES
+(1, 'Request Gym', 'Request Lcoation', '09090909090', 'Testing lang lods', 'Libreng Sapak', '2025-01-10 04:14:19', 'approved');
 
 -- --------------------------------------------------------
 
@@ -95,6 +93,13 @@ CREATE TABLE `gym_equipment_images` (
   `gym_id` int(11) NOT NULL,
   `image_path` varchar(255) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `gym_equipment_images`
+--
+
+INSERT INTO `gym_equipment_images` (`id`, `gym_id`, `image_path`) VALUES
+(7, 2, 'uploads/cat.jpg');
 
 -- --------------------------------------------------------
 
@@ -117,7 +122,8 @@ CREATE TABLE `membership_plans` (
 INSERT INTO `membership_plans` (`id`, `gym_id`, `plan_name`, `duration`, `price`) VALUES
 (1, 1, 'Boxing Session', 14, 1500.00),
 (2, 1, 'Swimming', 30, 3000.00),
-(3, 1, 'Muay Thai', 14, 3000.00);
+(3, 1, 'Muay Thai', 14, 3000.00),
+(4, 2, 'Pilates', 14, 2500.00);
 
 -- --------------------------------------------------------
 
@@ -138,14 +144,14 @@ CREATE TABLE `settings` (
 INSERT INTO `settings` (`setting_id`, `setting_name`, `setting_value`) VALUES
 (1, 'site_title', 'FEETHUB'),
 (2, 'site_logo', '../img/FITHUB LOGO.png'),
-(4, 'site_tagline', 'RAF MASARAP'),
+(4, 'site_tagline', 'Every rep, every drop of sweat, every challenge you overcome brings'),
 (5, 'contact_email', 'info@fithub.com'),
 (6, 'contact_phone', '+1234567890'),
 (7, 'facebook_url', 'https://www.facebook.com/yourpage'),
 (8, 'instagram_url', 'https://www.instagram.com/yourpage'),
 (9, 'github_url', 'https://www.github.com/yourpage'),
 (10, 'linkedin_url', 'https://www.linkedin.com/in/yourprofile'),
-(12, 'home_description', 'Welcome to FeetHub, your one-stop fitness center!'),
+(12, 'home_description', 'Every rep, every drop of sweat, every challenge you overcome brings\r\nYou one step closer to your goals. '),
 (13, 'about_us_description', 'At FitHub, we believe in empowering individuals to achieve their fitness goals. CHECHEHCEHCEHCEHC'),
 (14, 'location_map_url', 'https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3859.747795512362!2d120.99468357510744!3d14.670249085824388!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3397b69876d12707%3A0x71c2930033703143!2sSterling%20Fitness-Araneta%20Malabon!5e0!3m2!1sen!2sph!4v1734877618999!5m2!1sen!2sph'),
 (15, 'footer_content', '© 2025 FitHub. All Rights Reserved.');
@@ -236,6 +242,13 @@ ALTER TABLE `gyms`
   ADD PRIMARY KEY (`gym_id`);
 
 --
+-- Indexes for table `gyms_applications`
+--
+ALTER TABLE `gyms_applications`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `idx_status` (`status`);
+
+--
 -- Indexes for table `gym_equipment_images`
 --
 ALTER TABLE `gym_equipment_images`
@@ -279,7 +292,7 @@ ALTER TABLE `users`
 -- AUTO_INCREMENT for table `admins`
 --
 ALTER TABLE `admins`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14;
 
 --
 -- AUTO_INCREMENT for table `attendance`
@@ -291,19 +304,25 @@ ALTER TABLE `attendance`
 -- AUTO_INCREMENT for table `gyms`
 --
 ALTER TABLE `gyms`
-  MODIFY `gym_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `gym_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+
+--
+-- AUTO_INCREMENT for table `gyms_applications`
+--
+ALTER TABLE `gyms_applications`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT for table `gym_equipment_images`
 --
 ALTER TABLE `gym_equipment_images`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
 
 --
 -- AUTO_INCREMENT for table `membership_plans`
 --
 ALTER TABLE `membership_plans`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT for table `settings`
@@ -344,8 +363,3 @@ ALTER TABLE `gym_equipment_images`
 --
 ALTER TABLE `membership_plans`
   ADD CONSTRAINT `membership_plans_ibfk_1` FOREIGN KEY (`gym_id`) REFERENCES `gyms` (`gym_id`) ON DELETE CASCADE;
-COMMIT;
-
-/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
-/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
-/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
