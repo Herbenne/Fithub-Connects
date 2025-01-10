@@ -56,7 +56,8 @@ INSERT INTO `gyms` (`gym_id`, `gym_name`, `gym_location`, `gym_phone_number`, `g
 (1, 'FitHub Gym', '123 Fitness Street, Cityville', '+1234567890', 'FitHub Gym is a state-of-the-art facility offering various fitness services.', 'Free Wi-Fi, Locker Rooms, Showers, Bembang'),
 (2, 'Peak Performance Gym', '456 Power Road, Metropolis', '+0987654321', 'Peak Performance Gym focuses on personalized fitness plans and high-performance training.', 'Sauna, Personal Trainers, Pool'),
 (3, 'Raffyroad Gymnasium', '123 Munoz City', '+09999999999', 'Si Nyl na ang may ari yun naman ang asawa ni raf', 'Free Wi-Fi, Free Bed, Free Monster Hunter, Investment, Mary Grace, and Kenny Rogers'),
-(4, 'Request Gym', 'Request Lcoation', '09090909090', 'Testing lang lods', 'Libreng Sapak');
+(4, 'Request Gym', 'Request Lcoation', '09090909090', 'Testing lang lods', 'Libreng Sapak'),
+(5, 'Imman Gym', '456 Caloocan City', '09789456126', 'LALAKAS KA TAPOS LALAKI KATAWAN MO', 'Libreng Tubeg');
 
 -- --------------------------------------------------------
 
@@ -142,7 +143,7 @@ CREATE TABLE `settings` (
 --
 
 INSERT INTO `settings` (`setting_id`, `setting_name`, `setting_value`) VALUES
-(1, 'site_title', 'FEETHUB'),
+(1, 'site_title', 'FITHUB'),
 (2, 'site_logo', '../img/FITHUB LOGO.png'),
 (4, 'site_tagline', 'Every rep, every drop of sweat, every challenge you overcome brings'),
 (5, 'contact_email', 'info@fithub.com'),
@@ -198,24 +199,20 @@ CREATE TABLE `users` (
   `age` int(3) NOT NULL,
   `contact_number` varchar(15) NOT NULL,
   `profile_picture` varchar(255) DEFAULT NULL,
-  `reg_date` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
-  `membership_start_date` date DEFAULT NULL,
-  `membership_end_date` date DEFAULT NULL,
-  `membership_status` enum('active','inactive') DEFAULT 'inactive'
+  `reg_date` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `users`
 --
 
-INSERT INTO `users` (`id`, `unique_id`, `username`, `email`, `password`, `full_name`, `age`, `contact_number`, `profile_picture`, `reg_date`, `membership_start_date`, `membership_end_date`, `membership_status`) VALUES
-(112, 'SG-1000', 'Gab', 'gab@gmail.com', '$2y$10$2eYqFx7mFfK3WpA7rgP6qujJfFav4janOjvG2H60ZMFpFqJwP5rxa', 'Gab Bag', 23, '09123456789', NULL, '2025-01-03 17:56:34', '2025-01-03', '2025-02-02', 'active'),
-(120, 'SG-1001', 'Bastian', 'try@gmail.com', '', 'Try Lang', 22, '09123456789', NULL, '2025-01-03 17:11:28', '2024-11-05', '2024-12-05', 'inactive'),
-(124, 'SG-1003', 'Mv', 'mv@gmail.com', '$2y$10$Q7u7GxBqwf.2HbEMffB.9uo0GK5zH779EPemY.QkI4ao5AAsXabES', 'M V', 21, '09123456789', NULL, '2024-11-05 14:29:07', NULL, NULL, 'inactive'),
-(126, 'SG-1005', 'Nyl', 'nyl@gmail.com', '$2y$10$v91QShhM7qdL5uaOnOdH8epfq9g4ycg/kFDn/7ti7sJEHU.qELmvm', 'Nyl Oreas', 22, '09789456123', NULL, '2024-11-05 14:30:21', NULL, NULL, 'inactive'),
-(127, 'SG-1006', 'Real', 'somoherbenne09@gmail.com', '$2y$10$dJJ9lQn2LHXd9ovWhpV.vej8MczI3grmG0qJj5LTAP1dIHnUAq7Ky', 'Hirben', 23, '09453819149', NULL, '2024-11-18 03:15:23', NULL, NULL, 'inactive'),
-(128, 'SG-1007', 'Aight', 'test@gmail.com', '$2y$10$7u0EqYcTDOTtuo5opP7hZeqAUcHlO6KRmwBxjR9nJ0yXe2xOGX0Wa', 'Testing', 23, '09123456789', NULL, '2025-01-03 17:09:06', NULL, NULL, 'inactive'),
-(129, 'SG-1008', 'bembang', 'bembang@gmail.com', '$2y$10$EmP6jvgawdsQ5K79oJAaF.M6S9i/SDU80uq.bwWfxqoPfKDzOhur.', 'Bembang Ednis', 29, '09123456879', NULL, '2025-01-08 13:11:24', NULL, NULL, 'inactive');
+INSERT INTO `users` (`id`, `unique_id`, `username`, `email`, `password`, `full_name`, `age`, `contact_number`, `profile_picture`, `reg_date`) VALUES
+(112, 'SG-1000', 'Gab', 'gab@gmail.com', '$2y$10$3QIX1A7iHcs0IQm63wzzauswu29o67eoEizzP9SpQE4nr6jU0vIi2', 'Gab Bag', 23, '09123456789', 'cat.jpg', '2025-01-10 06:31:13'),
+(120, 'SG-1001', 'Bastian', 'try@gmail.com', '', 'Try Lang', 22, '09123456789', NULL, '2025-01-03 17:11:28'),
+(124, 'SG-1003', 'Mv', 'mv@gmail.com', '$2y$10$Q7u7GxBqwf.2HbEMffB.9uo0GK5zH779EPemY.QkI4ao5AAsXabES', 'M V', 21, '09123456789', NULL, '2024-11-05 14:29:07'),
+(126, 'SG-1005', 'Nyl', 'nyl@gmail.com', '$2y$10$v91QShhM7qdL5uaOnOdH8epfq9g4ycg/kFDn/7ti7sJEHU.qELmvm', 'Nyl Oreas', 22, '09789456123', NULL, '2024-11-05 14:30:21'),
+(127, 'SG-1006', 'Real', 'somoherbenne09@gmail.com', '$2y$10$dJJ9lQn2LHXd9ovWhpV.vej8MczI3grmG0qJj5LTAP1dIHnUAq7Ky', 'Hirben', 23, '09453819149', NULL, '2024-11-18 03:15:23'),
+(128, 'SG-1007', 'IMMANNNN', 'imman@gmail.com', '$2y$10$C.Cp68pehEd.Fi2m5cEE3eKiBQl1VL82g08jhfWZ6cHyPEbfmbUJ.', 'Imman Pogi', 12, '9123456789', 'shrek.jpg', '2025-01-10 06:21:33');
 
 --
 -- Indexes for dumped tables
@@ -304,7 +301,7 @@ ALTER TABLE `attendance`
 -- AUTO_INCREMENT for table `gyms`
 --
 ALTER TABLE `gyms`
-  MODIFY `gym_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `gym_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- AUTO_INCREMENT for table `gyms_applications`
