@@ -36,7 +36,16 @@ nav {
   display: flex;
   height: 50%;
   margin-right: 30px;
+  position: relative;
 }
+
+/* .user{
+  position: absolute;
+  top: 5px;
+  right: 190px;
+  padding: 5px;
+  font-weight: bold;
+} */
 
 
 .auth-buttons a button{

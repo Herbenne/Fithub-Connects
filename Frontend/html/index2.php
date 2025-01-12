@@ -32,7 +32,7 @@ $db_connection->close();
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="stylesheet" href="../css/navs.css" />
+    <link rel="stylesheet" href="../css/nav.css" />
     <link rel="stylesheet" href="../css/Mainpage.css" />
     <link rel="stylesheet" href="../css/abouts.css" />
     <link rel="stylesheet" href="../css/gymsPartner.css" />
@@ -70,9 +70,8 @@ $db_connection->close();
             </span>
         </ul>
         <div class="auth-buttons">
-            <span>Welcome, <?php echo htmlspecialchars($user_name); ?>!</span>
             <?php if ($is_logged_in): ?>
-                <a href="user_profile.php"><button class="profile-button">Profile</button></a>
+                <a href="user_profile.php"><button><span class="user"><?php echo htmlspecialchars($user_name); ?>!</span></button></a>
                 <a href="../../Login&Registration/login_form.php"><button class="logout-button">Logout</button></a>
             <?php else: ?>
                 <button class="login-button">LOGIN</button>

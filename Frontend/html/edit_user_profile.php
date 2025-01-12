@@ -103,7 +103,7 @@ $db_connection->close();
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Edit Profile</title>
-    <link rel="stylesheet" href="styles.css"> <!-- Link to your CSS -->
+    <link rel="stylesheet" href="../css/editUsersProfile.css"> <!-- Link to your CSS -->
 </head>
 
 <body>
@@ -111,14 +111,10 @@ $db_connection->close();
         <h1>Edit Profile</h1>
     </header>
 
-    <nav>
-        <a href="user_profile.php">View Profile</a>
-        <a href="logout.php">Logout</a>
-    </nav>
-
     <div class="container">
         <div class="edit-profile-card">
             <h2>Update Profile Information</h2>
+            <a href="user_profile.php">View Profile</a>
 
             <!-- Display any error message for the profile picture upload -->
             <?php if ($profile_picture_error): ?>
