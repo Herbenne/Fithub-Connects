@@ -12,27 +12,6 @@ require 'db_connection.php'; // Include database connection
 // Retrieve admin details
 $admin_email = $_SESSION['admin_email'];
 
-// Fetch stats from the database
-$total_users_query = "SELECT COUNT(*) FROM users";
-$total_users_result = $db_connection->query($total_users_query);
-$total_users = $total_users_result->fetch_row()[0];
-$total_users_result->free();
-
-$total_admins_query = "SELECT COUNT(*) FROM admins";
-$total_admins_result = $db_connection->query($total_admins_query);
-$total_admins = $total_admins_result->fetch_row()[0];
-$total_admins_result->free();
-
-$total_gyms_query = "SELECT COUNT(*) FROM gyms";
-$total_gyms_result = $db_connection->query($total_gyms_query);
-$total_gyms = $total_gyms_result->fetch_row()[0];
-$total_gyms_result->free();
-
-$total_gyms_applications_query = "SELECT COUNT(*) FROM gyms_applications";
-$total_gyms_applications_result = $db_connection->query($total_gyms_applications_query);
-$total_gyms_applications = $total_gyms_applications_result->fetch_row()[0];
-$total_gyms_applications_result->free();
-
 // Handle password change form submission
 $password_change_message = "";
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['current_password']) && isset($_POST['new_password'])) {
@@ -41,12 +20,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['current_password']) &
 
     // Fetch current superadmin's password from the database
     $stmt = $db_connection->prepare("SELECT password FROM admins WHERE email = ?");
-    if (!$stmt) {
-        die("Prepare failed: " . $db_connection->error);
+    if ($stmt === false) {
+        die("Error preparing statement: " . $db_connection->error);
     }
 
     $stmt->bind_param("s", $_SESSION['admin_email']);
-    $stmt->execute();
+    if (!$stmt->execute()) {
+        die("Error executing statement: " . $stmt->error);
+    }
+
     $stmt->bind_result($hashed_password);
     $stmt->fetch();
     $stmt->close();
@@ -55,17 +37,76 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['current_password']) &
         // Hash new password and update in the database
         $new_hashed_password = password_hash($new_password, PASSWORD_BCRYPT);
         $update_stmt = $db_connection->prepare("UPDATE admins SET password = ? WHERE email = ?");
-        if (!$update_stmt) {
-            die("Prepare failed: " . $db_connection->error);
+        if ($update_stmt === false) {
+            die("Error preparing update statement: " . $db_connection->error);
         }
         $update_stmt->bind_param("ss", $new_hashed_password, $_SESSION['admin_email']);
-        $update_stmt->execute();
+        if (!$update_stmt->execute()) {
+            die("Error executing update statement: " . $update_stmt->error);
+        }
         $update_stmt->close();
 
         $password_change_message = "Password updated successfully!";
     } else {
         $password_change_message = "Incorrect current password!";
     }
+}
+
+// Fetch Total Counts
+$totalUsersQuery = "SELECT COUNT(*) as count FROM users";
+$totalUsersResult = mysqli_query($db_connection, $totalUsersQuery) or die("Error in query: $totalUsersQuery - " . mysqli_error($db_connection));
+$totalUsers = mysqli_fetch_assoc($totalUsersResult)['count'];
+
+$totalGymsQuery = "SELECT COUNT(*) as count FROM gyms";
+$totalGymsResult = mysqli_query($db_connection, $totalGymsQuery) or die("Error in query: $totalGymsQuery - " . mysqli_error($db_connection));
+$totalGyms = mysqli_fetch_assoc($totalGymsResult)['count'];
+
+$totalMembershipsQuery = "SELECT COUNT(*) as count FROM membership_plans";
+$totalMembershipsResult = mysqli_query($db_connection, $totalMembershipsQuery) or die("Error in query: $totalMembershipsQuery - " . mysqli_error($db_connection));
+$totalMemberships = mysqli_fetch_assoc($totalMembershipsResult)['count'];
+
+$totalAttendanceQuery = "SELECT COUNT(*) as count FROM attendance";
+$totalAttendanceResult = mysqli_query($db_connection, $totalAttendanceQuery) or die("Error in query: $totalAttendanceQuery - " . mysqli_error($db_connection));
+$totalAttendance = mysqli_fetch_assoc($totalAttendanceResult)['count'];
+
+// Fetch Role Distribution
+$roleDistributionQuery = "SELECT role, COUNT(*) as count FROM admins GROUP BY role";
+$roleDistributionResult = mysqli_query($db_connection, $roleDistributionQuery) or die("Error in query: $roleDistributionQuery - " . mysqli_error($db_connection));
+$roles = [];
+$roleCounts = [];
+while ($row = mysqli_fetch_assoc($roleDistributionResult)) {
+    $roles[] = $row['role'];
+    $roleCounts[] = $row['count'];
+}
+
+// Fetch Gyms per Admin
+$gymsPerAdminQuery = "SELECT admins.username, COUNT(gyms.gym_id) as gym_count FROM gyms JOIN admins ON gyms.gym_id = admins.gym_id GROUP BY admins.username";
+$gymsPerAdminResult = mysqli_query($db_connection, $gymsPerAdminQuery) or die("Error in query: $gymsPerAdminQuery - " . mysqli_error($db_connection));
+$admins = [];
+$gymCounts = [];
+while ($row = mysqli_fetch_assoc($gymsPerAdminResult)) {
+    $admins[] = $row['username'];
+    $gymCounts[] = $row['gym_count'];
+}
+
+// Fetch Membership Plans per Gym
+$membershipPerGymQuery = "SELECT gym_name AS gym_name, COUNT(membership_plans.id) AS plan_count FROM membership_plans JOIN gyms ON membership_plans.gym_id = gyms.gym_id GROUP BY gyms.gym_name";
+$membershipPerGymResult = mysqli_query($db_connection, $membershipPerGymQuery) or die("Error in query: $membershipPerGymQuery - " . mysqli_error($db_connection));
+$gymNames = [];
+$planCounts = [];
+while ($row = mysqli_fetch_assoc($membershipPerGymResult)) {
+    $gymNames[] = $row['gym_name'];
+    $planCounts[] = $row['plan_count'];
+}
+
+// Monthly User Registrations
+$monthlyRegistrationsQuery = "SELECT DATE_FORMAT(reg_date, '%Y-%m') AS month, COUNT(*) AS count FROM users GROUP BY DATE_FORMAT(reg_date, '%Y-%m')";
+$monthlyRegistrationsResult = mysqli_query($db_connection, $monthlyRegistrationsQuery) or die("Error in query: $monthlyRegistrationsQuery - " . mysqli_error($db_connection));
+$months = [];
+$userCounts = [];
+while ($row = mysqli_fetch_assoc($monthlyRegistrationsResult)) {
+    $months[] = $row['month'];
+    $userCounts[] = $row['count'];
 }
 
 $db_connection->close();
@@ -78,7 +119,7 @@ $db_connection->close();
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Superadmin Dashboard</title>
-		<link rel="stylesheet" href="./admin.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 
 <body>
@@ -104,17 +145,6 @@ $db_connection->close();
             <p>Use the navigation menu to access various sections of the dashboard.</p>
         </div>
 
-        <!-- Display System Statistics -->
-        <div class="card">
-            <h2>System Statistics</h2>
-            <ul>
-                <li>Total Users: <?= $total_users ?></li>
-                <li>Total Admins: <?= $total_admins ?></li>
-                <li>Total Gyms: <?= $total_gyms ?></li>
-                <li>Total Gym Applications: <?= $total_gyms_applications ?></li>
-            </ul>
-        </div>
-
         <!-- Change Password Section -->
         <div class="card">
             <h2>Change Password</h2>
@@ -132,7 +162,93 @@ $db_connection->close();
             <?php endif; ?>
         </div>
 
+        <!-- Total Counts -->
+        <div>
+            <h2>Total Counts</h2>
+            <p>Total Users: <?php echo htmlspecialchars($totalUsers); ?></p>
+            <p>Total Gyms: <?php echo htmlspecialchars($totalGyms); ?></p>
+            <p>Total Membership Plans: <?php echo htmlspecialchars($totalMemberships); ?></p>
+            <p>Total Attendance Records: <?php echo htmlspecialchars($totalAttendance); ?></p>
+        </div>
+
+        <!-- Role Distribution Chart -->
+        <div class="chart-container">
+            <h2>Role Distribution</h2>
+            <canvas id="roleChart"></canvas>
+        </div>
+
+        <!-- Gyms per Admin Chart -->
+        <div class="chart-container">
+            <h2>Gyms per Admin</h2>
+            <canvas id="gymsChart"></canvas>
+        </div>
+
+        <!-- Membership Plans per Gym Chart -->
+        <div class="chart-container">
+            <h2>Membership Plans per Gym</h2>
+            <canvas id="plansChart"></canvas>
+        </div>
+
+        <!-- Monthly Registrations Chart -->
+        <div class="chart-container">
+            <h2>Monthly User Registrations</h2>
+            <canvas id="registrationsChart"></canvas>
+        </div>
     </div>
+
+    <script>
+        // Role Distribution Chart
+        new Chart(document.getElementById('roleChart'), {
+            type: 'pie',
+            data: {
+                labels: <?php echo json_encode($roles); ?>,
+                datasets: [{
+                    data: <?php echo json_encode($roleCounts); ?>,
+                    backgroundColor: ['#ff6384', '#36a2eb', '#ffcd56', '#4caf50', '#ab47bc']
+                }]
+            }
+        });
+
+        // Gyms per Admin Chart
+        new Chart(document.getElementById('gymsChart'), {
+            type: 'bar',
+            data: {
+                labels: <?php echo json_encode($admins); ?>,
+                datasets: [{
+                    label: 'Gyms Managed',
+                    data: <?php echo json_encode($gymCounts); ?>,
+                    backgroundColor: '#4caf50'
+                }]
+            }
+        });
+
+        // Membership Plans per Gym Chart
+        new Chart(document.getElementById('plansChart'), {
+            type: 'bar',
+            data: {
+                labels: <?php echo json_encode($gymNames); ?>,
+                datasets: [{
+                    label: 'Membership Plans',
+                    data: <?php echo json_encode($planCounts); ?>,
+                    backgroundColor: '#ffa726'
+                }]
+            }
+        });
+
+        // Monthly Registrations Chart
+        new Chart(document.getElementById('registrationsChart'), {
+            type: 'line',
+            data: {
+                labels: <?php echo json_encode($months); ?>,
+                datasets: [{
+                    label: 'User Registrations',
+                    data: <?php echo json_encode($userCounts); ?>,
+                    borderColor: '#36a2eb',
+                    fill: false
+                }]
+            }
+        });
+    </script>
 </body>
 
 </html>

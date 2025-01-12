@@ -90,11 +90,6 @@
                 <label for="contact_number">Contact Number</label>
                 <input type="text" id="contact_number" name="contact_number" required>
             </div>
-            
-            <div class="form-group">
-                <label for="profile_picture">Profile Picture</label>
-                <input type="file" id="profile_picture" name="profile_picture">
-            </div>
 
             <button type="submit" class="primary-button">Register</button>
         </form>
