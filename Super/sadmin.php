@@ -59,53 +59,99 @@ $db_connection->close();
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="./superAdminCss/sadMin.css">
+    <script src="https://kit.fontawesome.com/b098b18a13.js" crossorigin="anonymous"></script>
     <title>Superadmin Dashboard</title>
 </head>
 
 <body>
+    <div class="dashboard-container">
+        <header>
+            <h1>Admin Control Panel</h1>
+        </header>
 
-    <h1>Superadmin Dashboard - Settings</h1>
+        <nav>
+            <a href="superadmin_dashboard.php"><i class="fa-solid fa-table-columns"></i>Dashboard</a>
+            <a href="manage_users.php"><i class="fa-solid fa-user"></i>Manage Users</a>
+            <a href="manage_gyms.php"><i class="fa-solid fa-dumbbell"></i>Gyms</a>
+            <a href="manage_gym_applications.php"><i class="fa-solid fa-paperclip"></i>Applications</a>
+            <a href="paymentlist.php"><i class="fa-solid fa-money-bill"></i>View Payment</a>
+            <a href="sadmin.php"><i class="fa-solid fa-gear"></i>Site Settings</a>
+            <a href="backup_restore.php"><i class="fa-solid fa-file"></i>Backup & Restore</a>
+            <a href="../Admin/admin_login_form.php"><i class="fa-solid fa-right-from-bracket"></i>Logout</a>
+        </nav>
 
-    <form method="POST">
-        <label for="site_title">Site Title</label>
-        <input type="text" name="site_title" value="<?php echo htmlspecialchars($settings['site_title'] ?? ''); ?>" /><br>
+        <main>
+            <div class="card">
+            <h2 class="spanlabel">Settings</h2>
+                <form method="POST">
+                    <div class="form-group">
+                        <label for="site_title">Site Title</label>
+                        <input type="text" id="site_title" name="site_title" value="<?php echo htmlspecialchars($settings['site_title'] ?? ''); ?>" />
+                    </div>
 
-        <label for="site_logo">Logo Image URL</label>
-        <input type="text" name="site_logo" value="<?php echo htmlspecialchars($settings['site_logo'] ?? ''); ?>" /><br>
+                    <div class="form-group">
+                        <label for="site_logo">Logo Image URL</label>
+                        <input type="text" id="site_logo" name="site_logo" value="<?php echo htmlspecialchars($settings['site_logo'] ?? ''); ?>" />
+                    </div>
 
-        <label for="site_tagline">Site Tagline</label>
-        <input type="text" name="site_tagline" value="<?php echo htmlspecialchars($settings['site_tagline'] ?? ''); ?>" /><br>
+                    <div class="form-group">
+                        <label for="site_tagline">Site Tagline</label>
+                        <input type="text" id="site_tagline" name="site_tagline" value="<?php echo htmlspecialchars($settings['site_tagline'] ?? ''); ?>" />
+                    </div>
 
-        <label for="contact_email">Contact Email</label>
-        <input type="email" name="contact_email" value="<?php echo htmlspecialchars($settings['contact_email'] ?? ''); ?>" /><br>
+                    <div class="form-group">
+                        <label for="contact_email">Contact Email</label>
+                        <input type="email" id="contact_email" name="contact_email" value="<?php echo htmlspecialchars($settings['contact_email'] ?? ''); ?>" />
+                    </div>
 
-        <label for="contact_phone">Contact Phone</label>
-        <input type="text" name="contact_phone" value="<?php echo htmlspecialchars($settings['contact_phone'] ?? ''); ?>" /><br>
+                    <div class="form-group">
+                        <label for="contact_phone">Contact Phone</label>
+                        <input type="text" id="contact_phone" name="contact_phone" value="<?php echo htmlspecialchars($settings['contact_phone'] ?? ''); ?>" />
+                    </div>
 
-        <label for="facebook_url">Facebook URL</label>
-        <input type="text" name="facebook_url" value="<?php echo htmlspecialchars($settings['facebook_url'] ?? ''); ?>" /><br>
+                    <div class="form-group">
+                        <label for="facebook_url">Facebook URL</label>
+                        <input type="text" id="facebook_url" name="facebook_url" value="<?php echo htmlspecialchars($settings['facebook_url'] ?? ''); ?>" />
+                    </div>
 
-        <label for="instagram_url">Instagram URL</label>
-        <input type="text" name="instagram_url" value="<?php echo htmlspecialchars($settings['instagram_url'] ?? ''); ?>" /><br>
+                    <div class="form-group">
+                        <label for="instagram_url">Instagram URL</label>
+                        <input type="text" id="instagram_url" name="instagram_url" value="<?php echo htmlspecialchars($settings['instagram_url'] ?? ''); ?>" />
+                    </div>
 
-        <label for="linkedin_url">LinkedIn URL</label>
-        <input type="text" name="linkedin_url" value="<?php echo htmlspecialchars($settings['linkedin_url'] ?? ''); ?>" /><br>
+                    <div class="form-group">
+                        <label for="linkedin_url">LinkedIn URL</label>
+                        <input type="text" id="linkedin_url" name="linkedin_url" value="<?php echo htmlspecialchars($settings['linkedin_url'] ?? ''); ?>" />
+                    </div>
 
-        <label for="home_description">Home Description</label>
-        <textarea name="home_description"><?php echo htmlspecialchars($settings['home_description'] ?? ''); ?></textarea><br>
+                    <div class="form-group">
+                        <label for="home_description">Home Description</label>
+                        <textarea id="home_description" name="home_description"><?php echo htmlspecialchars($settings['home_description'] ?? ''); ?></textarea>
+                    </div>
 
-        <label for="about_us_description">About Us Description</label>
-        <textarea name="about_us_description"><?php echo htmlspecialchars($settings['about_us_description'] ?? ''); ?></textarea><br>
+                    <div class="form-group">
+                        <label for="about_us_description">About Us Description</label>
+                        <textarea id="about_us_description" name="about_us_description"><?php echo htmlspecialchars($settings['about_us_description'] ?? ''); ?></textarea>
+                    </div>
 
-        <label for="location_map_url">Location Map URL</label>
-        <input type="text" name="location_map_url" value="<?php echo htmlspecialchars($settings['location_map_url'] ?? ''); ?>" /><br>
+                    <div class="form-group">
+                        <label for="location_map_url">Location Map URL</label>
+                        <input type="text" id="location_map_url" name="location_map_url" value="<?php echo htmlspecialchars($settings['location_map_url'] ?? ''); ?>" />
+                    </div>
 
-        <label for="footer_content">Footer Content</label>
-        <textarea name="footer_content"><?php echo htmlspecialchars($settings['footer_content'] ?? ''); ?></textarea><br>
+                    <div class="form-group">
+                        <label for="footer_content">Footer Content</label>
+                        <textarea id="footer_content" name="footer_content"><?php echo htmlspecialchars($settings['footer_content'] ?? ''); ?></textarea>
+                    </div>
 
-        <button type="submit">Update Settings</button>
-    </form>
-
+                    <div class="form-group">
+                        <button type="submit">Update Settings</button>
+                    </div>
+                </form>
+            </div>
+        </main>
+    </div>
 </body>
 
 </html>

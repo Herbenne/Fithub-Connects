@@ -86,30 +86,7 @@ $db_connection->close();
 
         <main>
             <div class="card">
-                <h2 class="spanlabel">Add New Membership Plan</h2>
-                <form method="POST" action="">
-                    <div class="form-group">
-                        <label for="gym_id">Gym ID:</label>
-                        <input type="number" id="gym_id" name="gym_id" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="plan_name">Plan Name:</label>
-                        <input type="text" id="plan_name" name="plan_name" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="duration">Duration (days):</label>
-                        <input type="number" id="duration" name="duration" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="price">Price:</label>
-                        <input type="number" step="0.01" id="price" name="price" required>
-                    </div>
-                    <button type="submit" name="add_plan" class="btn btn-primary">Add Plan</button>
-                </form>
-            </div>
-
-            <div class="card">
-                <h2>Existing Membership Plans</h2>
+                <h2 class="spanlabel">Existing Membership Plans</h2>
                 <div class="table-responsive">
                     <table>
                         <thead>
@@ -139,6 +116,29 @@ $db_connection->close();
                         </tbody>
                     </table>
                 </div>
+            </div>
+
+            <div class="card">
+                <h2 class="spanlabel">Add New Membership Plan</h2>
+                <form method="POST" action="">
+                    <div class="form-group">
+                        <label for="gym_id">Gym ID:</label>
+                        <input type="number" id="gym_id" name="gym_id" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="plan_name">Plan Name:</label>
+                        <input type="text" id="plan_name" name="plan_name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="duration">Duration (days):</label>
+                        <input type="number" id="duration" name="duration" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="price">Price:</label>
+                        <input type="number" step="0.01" id="price" name="price" required>
+                    </div>
+                    <button type="submit" name="add_plan" class="btn btn-primary">Add Plan</button>
+                </form>
             </div>
         </main>
     </div>
