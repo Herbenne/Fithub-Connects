@@ -49,12 +49,6 @@ body {
   cursor: pointer;
 }
 
-h1 {
-  font-size: 2rem;
-  font-weight: 700;
-  color: #fab12f;
-  margin-bottom: 0.5rem;
-}
 
 .welcome-text {
   color: #666;

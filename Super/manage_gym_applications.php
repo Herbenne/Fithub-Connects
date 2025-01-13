@@ -62,50 +62,65 @@ if (!$applications_result) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Manage Gym Applications</title>
-    <link rel="stylesheet" href="styles.css">
+    <script src="https://kit.fontawesome.com/b098b18a13.js" crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="./superAdminCss/manageApplication.css">
 </head>
 
 <body>
+    <div class="dashboard-container">
     <header>
-        <h1>Manage Gym Applications</h1>
-    </header>
+            <h1>Manage Gym Applications</h1>
+        </header>
+        <nav>
+            <a href="superadmin_dashboard.php"><i class="fa-solid fa-table-columns"></i>Dashboard</a>
+            <a href="manage_users.php"><i class="fa-solid fa-user"></i>Manage Users</a>
+            <a href="manage_admins.php"><i class="fa-solid fa-lock"></i>Manage Admins</a>
+            <a href="manage_gyms.php"><i class="fa-solid fa-dumbbell"></i>Manage Gyms</a>
+            <a href="../Admin/admin_login_form.php"><i class="fa-solid fa-right-from-bracket"></i>Logout</a>
+        </nav>
 
-    <nav>
-        <a href="superadmin_dashboard.php">Back to Dashboard</a>
-        <a href="../Admin/admin_login_form.php">Logout</a>
-    </nav>
+        <main>
 
-    <div class="container">
-        <h2>Pending Gym Applications</h2>
-        <table border="1">
-            <tr>
-                <th>Gym Name</th>
-                <th>Location</th>
-                <th>Status</th>
-                <th>Actions</th>
-            </tr>
-            <?php if ($applications_result->num_rows > 0) {
-                while ($row = $applications_result->fetch_assoc()) { ?>
-                    <tr>
-                        <td><?php echo htmlspecialchars($row['gym_name']); ?></td>
-                        <td><?php echo htmlspecialchars($row['gym_location']); ?></td>
-                        <td><?php echo htmlspecialchars($row['status']); ?></td>
-                        <td>
-                            <form method="POST" action="">
-                                <input type="hidden" name="gym_id" value="<?php echo $row['id']; ?>">
-                                <button type="submit" name="approve_gym">Approve</button>
-                                <button type="submit" name="reject_gym">Reject</button>
-                            </form>
-                        </td>
-                    </tr>
-                <?php }
-            } else { ?>
-                <tr>
-                    <td colspan="4">No pending applications.</td>
-                </tr>
-            <?php } ?>
-        </table>
+            <div class="card">
+                <h2 class="spanlabel">Pending Gym Applications</h2>
+                <div class="table-responsive">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Gym Name</th>
+                                <th>Location</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php if ($applications_result->num_rows > 0) {
+                                while ($row = $applications_result->fetch_assoc()) { ?>
+                                    <tr>
+                                        <td data-label="Gym Name"><?php echo htmlspecialchars($row['gym_name']); ?></td>
+                                        <td data-label="Location"><?php echo htmlspecialchars($row['gym_location']); ?></td>
+                                        <td data-label="Status"><?php echo htmlspecialchars($row['status']); ?></td>
+                                        <td data-label="Actions">
+                                            <form method="POST" action="">
+                                                <input type="hidden" name="gym_id" value="<?php echo $row['id']; ?>">
+                                                <button type="submit" name="approve_gym" class="btn btn-primary">Approve</button>
+                                                <button type="submit" name="reject_gym" class="btn btn-delete">Reject</button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                <?php }
+                            } else { ?>
+                                <tr>
+                                    <td colspan="4">No pending applications.</td>
+                                </tr>
+                            <?php } ?>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
     </div>
 </body>
 
 </html>
+

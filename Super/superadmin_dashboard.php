@@ -120,80 +120,97 @@ $db_connection->close();
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Superadmin Dashboard</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="./superAdminCss/superAdminDashboard.css">
+    <script src="https://kit.fontawesome.com/b098b18a13.js" crossorigin="anonymous"></script>
 </head>
 
 <body>
-    <header>
-        <h1>Welcome, Superadmin</h1>
-    </header>
+    <div class="dashboard-container">
+        <header>
+            <h1>SUPER ADMIN</h1>
+        </header>
 
-    <nav>
-        <a href="manage_admins.php">Manage Admins</a>
-        <a href="manage_users.php">Manage Users</a>
-        <a href="manage_gym_applications.php">Applications</a>
-        <a href="paymentlist.php">View Payment</a>
-        <a href="sadmin.php">Site Settings</a>
-        <a href="manage_gyms.php">Gyms</a>
-        <a href="backup_restore.php">Backup & Restore</a>
-        <a href="../Admin/admin_login_form.php">Logout</a>
-    </nav>
+        <nav>
+            <a href="manage_admins.php"><i class="fa-solid fa-lock"></i>Manage Admins</a>
+            <a href="manage_users.php"><i class="fa-solid fa-user"></i>Manage Users</a>
+            <a href="manage_gym_applications.php"><i class="fa-solid fa-paperclip"></i>Applications</a>
+            <a href="paymentlist.php"><i class="fa-solid fa-money-bill"></i>View Payment</a>
+            <a href="sadmin.php"><i class="fa-solid fa-gear"></i>Site Settings</a>
+            <a href="manage_gyms.php"><i class="fa-solid fa-dumbbell"></i>Gyms</a>
+            <a href="backup_restore.php"><i class="fa-solid fa-file"></i>Backup & Restore</a>
+            <a href="../Admin/admin_login_form.php"><i class="fa-solid fa-right-from-bracket"></i>Logout</a>
+        </nav>
 
-    <div class="container">
-        <!-- Display Admin Information -->
-        <div class="card">
-            <h2>Admin Email: <?php echo htmlspecialchars($admin_email); ?></h2>
-            <p>Use the navigation menu to access various sections of the dashboard.</p>
-        </div>
+        <main>
+            <div class="card1 admin-info">
+                <h2><span class="spanlabel">Admin Email:</span> <?php echo htmlspecialchars($admin_email); ?></h2>
+            </div>
 
-        <!-- Change Password Section -->
-        <div class="card">
-            <h2>Change Password</h2>
-            <form method="POST" action="superadmin_dashboard.php">
-                <label for="current_password">Current Password:</label>
-                <input type="password" id="current_password" name="current_password" required>
+            <div class="card password-change">
+                <h2><span class="spanlabel">Change Password</span></h2>
+                <form method="POST" action="superadmin_dashboard.php">
+                    <div class="form-group">
+                        <label for="current_password">Current Password:</label>
+                        <input type="password" id="current_password" name="current_password" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="new_password">New Password:</label>
+                        <input type="password" id="new_password" name="new_password" required>
+                    </div>
+                    <div class="password-btn-container">
+                        
+                    <button class="password-btn" type="submit">Change Password</button>
+                    </div>
+                </form>
+                <?php if (!empty($password_change_message)) : ?>
+                    <p class="message"><?= htmlspecialchars($password_change_message) ?></p>
+                <?php endif; ?>
+            </div>
 
-                <label for="new_password">New Password:</label>
-                <input type="password" id="new_password" name="new_password" required>
+            <div class="card total-counts">
+                <h2><span class="spanlabel">Total Counts</span></h2>
+                <div class="counts-grid">
+                    <div class="count-item">
+                        <span class="count-label">Total Users:</span>
+                        <span class="count-value"><?php echo htmlspecialchars($totalUsers); ?></span>
+                    </div>
+                    <div class="count-item">
+                        <span class="count-label">Total Gyms:</span>
+                        <span class="count-value"><?php echo htmlspecialchars($totalGyms); ?></span>
+                    </div>
+                    <div class="count-item">
+                        <span class="count-label">Total Membership Plans:</span>
+                        <span class="count-value"><?php echo htmlspecialchars($totalMemberships); ?></span>
+                    </div>
+                    <div class="count-item">
+                        <span class="count-label">Total Attendance Records:</span>
+                        <span class="count-value"><?php echo htmlspecialchars($totalAttendance); ?></span>
+                    </div>
+                </div>
+            </div>
 
-                <button type="submit">Change Password</button>
-            </form>
-            <?php if (!empty($password_change_message)) : ?>
-                <p><?= htmlspecialchars($password_change_message) ?></p>
-            <?php endif; ?>
-        </div>
+            <div class="charts-grid">
+                <div class="card chart-container1">
+                    <h2>Role Distribution</h2>
+                    <canvas id="roleChart"></canvas>
+                </div>
 
-        <!-- Total Counts -->
-        <div>
-            <h2>Total Counts</h2>
-            <p>Total Users: <?php echo htmlspecialchars($totalUsers); ?></p>
-            <p>Total Gyms: <?php echo htmlspecialchars($totalGyms); ?></p>
-            <p>Total Membership Plans: <?php echo htmlspecialchars($totalMemberships); ?></p>
-            <p>Total Attendance Records: <?php echo htmlspecialchars($totalAttendance); ?></p>
-        </div>
+                <div class="card chart-container">
+                    <h2>Gyms per Admin</h2>
+                    <canvas id="gymsChart"></canvas>
+                </div>
 
-        <!-- Role Distribution Chart -->
-        <div class="chart-container">
-            <h2>Role Distribution</h2>
-            <canvas id="roleChart"></canvas>
-        </div>
+                <div class="card chart-container">
+                    <h2>Membership Plans per Gym</h2>
+                    <canvas id="plansChart"></canvas>
+                </div>
 
-        <!-- Gyms per Admin Chart -->
-        <div class="chart-container">
-            <h2>Gyms per Admin</h2>
-            <canvas id="gymsChart"></canvas>
-        </div>
-
-        <!-- Membership Plans per Gym Chart -->
-        <div class="chart-container">
-            <h2>Membership Plans per Gym</h2>
-            <canvas id="plansChart"></canvas>
-        </div>
-
-        <!-- Monthly Registrations Chart -->
-        <div class="chart-container">
-            <h2>Monthly User Registrations</h2>
-            <canvas id="registrationsChart"></canvas>
-        </div>
+                <div class="card chart-container">
+                    <h2>Monthly User Registrations</h2>
+                    <canvas id="registrationsChart"></canvas>
+                </div>
+            </div>
+        </main>
     </div>
 
     <script>

@@ -24,7 +24,7 @@ $db_connection->close();
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>User Profile</title>
-    <link rel="stylesheet" href="styles.css"> <!-- Link to your CSS -->
+    <link rel="stylesheet" href="../css/userProfile.css"> <!-- Link to your CSS -->
 </head>
 
 <body>
@@ -33,9 +33,9 @@ $db_connection->close();
     </header>
 
     <nav>
-        <a href="index2.php">Home</a>
-        <a href="edit_user_profile.php">Edit Profile</a>
-        <a href="logout.php">Logout</a>
+        <a href="index2.php">HOME</a>
+        <a href="edit_user_profile.php">EDIT PROFILE</a>
+        <a href="../../Login&Registration/logout.php">LOGOUT</a>
     </nav>
 
     <div class="container">
