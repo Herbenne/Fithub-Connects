@@ -76,13 +76,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </header>
 
     <nav>
-        <a href="superadmin_dashboard.php">Dashboard</a>
+        <a href="superadmin_dashboard.php"><i class="fa-solid fa-table-columns"></i>Dashboard</a>
         <a href="manage_admins.php"><i class="fa-solid fa-lock"></i>Manage Admins</a>
         <a href="manage_users.php"><i class="fa-solid fa-user"></i>Manage Users</a>
+        <a href="manage_gyms.php"><i class="fa-solid fa-dumbbell"></i>Gyms</a>
         <a href="manage_gym_applications.php"><i class="fa-solid fa-paperclip"></i>Applications</a>
+        <a href="manage_membership_plans.php"><i class="fa-solid fa-user"></i>Membership</a>
         <a href="paymentlist.php"><i class="fa-solid fa-money-bill"></i>View Payment</a>
         <a href="sadmin.php"><i class="fa-solid fa-gear"></i>Site Settings</a>
-        <a href="manage_gyms.php"><i class="fa-solid fa-dumbbell"></i>Gyms</a>
         <a href="../Admin/admin_login_form.php"><i class="fa-solid fa-right-from-bracket"></i>Logout</a>
     </nav>
 

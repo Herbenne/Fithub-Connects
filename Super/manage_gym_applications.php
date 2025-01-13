@@ -75,9 +75,10 @@ if (!$applications_result) {
             <a href="superadmin_dashboard.php"><i class="fa-solid fa-table-columns"></i>Dashboard</a>
             <a href="manage_admins.php"><i class="fa-solid fa-lock"></i>Manage Admins</a>
             <a href="manage_users.php"><i class="fa-solid fa-user"></i>Manage Users</a>
+            <a href="manage_gyms.php"><i class="fa-solid fa-dumbbell"></i>Gyms</a>
+            <a href="manage_membership_plans.php"><i class="fa-solid fa-user"></i>Membership</a>
             <a href="paymentlist.php"><i class="fa-solid fa-money-bill"></i>View Payment</a>
             <a href="sadmin.php"><i class="fa-solid fa-gear"></i>Site Settings</a>
-            <a href="manage_gyms.php"><i class="fa-solid fa-dumbbell"></i>Gyms</a>
             <a href="backup_restore.php"><i class="fa-solid fa-file"></i>Backup & Restore</a>
             <a href="../Admin/admin_login_form.php"><i class="fa-solid fa-right-from-bracket"></i>Logout</a>
         </nav>

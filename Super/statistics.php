@@ -58,4 +58,14 @@ while ($row = mysqli_fetch_assoc($monthlyRegistrationsResult)) {
     $userCounts[] = $row['count'];
 }
 
+// Fetch Applications by Status
+$applicationsByStatusQuery = "SELECT status, COUNT(*) as count FROM gyms_applications GROUP BY status";
+$applicationsByStatusResult = mysqli_query($db_connection, $applicationsByStatusQuery) or die("Error in query: $applicationsByStatusQuery - " . mysqli_error($db_connection));
+$statuses = [];
+$statusCounts = [];
+while ($row = mysqli_fetch_assoc($applicationsByStatusResult)) {
+    $statuses[] = $row['status'];
+    $statusCounts[] = $row['count'];
+}
+
 $db_connection->close();

@@ -109,6 +109,16 @@ while ($row = mysqli_fetch_assoc($monthlyRegistrationsResult)) {
     $userCounts[] = $row['count'];
 }
 
+// Fetch Gym Application Status Counts
+$statusCountsQuery = "SELECT status, COUNT(*) as count FROM gyms_applications GROUP BY status";
+$statusCountsResult = mysqli_query($db_connection, $statusCountsQuery) or die("Error in query: $statusCountsQuery - " . mysqli_error($db_connection));
+$statuses = [];
+$statusCounts = [];
+while ($row = mysqli_fetch_assoc($statusCountsResult)) {
+    $statuses[] = $row['status'];
+    $statusCounts[] = $row['count'];
+}
+
 $db_connection->close();
 ?>
 
@@ -133,10 +143,11 @@ $db_connection->close();
         <nav>
             <a href="manage_admins.php"><i class="fa-solid fa-lock"></i>Manage Admins</a>
             <a href="manage_users.php"><i class="fa-solid fa-user"></i>Manage Users</a>
+            <a href="manage_gyms.php"><i class="fa-solid fa-dumbbell"></i>Gyms</a>
             <a href="manage_gym_applications.php"><i class="fa-solid fa-paperclip"></i>Applications</a>
+            <a href="manage_membership_plans.php"><i class="fa-solid fa-user"></i>Membership</a>
             <a href="paymentlist.php"><i class="fa-solid fa-money-bill"></i>View Payment</a>
             <a href="sadmin.php"><i class="fa-solid fa-gear"></i>Site Settings</a>
-            <a href="manage_gyms.php"><i class="fa-solid fa-dumbbell"></i>Gyms</a>
             <a href="backup_restore.php"><i class="fa-solid fa-file"></i>Backup & Restore</a>
             <a href="../Admin/admin_login_form.php"><i class="fa-solid fa-right-from-bracket"></i>Logout</a>
         </nav>
@@ -165,6 +176,16 @@ $db_connection->close();
                 <div class="card chart-container">
                     <h2>Monthly User Registrations</h2>
                     <canvas id="registrationsChart"></canvas>
+                </div>
+
+                <div class="card chart-container">
+                    <h2>Gym Application Status</h2>
+                    <canvas id="statusChart"></canvas>
+                </div>
+
+                <div class="card chart-container">
+                    <h4>Monthly Revenue</h4>
+                    <canvas id="monthlyRevenueChart"></canvas>
                 </div>
             </div>
 
@@ -203,7 +224,6 @@ $db_connection->close();
                         <input type="password" id="new_password" name="new_password" required>
                     </div>
                     <div class="password-btn-container">
-
                         <button class="password-btn" type="submit">Change Password</button>
                     </div>
                 </form>
@@ -266,6 +286,67 @@ $db_connection->close();
                 }]
             }
         });
+
+        // Gym Application Status Chart
+        new Chart(document.getElementById('statusChart'), {
+            type: 'pie',
+            data: {
+                labels: <?php echo json_encode($statuses); ?>,
+                datasets: [{
+                    data: <?php echo json_encode($statusCounts); ?>,
+                    backgroundColor: ['#ff6384', '#36a2eb', '#ffcd56']
+                }]
+            }
+        });
+
+        // Fetch payment data (same method as in paymentlist.php) and prepare monthly revenue
+        const fetchData = async () => {
+            try {
+                const response = await fetch('fetch_payments.php');
+                const data = await response.json();
+                const monthlyRevenue = data.monthlyRevenue;
+                const months = Object.keys(monthlyRevenue);
+                const revenue = Object.values(monthlyRevenue).map(amount => amount / 100); // Convert cents to PHP
+
+                // Create the chart
+                new Chart(document.getElementById('monthlyRevenueChart'), {
+                    type: 'bar',
+                    data: {
+                        labels: months, // Array of months
+                        datasets: [{
+                            label: 'Monthly Revenue (PHP)',
+                            data: revenue, // Revenue data for each month
+                            backgroundColor: '#4caf50', // Green color for the bars
+                            borderColor: '#388e3c', // Darker green border color
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: {
+                                    callback: function(value) {
+                                        return value + ' PHP';
+                                    }
+                                }
+                            }
+                        },
+                        responsive: true,
+                        plugins: {
+                            legend: {
+                                position: 'top',
+                            },
+                        },
+                    }
+                });
+            } catch (error) {
+                console.error('Error fetching payment data:', error);
+            }
+        };
+
+        // Fetch data on page load
+        fetchData();
     </script>
 </body>
 
