@@ -178,7 +178,7 @@ $db_connection->close();
                     <canvas id="registrationsChart"></canvas>
                 </div>
 
-                <div class="card chart-container">
+                <div class="card chart-container1">
                     <h2>Gym Application Status</h2>
                     <canvas id="statusChart"></canvas>
                 </div>
