@@ -81,6 +81,7 @@ $db_connection->close();
 
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -88,6 +89,7 @@ $db_connection->close();
     <link rel="stylesheet" href="./superAdminCss/manageUsers.css">
     <script src="https://kit.fontawesome.com/b098b18a13.js" crossorigin="anonymous"></script>
 </head>
+
 <body>
     <div class="dashboard-container">
         <header>
@@ -97,7 +99,10 @@ $db_connection->close();
         <nav>
             <a href="superadmin_dashboard.php"><i class="fa-solid fa-table-columns"></i>Dashboard</a>
             <a href="manage_admins.php"><i class="fa-solid fa-lock"></i>Manage Admins</a>
-            <a href="manage_gyms.php"><i class="fa-solid fa-dumbbell"></i>Manage Gyms</a>
+            <a href="manage_gym_applications.php"><i class="fa-solid fa-paperclip"></i>Applications</a>
+            <a href="paymentlist.php"><i class="fa-solid fa-money-bill"></i>View Payment</a>
+            <a href="sadmin.php"><i class="fa-solid fa-gear"></i>Site Settings</a>
+            <a href="manage_gyms.php"><i class="fa-solid fa-dumbbell"></i>Gyms</a>
             <a href="backup_restore.php"><i class="fa-solid fa-file"></i>Backup & Restore</a>
             <a href="../Admin/admin_login_form.php"><i class="fa-solid fa-right-from-bracket"></i>Logout</a>
         </nav>
@@ -181,4 +186,5 @@ $db_connection->close();
         </main>
     </div>
 </body>
+
 </html>

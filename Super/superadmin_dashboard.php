@@ -65,9 +65,9 @@ $totalMembershipsQuery = "SELECT COUNT(*) as count FROM membership_plans";
 $totalMembershipsResult = mysqli_query($db_connection, $totalMembershipsQuery) or die("Error in query: $totalMembershipsQuery - " . mysqli_error($db_connection));
 $totalMemberships = mysqli_fetch_assoc($totalMembershipsResult)['count'];
 
-$totalAttendanceQuery = "SELECT COUNT(*) as count FROM attendance";
-$totalAttendanceResult = mysqli_query($db_connection, $totalAttendanceQuery) or die("Error in query: $totalAttendanceQuery - " . mysqli_error($db_connection));
-$totalAttendance = mysqli_fetch_assoc($totalAttendanceResult)['count'];
+$totaladminsQuery = "SELECT COUNT(*) as count FROM admins";
+$totaladminsResult = mysqli_query($db_connection, $totaladminsQuery) or die("Error in query: $totaladminsQuery - " . mysqli_error($db_connection));
+$totaladmins = mysqli_fetch_assoc($totaladminsResult)['count'];
 
 // Fetch Role Distribution
 $roleDistributionQuery = "SELECT role, COUNT(*) as count FROM admins GROUP BY role";
@@ -146,49 +146,6 @@ $db_connection->close();
                 <h2><span class="spanlabel">Admin Email:</span> <?php echo htmlspecialchars($admin_email); ?></h2>
             </div>
 
-            <div class="card password-change">
-                <h2><span class="spanlabel">Change Password</span></h2>
-                <form method="POST" action="superadmin_dashboard.php">
-                    <div class="form-group">
-                        <label for="current_password">Current Password:</label>
-                        <input type="password" id="current_password" name="current_password" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="new_password">New Password:</label>
-                        <input type="password" id="new_password" name="new_password" required>
-                    </div>
-                    <div class="password-btn-container">
-                        
-                    <button class="password-btn" type="submit">Change Password</button>
-                    </div>
-                </form>
-                <?php if (!empty($password_change_message)) : ?>
-                    <p class="message"><?= htmlspecialchars($password_change_message) ?></p>
-                <?php endif; ?>
-            </div>
-
-            <div class="card total-counts">
-                <h2><span class="spanlabel">Total Counts</span></h2>
-                <div class="counts-grid">
-                    <div class="count-item">
-                        <span class="count-label">Total Users:</span>
-                        <span class="count-value"><?php echo htmlspecialchars($totalUsers); ?></span>
-                    </div>
-                    <div class="count-item">
-                        <span class="count-label">Total Gyms:</span>
-                        <span class="count-value"><?php echo htmlspecialchars($totalGyms); ?></span>
-                    </div>
-                    <div class="count-item">
-                        <span class="count-label">Total Membership Plans:</span>
-                        <span class="count-value"><?php echo htmlspecialchars($totalMemberships); ?></span>
-                    </div>
-                    <div class="count-item">
-                        <span class="count-label">Total Attendance Records:</span>
-                        <span class="count-value"><?php echo htmlspecialchars($totalAttendance); ?></span>
-                    </div>
-                </div>
-            </div>
-
             <div class="charts-grid">
                 <div class="card chart-container1">
                     <h2>Role Distribution</h2>
@@ -209,6 +166,50 @@ $db_connection->close();
                     <h2>Monthly User Registrations</h2>
                     <canvas id="registrationsChart"></canvas>
                 </div>
+            </div>
+
+            <div class="card total-counts">
+                <h2><span class="spanlabel">Total Counts</span></h2>
+                <div class="counts-grid">
+                    <div class="count-item">
+                        <span class="count-label">Total Users:</span>
+                        <span class="count-value"><?php echo htmlspecialchars($totalUsers); ?></span>
+                    </div>
+                    <div class="count-item">
+                        <span class="count-label">Total Gyms:</span>
+                        <span class="count-value"><?php echo htmlspecialchars($totalGyms); ?></span>
+                    </div>
+                    <div class="count-item">
+                        <span class="count-label">Total Membership Plans:</span>
+                        <span class="count-value"><?php echo htmlspecialchars($totalMemberships); ?></span>
+                    </div>
+
+                    <div class="count-item">
+                        <span class="count-label">Total Admins:</span>
+                        <span class="count-value"><?php echo htmlspecialchars($totaladmins); ?></span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card password-change">
+                <h2><span class="spanlabel">Change Password</span></h2>
+                <form method="POST" action="superadmin_dashboard.php">
+                    <div class="form-group">
+                        <label for="current_password">Current Password:</label>
+                        <input type="password" id="current_password" name="current_password" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="new_password">New Password:</label>
+                        <input type="password" id="new_password" name="new_password" required>
+                    </div>
+                    <div class="password-btn-container">
+
+                        <button class="password-btn" type="submit">Change Password</button>
+                    </div>
+                </form>
+                <?php if (!empty($password_change_message)) : ?>
+                    <p class="message"><?= htmlspecialchars($password_change_message) ?></p>
+                <?php endif; ?>
             </div>
         </main>
     </div>
