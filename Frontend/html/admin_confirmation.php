@@ -15,7 +15,7 @@ if (!$db_connection) {
     die("Database connection failed: " . mysqli_connect_error());
 }
 
-// Handle gym application form submission
+// Handle gym application confirmation
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $gym_name = $_POST['gym_name'];
     $gym_location = $_POST['gym_location'];
@@ -36,7 +36,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     // Execute the query
     if ($stmt->execute()) {
-        echo "Gym application submitted successfully!";
+        // Display a confirmation message
     } else {
         echo "Error: " . $stmt->error;
     }
@@ -44,6 +44,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Close the statement
     $stmt->close();
 }
+
 ?>
 
 <!DOCTYPE html>
@@ -52,34 +53,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gym Application Form</title>
-    <link rel="stylesheet" href="../css/gymApplicationFrom.css"> <!-- Link to your CSS file -->
+    <title>Gym Application Confirmation</title>
+    <link rel="stylesheet" href="../css/gymApplicationConfirmation.css"> <!-- Optional CSS -->
 </head>
 
 <body>
     <header>
-        <h1>Gym Application Form</h1>
+        <h1>Gym Application Confirmation</h1>
     </header>
-
-    <form method="POST" action="admin_confirmation.php">
-        <label for="gym_name">Gym Name:</label>
-        <input type="text" id="gym_name" name="gym_name" required>
-
-        <label for="gym_location">Gym Location:</label>
-        <input type="text" id="gym_location" name="gym_location" required>
-
-        <label for="gym_phone_number">Gym Phone Number:</label>
-        <input type="text" id="gym_phone_number" name="gym_phone_number" required>
-
-        <label for="gym_description">Gym Description:</label>
-        <textarea id="gym_description" name="gym_description" required></textarea>
-
-        <label for="gym_amenities">Gym Amenities:</label>
-        <textarea id="gym_amenities" name="gym_amenities" required></textarea>
-        
-        <button type="submit">Submit Application</button>
-    </form>
-
+    <p>Thank you for submitting your gym application. The information has been successfully added to the database.</p>
+    <a href="../../Admin/admin_login_form.php"><button>Back to Dashboard</button></a>
 </body>
 
 </html>
