@@ -69,16 +69,15 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['update'])) {
     $phone_number = htmlspecialchars(trim($_POST['phone_number']));
     $description = htmlspecialchars(trim($_POST['description']));
     $amenities = htmlspecialchars(trim($_POST['amenities']));
-    $equipments = htmlspecialchars(trim($_POST['equipments']));
 
     // Validate inputs
     if (empty($gym_name) || empty($location) || empty($phone_number) || empty($description)) {
         echo "All fields are required.";
     } else {
         // Update gym details in the database
-        $update_query = "UPDATE gyms SET gym_name = ?, gym_location = ?, gym_phone_number = ?, gym_description = ?, gym_amenities = ?, gym_equipment = ? WHERE gym_id = ?";
+        $update_query = "UPDATE gyms SET gym_name = ?, gym_location = ?, gym_phone_number = ?, gym_description = ?, gym_amenities = ? WHERE gym_id = ?";
         $update_stmt = $db_connection->prepare($update_query);
-        $update_stmt->bind_param("ssssssi", $gym_name, $location, $phone_number, $description, $amenities, $equipments, $gym_id);
+        $update_stmt->bind_param("sssssi", $gym_name, $location, $phone_number, $description, $amenities, $gym_id);
 
         if ($update_stmt->execute()) {
             echo "Gym details updated successfully!";
