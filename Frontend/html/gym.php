@@ -74,7 +74,7 @@ $db_connection->close();
 
     <!-- Display Gym Images -->
     <div class="gym-maincontent">
-    <a href="index1.php#gyms"><i class="fa-solid fa-circle-info"></i></a> 
+    <a href="javascript:history.back();"><i class="fa-solid fa-circle-info"></i></a> 
 			<div class="gym-images">
         <?php if ($image_result->num_rows > 0): ?>
             <?php while ($image = $image_result->fetch_assoc()): ?>

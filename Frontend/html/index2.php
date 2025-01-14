@@ -137,7 +137,7 @@ $db_connection->close();
                     <p class="description">
                         Transform your body, boost your energy, and build confidence. At FitHub, we provide the best equipment, expert trainers, and a supportive community to help you reach your fitness goals. No excuses just results. Start your journey today!
                     </p>
-                    <button class="talk-button">Let's talk</button>
+                    <button class="talk-button">Let's Talk</button>
                     <div class="social-links">
                         <a href="<?php echo htmlspecialchars($settings['facebook_url']); ?>" target="_blank"><i class="fa-brands fa-facebook"></i></a>
                         <a href="#"><i class="fa-brands fa-linkedin"></i></a>
