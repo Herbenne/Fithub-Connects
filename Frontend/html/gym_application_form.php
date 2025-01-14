@@ -61,7 +61,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <h1>Gym Application Form</h1>
     </header>
 
-    <form method="POST" action="gym_application_form.php">
+    <form method="POST" action="../../Admin/admin_confirmation.php">
         <label for="gym_name">Gym Name:</label>
         <input type="text" id="gym_name" name="gym_name" required>
 

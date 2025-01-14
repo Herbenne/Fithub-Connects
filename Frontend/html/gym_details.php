@@ -110,16 +110,21 @@ $stmt->close();
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="../css/gymDetailsPhp.css">
+    <link rel="stylesheet" href="../css/gymDetails.css">
+    <script
+        src="https://kit.fontawesome.com/b098b18a13.js"
+        crossorigin="anonymous"
+    ></script>
     <title>Gym Details</title>
 </head>
 
 <body>
 
     <h2 class ="gymh2">Gym Details: <span class="fithub"><?php echo htmlspecialchars($gym['gym_name']); ?></span></h2>
-
+    
     <?php if ($_SESSION['admin_role'] == 'superadmin' || $_SESSION['gym_id'] == $gym_id): ?>
         <form method="POST">
+        <a class="href" href="index1.php#gyms"> <i class="fa-solid fa-right-from-bracket"></i></a> 
             <label for="gym_name">Gym Name:</label>
             <input type="text" id="gym_name" name="gym_name" value="<?php echo htmlspecialchars($gym['gym_name']); ?>" required>
 

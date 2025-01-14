@@ -19,6 +19,23 @@ body {
   text-align: center;
 }
 
+.href .fa-right-from-bracket{
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  background-color: #fab12f;
+  color: white;
+  border-radius: 50%;
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  text-decoration: none;
+  transition: all 0.3s ease;
+  
+}
+
 .fithub {
   color: #333;
 }
@@ -29,6 +46,7 @@ form {
   border-radius: 2px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   margin: 30px;
+  position: relative;
 }
 
 label {
