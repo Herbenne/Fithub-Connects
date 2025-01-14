@@ -133,7 +133,7 @@ $db_connection->close();
                     </select>
 
                     <label for="password">New Password (leave blank to keep current password):</label>
-                    <input type="password" id="password" name="password" required>
+                    <input type="password" id="password" name="password">
 
                     <button type="submit" class="btn btn-primary">Update Admin</button>
                 </form>
