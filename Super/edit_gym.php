@@ -54,56 +54,60 @@ $db_connection->close();
 
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Edit Gym</title>
-    <link rel="stylesheet" href="styles.css"> <!-- Link to CSS -->
+    <script src="https://kit.fontawesome.com/b098b18a13.js" crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="./superAdminCss/editGym.css">
 </head>
 
 <body>
-    <header>
-        <h1>Edit Gym</h1>
-    </header>
+    <div class="dashboard-container">
+        <header>
+            <h1>Edit Gym</h1>
+        </header>
 
-    <nav>
-        <a href="superadmin_dashboard.php">Back to Dashboard</a>
-        <a href="manage_admins.php">Manage Admins</a>
-        <a href="manage_users.php">Manage Users</a>
-        <a href="manage_membership_plans.php">Manage Membership Plans</a>
-        <a href="attendance_logs.php">View Attendance Logs</a>
-        <a href="../Admin/admin_login_form.php">Logout</a>
-    </nav>
+        <nav>
+            <a href="superadmin_dashboard.php"><i class="fa-solid fa-table-columns"></i>Dashboard</a>
+            <a href="manage_admins.php"><i class="fa-solid fa-user"></i>Manage Admins</a>
+            <a href="manage_users.php"><i class="fa-solid fa-user"></i>Manage Users</a>
+            <a href="manage_gyms.php"><i class="fa-solid fa-dumbbell"></i>Gyms</a>
+            <a href="manage_gym_applications.php"><i class="fa-solid fa-paperclip"></i>Applications</a>
+            <a href="manage_membership_plans.php"><i class="fa-solid fa-user"></i>Membership</a>
+            <a href="paymentlist.php"><i class="fa-solid fa-money-bill"></i>View Payment</a>
+            <a href="sadmin.php"><i class="fa-solid fa-gear"></i>Site Settings</a>
+            <a href="backup_restore.php"><i class="fa-solid fa-file"></i>Backup & Restore</a>
+            <a href="../Admin/admin_login_form.php"><i class="fa-solid fa-right-from-bracket"></i>Logout</a>
+        </nav>
 
-    <div class="container">
-        <div class="card">
-            <h2>Edit Gym Details</h2>
+        <main>
+            <div class="card">
+                <?php if (isset($update_message)): ?>
+                    <p class="error-message"><?= htmlspecialchars($update_message) ?></p>
+                <?php endif; ?>
 
-            <form method="POST" action="edit_gym.php?gym_id=<?= $gym_id ?>">
-                <label for="gym_name">Gym Name:</label>
-                <input type="text" id="gym_name" name="gym_name" value="<?= htmlspecialchars($gym['gym_name']) ?>" required>
+                <h2 class="spanlabel">Gym Details</h2>
+                <form method="POST" action="edit_gym.php?gym_id=<?= $gym_id ?>">
+                    <label for="gym_name">Gym Name:</label>
+                    <input type="text" id="gym_name" name="gym_name" value="<?= htmlspecialchars($gym['gym_name']) ?>" required>
 
-                <label for="gym_location">Gym Location:</label>
-                <input type="text" id="gym_location" name="gym_location" value="<?= htmlspecialchars($gym['gym_location']) ?>" required>
+                    <label for="gym_location">Gym Location:</label>
+                    <input type="text" id="gym_location" name="gym_location" value="<?= htmlspecialchars($gym['gym_location']) ?>" required>
 
-                <label for="gym_phone_number">Gym Phone Number:</label>
-                <input type="text" id="gym_phone_number" name="gym_phone_number" value="<?= htmlspecialchars($gym['gym_phone_number']) ?>" required>
+                    <label for="gym_phone_number">Gym Phone Number:</label>
+                    <input type="text" id="gym_phone_number" name="gym_phone_number" value="<?= htmlspecialchars($gym['gym_phone_number']) ?>" required>
 
-                <label for="gym_description">Gym Description:</label>
-                <textarea id="gym_description" name="gym_description" required><?= htmlspecialchars($gym['gym_description']) ?></textarea>
+                    <label for="gym_description">Gym Description:</label>
+                    <textarea id="gym_description" name="gym_description" required><?= htmlspecialchars($gym['gym_description']) ?></textarea>
 
-                <label for="gym_amenities">Gym Amenities:</label>
-                <textarea id="gym_amenities" name="gym_amenities" required><?= htmlspecialchars($gym['gym_amenities']) ?></textarea>
+                    <label for="gym_amenities">Gym Amenities:</label>
+                    <textarea id="gym_amenities" name="gym_amenities" required><?= htmlspecialchars($gym['gym_amenities']) ?></textarea>
 
-                <button type="submit" name="update_gym">Update Gym</button>
-            </form>
-
-            <?php if (isset($update_message)) : ?>
-                <p><?= htmlspecialchars($update_message) ?></p>
-            <?php endif; ?>
-        </div>
+                    <button type="submit" name="update_gym" class="btn btn-primary">Update Gym</button>
+                </form>
+            </div>
+        </main>
     </div>
 </body>
-
 </html>
