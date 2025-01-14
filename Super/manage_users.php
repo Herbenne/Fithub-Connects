@@ -86,7 +86,7 @@ $db_connection->close();
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Manage Users</title>
-    <link rel="stylesheet" href="./superAdminCss/manageUsers.css">
+    <link rel="stylesheet" href="./superAdminCss/manageUser.css">
     <script src="https://kit.fontawesome.com/b098b18a13.js" crossorigin="anonymous"></script>
 </head>
 

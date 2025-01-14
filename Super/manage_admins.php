@@ -33,7 +33,7 @@ if ($admins_result->num_rows > 0) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Manage Admins</title>
     <script src="https://kit.fontawesome.com/b098b18a13.js" crossorigin="anonymous"></script>
-    <link rel="stylesheet" href="./superAdminCss/manageAdmin.css">
+    <link rel="stylesheet" href="./superAdminCss/manageAdmins.css">
 </head>
 
 <body>
