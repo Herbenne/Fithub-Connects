@@ -173,6 +173,13 @@ $db_connection->close();
 
     <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
     <script>
+    document.addEventListener("DOMContentLoaded", function () {
+    document.querySelector(".talk-button").addEventListener("click", function () {
+        window.location.href = "../../Login&Registration/login_form.php";
+    });
+});
+</script>
+    <script>
         AOS.init();
     </script>
     <script src="../js/link.js"></script>

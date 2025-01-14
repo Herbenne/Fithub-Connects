@@ -23,6 +23,10 @@ body {
   max-width: 400px;
 }
 
+.login{
+  color: #fab12f;
+}
+
 .header {
   margin-bottom: 2rem;
   display: flex;

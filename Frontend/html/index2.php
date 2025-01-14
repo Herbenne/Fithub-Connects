@@ -157,7 +157,13 @@ $db_connection->close();
     <script>
         AOS.init();
     </script>
-    <script src="../js/link.js"></script>
+    <script>
+    document.addEventListener("DOMContentLoaded", function () {
+    document.querySelector(".talk-button").addEventListener("click", function () {
+        window.location.href = "../forum/index.php";
+    });
+});
+</script>
     <script src="../js/nav.js"></script>
 </body>
 

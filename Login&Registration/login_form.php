@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="../Frontend/AuthCss/login.css" />
+    <link rel="stylesheet" href="../Frontend/AuthCss/logins.css" />
 		<script
         src="https://kit.fontawesome.com/b098b18a13.js"
         crossorigin="anonymous"
@@ -14,7 +14,7 @@
     <div class="container">
         <div class="header">
             <div class="login-container">
-								<h1>Login</h1>
+								<h1 class="login">Login</h1>
                 <i class="fa-solid fa-user"></i>
 								<p class="welcome-text">Welcome to Fithub-connects</p>
             </div>
