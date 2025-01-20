@@ -38,7 +38,7 @@ if (isset($_GET['tag'])) {
 <body>
   <div class="container">
     <!-- Home Button -->
-    <form action="index.php" method="get">
+    <form action="../html/index2.php" method="get">
       <button type="submit" class="home-btn">Home</button>
     </form>
 

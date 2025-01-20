@@ -23,20 +23,21 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $error_message = "All fields are required.";
     } else {
         // Prepare and bind
-        $stmt = $db_connection->prepare("SELECT id, password FROM users WHERE email = ?");
+        $stmt = $db_connection->prepare("SELECT id, password, username FROM users WHERE email = ?");
         $stmt->bind_param("s", $email);
         $stmt->execute();
         $stmt->store_result();
 
         // Check if email exists
         if ($stmt->num_rows > 0) {
-            // Fetch the hashed password
-            $stmt->bind_result($user_id, $hashed_password);
+            // Fetch the user details
+            $stmt->bind_result($user_id, $hashed_password, $username); // Fetch the username as well
             $stmt->fetch();
 
             // Verify the password
             if (password_verify($password, $hashed_password)) {
                 $_SESSION['user_id'] = $user_id;
+                $_SESSION['username'] = $username; // Store the username in the session
 
                 // Debugging: Check if the session is set
                 if (!isset($_SESSION['user_id'])) {
@@ -44,7 +45,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 }
 
                 // Redirect to profile page
-                header("Location: profile.php");
+                header("Location: ../Frontend/html/index2.php");
                 exit();
             } else {
                 $error_message = "Invalid password.";
@@ -62,4 +63,3 @@ $db_connection->close();
 
 // Include the form
 include('login_form.php');
-?>

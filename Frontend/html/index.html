@@ -4,11 +4,12 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-    <link rel="stylesheet" href="../css/navs.css" />
+    <link rel="stylesheet" href="../css/nav.css" />
     <link rel="stylesheet" href="../css/Mainpage.css" />
     <link rel="stylesheet" href="../css/abouts.css" />
     <link rel="stylesheet" href="../css/offers.css" />
     <link rel="stylesheet" href="../css/contact.css" />
+    <link rel="stylesheet" href="../css/modal.css">
     <script
       src="https://kit.fontawesome.com/b098b18a13.js"
       crossorigin="anonymous"
@@ -36,7 +37,7 @@
       <ul class="mainMenu">
         <li><a href="#">HOME</a></li>
         <li><a href="#about-us">ABOUT</a></li>
-        <li><a href="#offers">OFFERS</a></li>
+        <li><a href="#offers">GYMS</a></li>
         <li><a href="#come-together">CONTACT</a></li>
         <li><a href="../forum/index.php">Forum</a></li>
         <div class="closeMenu"><i class="fa fa-times"></i></div>
@@ -56,8 +57,22 @@
         </span>
       </ul>
       <div class="auth-buttons">
-        <button class="login-button">LOGIN</button>
-        <button class="signup-button">SIGNUP</button>
+        <a href="#login-modal"><button class="login-button">LOGIN</button></a>
+        <a href="#register-modal"><button class="login-button">SIGNUP</button></a>
+      </div>
+
+      <div id="login-modal" class="modal">
+        <div class="modal-content">
+          <iframe src="modal.html" frameborder="0"></iframe>
+          <a href="#" class="close-modal">&times;</a>
+        </div>
+      </div>
+
+      <div id="register-modal" class="modal">
+        <div class="modal-content">
+          <iframe src="register-modal.html" frameborder="0"></iframe>
+          <a href="#" class="close-modal">&times;</a>
+        </div>
       </div>
     </nav>
 
@@ -67,7 +82,7 @@
         <div class="home-description">
           <p>
             Every rep, every drop of sweat, every challenge you overcome brings
-            you one step closer to your goals. At
+            you one step closer to your goals. At 
             <span class="fithub">FitHub,</span> we don't just train we
             transform. Push your limits and become the strongest version of
             yourself.
@@ -87,6 +102,8 @@
       </div>
     </main>
 
+
+    
     <section class="about-container">
       <div class="about">
         <div id="about-us" class="about-us">
@@ -116,60 +133,83 @@
       </div>
     </section>
 
-<section id="offers" class="offers-container">
-  <h1 class="offers-title">Membership Offers</h1>
-  <div class="offers">
-    <div class="offer" onclick="redirectToPayment('Member', 'Daily Rate', 150)">
-      <h3>Member</h3>
-      <p>Daily Rate</p>
-      <div class="price">₱150</div>
-      <p class="per-day">per day</p>
-    </div>
-    <div class="offer" onclick="redirectToPayment('Student Discount', '1 Month', 2000)">
-      <h3>Student Discount</h3>
-      <p>1 Month</p>
-      <div class="price">₱2,000</div>
-      <p class="per-day">Valid student ID required</p>
-    </div>
-    <div class="offer" onclick="redirectToPayment('Regular', '1 Month', 2300)">
-      <h3>Regular</h3>
-      <p>1 Month</p>
-      <div class="price">₱2,300</div>
-      <p class="per-day">Non-student rate</p>
-    </div>
-    <div class="offer" onclick="redirectToPayment('Extended', '2 Months', 3200)">
-      <h3>Extended</h3>
-      <p>2 Months</p>
-      <div class="price">₱3,200</div>
-      <p class="per-day">Save ₱1,400</p>
-    </div>
-    <div class="offer" onclick="redirectToPayment('Quarter', '4 Months', 4800)">
-      <h3>Quarter</h3>
-      <p>4 Months</p>
-      <div class="price">₱4,800</div>
-      <p class="per-day">Save ₱4,400</p>
-    </div>
-    <div class="offer" onclick="redirectToPayment('Semester', '5 Months', 5500)">
-      <h3>Semester</h3>
-      <p>5 Months</p>
-      <div class="price">₱5,500</div>
-      <p class="per-day">Save ₱6,000</p>
-    </div>
-    <div class="offer" onclick="redirectToPayment('Extended Semester', '7 Months', 6200)">
-      <h3>Extended Semester</h3>
-      <p>7 Months</p>
-      <div class="price">₱6,200</div>
-      <p class="per-day">Save ₱9,900</p>
-    </div>
-  </div>
-</section>
+    <section id="offers" class="offers-container">
+      <h1 class="offers-title">GYMS</h1>
+      <div class="offers">
+        <div
+          class="offer"
+          onclick="redirectToPayment('Member', 'Daily Rate', 150)"
+        >
+          <h3>Member</h3>
+          <p>Daily Rate</p>
+          <div class="price">₱150</div>
+          <p class="per-day">per day</p>
+        </div>
+        <div
+          class="offer"
+          onclick="redirectToPayment('Student Discount', '1 Month', 2000)"
+        >
+          <h3>Student Discount</h3>
+          <p>1 Month</p>
+          <div class="price">₱2,000</div>
+          <p class="per-day">Valid student ID required</p>
+        </div>
+        <div
+          class="offer"
+          onclick="redirectToPayment('Regular', '1 Month', 2300)"
+        >
+          <h3>Regular</h3>
+          <p>1 Month</p>
+          <div class="price">₱2,300</div>
+          <p class="per-day">Non-student rate</p>
+        </div>
+        <div
+          class="offer"
+          onclick="redirectToPayment('Extended', '2 Months', 3200)"
+        >
+          <h3>Extended</h3>
+          <p>2 Months</p>
+          <div class="price">₱3,200</div>
+          <p class="per-day">Save ₱1,400</p>
+        </div>
+        <div
+          class="offer"
+          onclick="redirectToPayment('Quarter', '4 Months', 4800)"
+        >
+          <h3>Quarter</h3>
+          <p>4 Months</p>
+          <div class="price">₱4,800</div>
+          <p class="per-day">Save ₱4,400</p>
+        </div>
+        <div
+          class="offer"
+          onclick="redirectToPayment('Semester', '5 Months', 5500)"
+        >
+          <h3>Semester</h3>
+          <p>5 Months</p>
+          <div class="price">₱5,500</div>
+          <p class="per-day">Save ₱6,000</p>
+        </div>
+        <div
+          class="offer"
+          onclick="redirectToPayment('Extended Semester', '7 Months', 6200)"
+        >
+          <h3>Extended Semester</h3>
+          <p>7 Months</p>
+          <div class="price">₱6,200</div>
+          <p class="per-day">Save ₱9,900</p>
+        </div>
+      </div>
+    </section>
 
-<script>
-  function redirectToPayment(plan, duration, price) {
-    const url = `payment_test.php?plan=${encodeURIComponent(plan)}&duration=${encodeURIComponent(duration)}&price=${price}`;
-    window.location.href = url;
-  }
-</script>
+    <script>
+      function redirectToPayment(plan, duration, price) {
+        const url = `payment_test.php?plan=${encodeURIComponent(
+          plan
+        )}&duration=${encodeURIComponent(duration)}&price=${price}`;
+        window.location.href = url;
+      }
+    </script>
 
     <section class="come-together" id="come-together">
       <div class="container">
@@ -187,7 +227,11 @@
             </p>
             <button class="talk-button">Let's talk</button>
             <div class="social-links">
-              <a href="https://www.facebook.com/sterlingfitnessmalabon" target="_blank"><i class="fa-brands fa-facebook"></i></a>
+              <a
+                href="https://www.facebook.com/sterlingfitnessmalabon"
+                target="_blank"
+                ><i class="fa-brands fa-facebook"></i
+              ></a>
               <a href="#"><i class="fa-brands fa-linkedin"></i></a>
               <a href="#"><i class="fa-brands fa-instagram"></i></a>
               <a href="#"><i class="fa-regular fa-envelope"></i></a>
@@ -207,7 +251,6 @@
     <script>
       AOS.init();
     </script>
-    <script src="../js/link.js"></script>
     <script src="../js/nav.js"></script>
   </body>
 </html>
