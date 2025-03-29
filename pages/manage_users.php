@@ -1,0 +1,84 @@
+<?php
+session_start();
+include '../config/database.php';
+
+// Ensure user is superadmin
+if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'superadmin') {
+    header("Location: login.php");
+    exit();
+}
+
+// Get users with pagination
+$page = $_GET['page'] ?? 1;
+$per_page = 10;
+$start = ($page - 1) * $per_page;
+
+$query = "SELECT id, username, email, first_name, last_name, role, reg_date 
+          FROM users ORDER BY reg_date DESC LIMIT ?, ?";
+$stmt = $db_connection->prepare($query);
+$stmt->bind_param("ii", $start, $per_page);
+$stmt->execute();
+$users = $stmt->get_result();
+
+// Get total users for pagination
+$total = $db_connection->query("SELECT COUNT(*) as count FROM users")->fetch_assoc()['count'];
+$total_pages = ceil($total / $per_page);
+?>
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Manage Users</title>
+    <link rel="stylesheet" href="../assets/css/main.css">
+    <link rel="stylesheet" href="../assets/css/manage_users.css">
+    <script src="../assets/js/manage_users.js" defer></script>
+</head>
+<body>
+    <div class="dashboard-container">
+        <a href="dashboard.php" class="back-btn">← Back to Dashboard</a>
+        <h2>Manage Users</h2>
+        
+        <table class="user-table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Username</th>
+                    <th>Email</th>
+                    <th>Name</th>
+                    <th>Role</th>
+                    <th>Registration Date</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php while ($user = $users->fetch_assoc()): ?>
+                    <tr>
+                        <td><?php echo htmlspecialchars($user['id']); ?></td>
+                        <td><?php echo htmlspecialchars($user['username']); ?></td>
+                        <td><?php echo htmlspecialchars($user['email']); ?></td>
+                        <td><?php echo htmlspecialchars($user['first_name'] . ' ' . $user['last_name']); ?></td>
+                        <td><?php echo htmlspecialchars($user['role']); ?></td>
+                        <td><?php echo date('M d, Y', strtotime($user['reg_date'])); ?></td>
+                        <td>
+                            <button class="action-btn edit-btn" 
+                                    onclick="editUser(<?php echo $user['id']; ?>)">Edit</button>
+                            <button class="action-btn delete-btn" 
+                                    onclick="deleteUser(<?php echo $user['id']; ?>)">Delete</button>
+                        </td>
+                    </tr>
+                <?php endwhile; ?>
+            </tbody>
+        </table>
+
+        <!-- Pagination -->
+        <div class="pagination">
+            <?php for ($i = 1; $i <= $total_pages; $i++): ?>
+                <a href="?page=<?php echo $i; ?>" 
+                   class="page-link <?php echo $page == $i ? 'active' : ''; ?>">
+                    <?php echo $i; ?>
+                </a>
+            <?php endfor; ?>
+        </div>
+    </div>
+</body>
+</html>

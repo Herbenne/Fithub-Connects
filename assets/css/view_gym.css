@@ -1,0 +1,306 @@
+/* Reset and move the navbar styles to the top */
+body {
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden;
+}
+
+/* Navbar styles */
+.navbar {
+    background: red;
+    width: 100vw;
+    position: relative;
+    left: 50%;
+    right: 50%;
+    margin-left: -50vw;
+    margin-right: -50vw;
+    padding: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-bottom: 1px solid #eee;
+    margin-bottom: 30px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.navbar > * {
+    width: 100%;
+    max-width: 1200px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 20px;
+}
+
+.back-btn {
+    color: #007bff;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.back-btn:hover {
+    color: #0056b3;
+}
+
+.nav-buttons {
+    display: flex;
+    align-items: center;
+}
+
+.nav-btn {
+    color: #333;
+    text-decoration: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+    transition: all 0.3s ease;
+}
+
+.nav-btn:hover {
+    background: #f8f9fa;
+    color: #007bff;
+}
+
+.gym-details {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.admin-notice {
+    background-color: #ffc107;
+    padding: 10px;
+    margin-bottom: 20px;
+    border-radius: 5px;
+    text-align: center;
+}
+
+/* Add styles for superadmin elements */
+.admin-notice.superadmin {
+    background-color: #2c3e50;
+    color: white;
+}
+
+.superadmin-actions {
+    margin: 20px 0;
+    padding: 15px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    display: flex;
+    gap: 10px;
+}
+
+.action-btn {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    transition: background-color 0.3s;
+}
+
+.action-btn:not(.delete) {
+    background: #007bff;
+    color: white;
+}
+
+.action-btn:not(.delete):hover {
+    background: #0056b3;
+}
+
+.action-btn.delete {
+    background: #dc3545;
+    color: white;
+}
+
+.action-btn.delete:hover {
+    background: #c82333;
+}
+
+.action-btn i {
+    font-size: 16px;
+}
+
+.gym-image {
+    max-width: 100%;
+    height: auto;
+    border-radius: 8px;
+    margin-bottom: 20px;
+}
+
+.reviews-section {
+    margin-top: 30px;
+    padding: 20px;
+    background: #f8f9fa;
+    border-radius: 8px;
+}
+
+.review-item {
+    background: white;
+    padding: 15px;
+    margin-bottom: 15px;
+    border-radius: 5px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.star-rating {
+    color: #ffd700;
+    margin: 5px 0;
+}
+
+.star-rating .fa-star {
+    color: #ddd;
+}
+
+.star-rating .fa-star.checked {
+    color: #ffc107;
+}
+
+.review-user {
+    flex: 1;
+}
+
+.review-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.review-content {
+    margin: 10px 0;
+}
+
+.reviews-list {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.review-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 10px;
+}
+
+.comment-section {
+    margin-left: 20px;
+    margin-top: 15px;
+    padding-left: 15px;
+    border-left: 3px solid #e1e1e1;
+}
+
+.comment-form {
+    display: none;
+    margin: 10px 0;
+    padding: 15px;
+    background: #f8f9fa;
+    border-radius: 8px;
+}
+
+.comment-form textarea {
+    width: 100%;
+    padding: 10px;
+    margin: 10px 0;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    resize: vertical;
+}
+
+.comment-item {
+    margin: 10px 0;
+    padding: 10px;
+    background: #fff;
+    border-radius: 4px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.rating-select {
+    margin-bottom: 15px;
+}
+
+.rating-select select {
+    padding: 8px;
+    border-radius: 4px;
+    border: 1px solid #ddd;
+    width: 200px;
+}
+
+.comment-input textarea {
+    width: 100%;
+    padding: 10px;
+    border-radius: 4px;
+    border: 1px solid #ddd;
+    resize: vertical;
+}
+
+.submit-btn {
+    background: #007bff;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-top: 10px;
+}
+
+.submit-btn:hover {
+    background: #0056b3;
+}
+
+.delete-btn {
+    background: #dc3545;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+    float: right;
+}
+
+.delete-btn:hover {
+    background: #c82333;
+}
+
+.reply-btn {
+    background: #6c757d;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-top: 10px;
+}
+
+.reply-btn:hover {
+    background: #5a6268;
+}
+
+.owner-badge {
+    background: #28a745;
+    color: white;
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-size: 0.8em;
+    margin-left: 8px;
+}
+
+/* Responsive styles */
+@media (max-width: 768px) {
+    .navbar > * {
+        flex-direction: row; /* Keep items in a row */
+        justify-content: space-between; /* Space between back button and dashboard */
+        padding: 15px 20px;
+    }
+}
+
+/* Add a medium breakpoint for better tablet handling */
+@media (min-width: 769px) and (max-width: 1028px) {
+    .navbar > * {
+        padding: 0 40px;
+    }
+}

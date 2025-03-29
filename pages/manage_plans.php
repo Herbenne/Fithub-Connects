@@ -1,0 +1,198 @@
+<?php
+session_start();
+include '../config/database.php';
+
+// Ensure user is admin
+if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'admin') {
+    header("Location: login.php");
+    exit();
+}
+
+// Get gym_id from URL
+$gym_id = $_GET['gym_id'] ?? null;
+
+// Verify this gym belongs to the admin
+$verify_query = "SELECT * FROM gyms WHERE gym_id = ? AND owner_id = ?";
+$stmt = $db_connection->prepare($verify_query);
+$stmt->bind_param("ii", $gym_id, $_SESSION['user_id']);
+$stmt->execute();
+$gym = $stmt->get_result()->fetch_assoc();
+
+if (!$gym) {
+    header("Location: dashboard.php");
+    exit();
+}
+
+// Fetch existing plans
+$plans_query = "SELECT * FROM membership_plans WHERE gym_id = ? ORDER BY price ASC";
+$stmt = $db_connection->prepare($plans_query);
+$stmt->bind_param("i", $gym_id);
+$stmt->execute();
+$plans = $stmt->get_result();
+?>
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Manage Plans - GymHub</title>
+    <link rel="stylesheet" href="../assets/css/main.css">
+    <link rel="stylesheet" href="../assets/css/manage_plans.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+</head>
+<body>
+    <div class="dashboard-container">
+        <a href="dashboard.php" class="back-btn">← Back to Dashboard</a>
+        
+        <h2>Manage Membership Plans - <?php echo htmlspecialchars($gym['gym_name']); ?></h2>
+
+        <?php if (isset($_GET['success'])): ?>
+            <div class="alert alert-success">
+                <?php 
+                $message = 'Plan was successfully ';
+                $message .= $_GET['success'] === 'create' ? 'created.' : 
+                          ($_GET['success'] === 'update' ? 'updated.' : 'deleted.');
+                echo $message;
+                ?>
+            </div>
+        <?php endif; ?>
+
+        <?php if (isset($_GET['error'])): ?>
+            <div class="alert alert-error">
+                <?php echo htmlspecialchars($_GET['error']); ?>
+            </div>
+        <?php endif; ?>
+
+        <div class="plans-container">
+            <button onclick="showAddPlanForm()" class="add-plan-btn">
+                <i class="fas fa-plus"></i> Add New Plan
+            </button>
+
+            <div id="addPlanForm" class="plan-form" style="display: none;">
+                <h3>Add New Plan</h3>
+                <form action="../actions/add_plan.php" method="POST">
+                    <input type="hidden" name="gym_id" value="<?php echo $gym_id; ?>">
+                    
+                    <div class="form-group">
+                        <label>Plan Name *</label>
+                        <input type="text" name="plan_name" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Duration *</label>
+                        <input type="text" name="duration" required placeholder="e.g., 1 Month, 3 Months">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Price (₱) *</label>
+                        <input type="number" name="price" required min="0" step="0.01">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Description *</label>
+                        <textarea name="description" required rows="4" 
+                                placeholder="List the benefits and features of this plan..."></textarea>
+                    </div>
+
+                    <button type="submit" class="submit-btn">Create Plan</button>
+                    <button type="button" onclick="hideAddPlanForm()" class="cancel-btn">Cancel</button>
+                </form>
+            </div>
+
+            <div id="editPlanForm" class="plan-form" style="display: none;">
+                <h3>Edit Plan</h3>
+                <form action="../actions/edit_plan.php" method="POST">
+                    <input type="hidden" name="plan_id" id="edit_plan_id">
+                    <input type="hidden" name="gym_id" value="<?php echo $gym_id; ?>">
+                    
+                    <div class="form-group">
+                        <label>Plan Name *</label>
+                        <input type="text" name="plan_name" id="edit_plan_name" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Duration *</label>
+                        <input type="text" name="duration" id="edit_duration" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Price (₱) *</label>
+                        <input type="number" name="price" id="edit_price" required min="0" step="0.01">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Description *</label>
+                        <textarea name="description" id="edit_description" required rows="4"></textarea>
+                    </div>
+
+                    <button type="submit" class="submit-btn">Update Plan</button>
+                    <button type="button" onclick="hideEditPlanForm()" class="cancel-btn">Cancel</button>
+                </form>
+            </div>
+
+            <div class="plans-grid">
+                <?php if ($plans->num_rows > 0): 
+                    while ($plan = $plans->fetch_assoc()): ?>
+                        <div class="plan-card">
+                            <div class="plan-header">
+                                <h3><?php echo htmlspecialchars($plan['plan_name']); ?></h3>
+                                <div class="plan-actions">
+                                    <button onclick='showEditPlanForm(<?php echo json_encode($plan); ?>)' 
+                                            class="edit-btn">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    <form action="../actions/delete_plan.php" method="POST" 
+                                          onsubmit="return confirm('Are you sure you want to delete this plan?');"
+                                          style="display: inline;">
+                                        <input type="hidden" name="plan_id" value="<?php echo $plan['plan_id']; ?>">
+                                        <input type="hidden" name="gym_id" value="<?php echo $gym_id; ?>">
+                                        <button type="submit" class="delete-btn">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                            <div class="plan-details">
+                                <p class="plan-duration">
+                                    <i class="fas fa-clock"></i> <?php echo htmlspecialchars($plan['duration']); ?>
+                                </p>
+                                <p class="plan-price">
+                                    ₱<?php echo number_format($plan['price'], 2); ?>
+                                </p>
+                                <p class="plan-description">
+                                    <?php echo nl2br(htmlspecialchars($plan['description'])); ?>
+                                </p>
+                            </div>
+                        </div>
+                    <?php endwhile;
+                else: ?>
+                    <p class="no-plans">No membership plans found. Add your first plan above.</p>
+                <?php endif; ?>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    function showAddPlanForm() {
+        document.getElementById('addPlanForm').style.display = 'block';
+    }
+
+    function hideAddPlanForm() {
+        document.getElementById('addPlanForm').style.display = 'none';
+    }
+
+    function showEditPlanForm(plan) {
+        document.getElementById('edit_plan_id').value = plan.plan_id;
+        document.getElementById('edit_plan_name').value = plan.plan_name;
+        document.getElementById('edit_duration').value = plan.duration;
+        document.getElementById('edit_price').value = plan.price;
+        document.getElementById('edit_description').value = plan.description;
+        document.getElementById('editPlanForm').style.display = 'block';
+        document.getElementById('addPlanForm').style.display = 'none';
+    }
+
+    function hideEditPlanForm() {
+        document.getElementById('editPlanForm').style.display = 'none';
+    }
+    </script>
+</body>
+</html>

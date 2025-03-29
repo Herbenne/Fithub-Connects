@@ -1,0 +1,972 @@
+/* Dashboard Statistics Styles */
+.stats-dashboard {
+    padding: 20px;
+    max-width: 1200px;
+    margin: 0 auto;
+    margin-top: 40px;
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 20px;
+    margin-bottom: 30px;
+}
+
+.stat-card {
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    display: flex;
+    align-items: center;
+    transition: transform 0.3s;
+}
+
+.stat-card:hover {
+    transform: translateY(-5px);
+}
+
+.stat-icon {
+    font-size: 2em;
+    margin-right: 15px;
+    color: #007bff;
+    margin-bottom: 10px;
+}
+
+.stat-info h3 {
+    margin: 0;
+    font-size: 0.9em;
+    color: #666;
+    margin-bottom: 5px;
+}
+
+.stat-number {
+    margin: 5px 0 0 0;
+    font-size: 1.8em;
+    font-weight: bold;
+    color: #333;
+}
+
+/* Chart Styles */
+.charts-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+    gap: 20px;
+    margin-top: 30px;
+}
+
+.chart-wrapper {
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+/* Superadmin Dashboard Styles */
+.superadmin-dashboard {
+    padding: 20px;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.admin-controls {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px;
+    margin-top: 30px;
+}
+
+.control-section {
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.action-buttons {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 15px;
+    margin-top: 15px;
+}
+
+.admin-btn {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 20px;
+    background: #007bff;
+    color: white;
+    text-decoration: none;
+    border-radius: 4px;
+    transition: background 0.3s ease;
+}
+
+.admin-btn:hover {
+    background: #0056b3;
+}
+
+.table-list {
+    display: grid;
+    gap: 10px;
+    margin-top: 15px;
+}
+
+.table-link {
+    text-decoration: none;
+    color: inherit;
+}
+
+.table-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 15px;
+    background: #f8f9fa;
+    border-radius: 5px;
+    transition: background-color 0.3s;
+}
+
+.table-item:hover {
+    background: #e9ecef;
+}
+
+.record-count {
+    color: #6c757d;
+    font-size: 0.9em;
+}
+
+/* Navbar styles */
+.navbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 2rem; /* Reduced padding */
+    background: white;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    position: fixed;
+    width: 100%;
+    top: 0;
+    z-index: 1000;
+}
+
+.nav-brand {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #007bff;
+    flex-shrink: 0; /* Prevent brand from shrinking */
+}
+
+.nav-links {
+    display: flex;
+    align-items: center;
+    gap: 20px; /* Use gap instead of margin-left */
+    margin-left: auto; /* Push links to the right */
+    margin-right: 50px; /* Add right margin */
+}
+
+.nav-links a {
+    text-decoration: none;
+    color: #333; /* Changed from red */
+    transition: color 0.3s;
+    white-space: nowrap; /* Prevent text wrapping */
+}
+
+.nav-links a:hover {
+    color: #007bff;
+}
+
+.nav-links a.active {
+    color: #007bff;
+    font-weight: bold;
+}
+
+/* Add responsive styles */
+@media (max-width: 768px) {
+    .navbar {
+        padding: 1rem;
+    }
+    
+    .nav-links {
+        gap: 15px;
+    }
+    
+    .nav-brand {
+        font-size: 1.2rem;
+    }
+}
+
+/* Dashboard container */
+.dashboard-container {
+    max-width: 1200px;
+    margin: 80px auto 40px;
+    padding: 20px;
+}
+
+/* Welcome section */
+.welcome-section {
+    text-align: center;
+    margin-bottom: 40px;
+    padding: 40px 20px;
+    background: linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.7)), url('../assets/images/gym-banner.jpg');
+    background-size: cover;
+    background-position: center;
+    color: white;
+    border-radius: 10px;
+}
+
+.welcome-section h1 {
+    font-size: 2.5rem;
+    margin-bottom: 10px;
+}
+
+.role-badge {
+    display: inline-block;
+    padding: 5px 15px;
+    background: #007bff;
+    color: white;
+    border-radius: 20px;
+    font-size: 0.9rem;
+}
+
+/* Featured Gyms Section */
+.featured-gyms {
+    padding: 40px 20px;
+    background: #f8f9fa;
+    border-radius: 15px;
+    margin: 30px 0;
+}
+
+.featured-gyms h2 {
+    text-align: center;
+    margin-bottom: 30px;
+    color: #333;
+    font-size: 2em;
+}
+
+.gym-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 25px;
+    padding: 0 10px;
+}
+
+.gym-card {
+    background: white;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.gym-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+}
+
+.gym-image {
+    position: relative;
+    width: 100%;
+    padding-top: 60%; /* Aspect ratio 5:3 */
+    overflow: hidden;
+}
+
+.gym-image img {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.gym-info {
+    padding: 20px;
+}
+
+.gym-info h3 {
+    margin: 0 0 10px 0;
+    font-size: 1.3em;
+    color: #333;
+}
+
+.gym-rating {
+    margin-bottom: 15px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.gym-rating .fa-star {
+    color: #ddd;
+    font-size: 16px;
+}
+
+.gym-rating .fa-star.checked {
+    color: #ffc107;
+}
+
+.rating-text {
+    color: #666;
+    font-size: 0.9em;
+    margin-left: 5px;
+}
+
+.gym-location {
+    color: #666;
+    margin: 10px 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.gym-location i {
+    color: #007bff;
+}
+
+.btn-view {
+    display: block;
+    background: #007bff;
+    color: white;
+    text-align: center;
+    padding: 12px;
+    border-radius: 6px;
+    text-decoration: none;
+    margin-top: 15px;
+    transition: background-color 0.3s ease;
+}
+
+.btn-view:hover {
+    background: #0056b3;
+    text-decoration: none;
+    color: white;
+}
+
+@media (max-width: 768px) {
+    .gym-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Membership Section Styles */
+.my-memberships {
+    margin-top: 40px;
+    padding: 20px;
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.my-memberships h2 {
+    color: #333;
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+.membership-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px;
+}
+
+.membership-card {
+    background: #f8f9fa;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    transition: transform 0.3s ease;
+}
+
+.membership-card:hover {
+    transform: translateY(-5px);
+}
+
+.membership-card img {
+    width: 100%;
+    height: 150px;
+    object-fit: cover;
+}
+
+.membership-details {
+    padding: 15px;
+}
+
+.membership-details h3 {
+    margin: 0 0 10px 0;
+    color: #333;
+}
+
+.plan-name {
+    color: #007bff;
+    font-weight: bold;
+    margin-bottom: 10px;
+}
+
+.membership-info {
+    margin: 5px 0;
+    color: #666;
+}
+
+.membership-info .label {
+    font-weight: bold;
+    color: #333;
+}
+
+.membership-status {
+    margin-top: 10px;
+    color: #28a745;
+    font-weight: bold;
+}
+
+.membership-status i {
+    margin-right: 5px;
+}
+
+/* Application Section Styles */
+.application-section {
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    margin-bottom: 30px;
+}
+
+.become-owner {
+    text-align: center;
+    padding: 20px;
+}
+
+.become-owner h3 {
+    color: #333;
+    margin-bottom: 10px;
+}
+
+.become-owner p {
+    color: #666;
+    margin-bottom: 20px;
+}
+
+.apply-btn {
+    background: #28a745;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+.apply-btn:hover {
+    background: #218838;
+}
+
+.application-form {
+    max-width: 800px;
+    margin: 20px auto;
+    padding: 20px;
+    background: #f8f9fa;
+    border-radius: 8px;
+}
+
+.form-group {
+    margin-bottom: 15px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+}
+
+.form-group input,
+.form-group textarea {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+.form-group textarea {
+    resize: vertical;
+    min-height: 100px;
+}
+
+.form-group small {
+    display: block;
+    color: #666;
+    margin-top: 5px;
+}
+
+.pending-application {
+    background: #fff3cd;
+    border: 1px solid #ffeeba;
+    color: #856404;
+    padding: 15px;
+    border-radius: 4px;
+    margin-bottom: 20px;
+}
+
+.submit-btn {
+    background: #007bff;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.submit-btn:hover {
+    background: #0056b3;
+}
+
+/* Footer styles */
+.footer {
+    background: #333;
+    color: white;
+    padding: 40px 5% 20px;
+    margin-top: 60px;
+}
+
+.footer-content {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 40px;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.footer-section h3 {
+    margin-bottom: 20px;
+    color: #fff;
+}
+
+.footer-section a {
+    color: #fff;
+    text-decoration: none;
+    display: block;
+    margin-bottom: 10px;
+}
+
+.footer-section a:hover {
+    color: #007bff;
+}
+
+.footer-bottom {
+    text-align: center;
+    margin-top: 40px;
+    padding-top: 20px;
+    border-top: 1px solid rgba(255,255,255,0.1);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .dashboard-container {
+        margin-top: 60px;
+    }
+
+    .welcome-section h1 {
+        font-size: 2rem;
+    }
+
+    .stats-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .admin-controls {
+        grid-template-columns: 1fr;
+    }
+
+    .gym-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .membership-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Admin Dashboard Styles */
+.admin-dashboard {
+    padding: 20px;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    margin-bottom: 30px;
+}
+
+.admin-actions {
+    margin-top: 30px;
+}
+
+.alert {
+    padding: 15px;
+    border-radius: 4px;
+    margin-bottom: 20px;
+}
+
+.alert-info {
+    background: #cce5ff;
+    border: 1px solid #b8daff;
+    color: #004085;
+}
+
+.alert i {
+    margin-right: 8px;
+}
+
+/* Carousel Styles */
+.gym-carousel {
+    position: relative;
+    width: 100%;
+    padding: 0 40px;
+    margin: 20px 0;
+}
+
+.gym-slider {
+    overflow: hidden;
+    position: relative;
+    width: 100%;
+}
+
+.gym-track {
+    display: flex;
+    transition: transform 0.5s ease;
+}
+
+.gym-card {
+    flex: 0 0 calc(33.33% - 20px);
+    margin: 0 10px;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    overflow: hidden;
+}
+
+.carousel-btn {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 40px;
+    height: 40px;
+    background: #007bff;
+    color: white;
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.carousel-btn.prev {
+    left: 0;
+}
+
+.carousel-btn.next {
+    right: 0;
+}
+
+.carousel-btn:disabled {
+    background: #ccc;
+    cursor: not-allowed;
+}
+
+/* Update existing gym card styles */
+.gym-card img {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+}
+
+.gym-card h3 {
+    padding: 15px;
+    margin: 0;
+}
+
+.gym-card .gym-rating {
+    padding: 0 15px;
+}
+
+.gym-card .gym-location {
+    padding: 10px 15px;
+}
+
+.gym-card .btn {
+    margin: 15px;
+}
+
+/* Featured Gyms Carousel */
+.featured-gyms {
+    margin: 30px 0;
+    padding: 0 20px;
+}
+
+.gym-carousel {
+    position: relative;
+    margin: 20px 0;
+}
+
+.gym-slider {
+    overflow: hidden;
+    margin: 0 40px;
+}
+
+.gym-track {
+    display: flex;
+    transition: transform 0.5s ease;
+}
+
+.gym-card {
+    flex: 0 0 calc(33.333% - 20px);
+    margin: 0 10px;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    padding: 15px;
+}
+
+.gym-card img {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+    border-radius: 4px;
+}
+
+.carousel-btn {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 40px;
+    height: 40px;
+    background: #007bff;
+    color: white;
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2;
+}
+
+.carousel-btn.prev {
+    left: 0;
+}
+
+.carousel-btn.next {
+    right: 0;
+}
+
+.carousel-btn:disabled {
+    background: #ccc;
+    cursor: not-allowed;
+}
+
+/* Carousel styles */
+.gym-carousel {
+    position: relative;
+    width: 100%;
+    margin: 20px 0;
+    padding: 0 40px;
+}
+
+.gym-slider {
+    overflow: hidden;
+}
+
+.gym-track {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+    transition: transform 0.3s ease;
+}
+
+.gym-card {
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.gym-card img {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+}
+
+.carousel-btn {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 40px;
+    height: 40px;
+    background: #007bff;
+    color: white;
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.carousel-btn:disabled {
+    background: #ccc;
+    cursor: not-allowed;
+}
+
+.carousel-btn.prev {
+    left: 0;
+}
+
+.carousel-btn.next {
+    right: 0;
+}
+
+.gym-card h3 {
+    padding: 15px;
+    margin: 0;
+    font-size: 1.2em;
+}
+
+.gym-rating {
+    padding: 0 15px;
+}
+
+.gym-location {
+    padding: 10px 15px;
+    color: #666;
+}
+
+.btn-primary {
+    margin: 15px;
+    padding: 8px 16px;
+    background: #007bff;
+    color: white;
+    text-decoration: none;
+    border-radius: 4px;
+    text-align: center;
+    transition: background-color 0.3s;
+}
+
+.btn-primary:hover {
+    background: #0056b3;
+}
+
+/* Featured Gyms Carousel */
+.carousel-container {
+    position: relative;
+    width: 100%;
+    padding: 0 40px;
+    margin: 20px 0;
+}
+
+.gym-cards {
+    overflow: hidden;
+    position: relative;
+}
+
+.carousel-page {
+    display: none;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.carousel-page.active {
+    display: grid;
+    opacity: 1;
+}
+
+.gym-card {
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.gym-card img {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+}
+
+.gym-card h3 {
+    padding: 15px;
+    margin: 0;
+    font-size: 1.2em;
+}
+
+.gym-rating {
+    padding: 0 15px;
+}
+
+.gym-rating .fa-star {
+    color: #ddd;
+}
+
+.gym-rating .fa-star.checked {
+    color: #ffc107;
+}
+
+.gym-location {
+    padding: 10px 15px;
+    color: #666;
+    margin: 0;
+}
+
+.carousel-btn {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 40px;
+    height: 40px;
+    background: #007bff;
+    color: white;
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.carousel-btn:disabled {
+    background: #ccc;
+    cursor: not-allowed;
+    opacity: 0.5;
+}
+
+.carousel-btn.prev {
+    left: 0;
+}
+
+.carousel-btn.next {
+    right: 0;
+}
+
+.btn-primary {
+    display: inline-block;
+    margin: 15px;
+    padding: 8px 16px;
+    background: #007bff;
+    color: white;
+    text-decoration: none;
+    border-radius: 4px;
+    text-align: center;
+    transition: background-color 0.3s;
+}
+
+.btn-primary:hover {
+    background: #0056b3;
+    text-decoration: none;
+}

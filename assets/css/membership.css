@@ -1,0 +1,50 @@
+.back-btn {
+    background-color: #4a5568;
+    color: white;
+    padding: 8px 16px;
+    border-radius: 5px;
+    text-decoration: none;
+    display: inline-block;
+    margin: 20px 0;
+}
+
+.back-btn:hover {
+    background-color: #2d3748;
+}
+
+.membership-container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.plan-options {
+    margin: 20px 0;
+}
+
+.plan-option {
+    margin: 15px 0;
+    padding: 15px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    display: flex;
+    align-items: center;
+}
+
+.plan-option input[type="radio"] {
+    margin-right: 15px;
+}
+
+.submit-btn {
+    background-color: #007bff;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    margin-top: 20px;
+}
+
+.submit-btn:hover {
+    background-color: #0056b3;
+}
