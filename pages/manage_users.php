@@ -29,8 +29,9 @@ $total_pages = ceil($total / $per_page);
 <html>
 <head>
     <title>Manage Users</title>
-    <link rel="stylesheet" href="../assets/css/main.css">
-    <link rel="stylesheet" href="../assets/css/manage_users.css">
+    <link rel="stylesheet" href="../assets/css/mains.css">
+    <link rel="stylesheet" href="../assets/css/manage_common.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
     <script src="../assets/js/manage_users.js" defer></script>
 </head>
 <body>
@@ -38,37 +39,39 @@ $total_pages = ceil($total / $per_page);
         <a href="dashboard.php" class="back-btn">← Back to Dashboard</a>
         <h2>Manage Users</h2>
         
-        <table class="user-table">
-            <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Username</th>
-                    <th>Email</th>
-                    <th>Name</th>
-                    <th>Role</th>
-                    <th>Registration Date</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                <?php while ($user = $users->fetch_assoc()): ?>
+        <div class="table-wrapper">
+            <table class="user-table">
+                <thead>
                     <tr>
-                        <td><?php echo htmlspecialchars($user['id']); ?></td>
-                        <td><?php echo htmlspecialchars($user['username']); ?></td>
-                        <td><?php echo htmlspecialchars($user['email']); ?></td>
-                        <td><?php echo htmlspecialchars($user['first_name'] . ' ' . $user['last_name']); ?></td>
-                        <td><?php echo htmlspecialchars($user['role']); ?></td>
-                        <td><?php echo date('M d, Y', strtotime($user['reg_date'])); ?></td>
-                        <td>
-                            <button class="action-btn edit-btn" 
-                                    onclick="editUser(<?php echo $user['id']; ?>)">Edit</button>
-                            <button class="action-btn delete-btn" 
-                                    onclick="deleteUser(<?php echo $user['id']; ?>)">Delete</button>
-                        </td>
+                        <th>ID</th>
+                        <th>Username</th>
+                        <th>Email</th>
+                        <th>Name</th>
+                        <th>Role</th>
+                        <th>Registration Date</th>
+                        <th>Actions</th>
                     </tr>
-                <?php endwhile; ?>
-            </tbody>
-        </table>
+                </thead>
+                <tbody>
+                    <?php while ($user = $users->fetch_assoc()): ?>
+                        <tr>
+                            <td><?php echo htmlspecialchars($user['id']); ?></td>
+                            <td><?php echo htmlspecialchars($user['username']); ?></td>
+                            <td><?php echo htmlspecialchars($user['email']); ?></td>
+                            <td><?php echo htmlspecialchars($user['first_name'] . ' ' . $user['last_name']); ?></td>
+                            <td><?php echo htmlspecialchars($user['role']); ?></td>
+                            <td><?php echo date('M d, Y', strtotime($user['reg_date'])); ?></td>
+                            <td>
+                                <button class="action-btn edit-btn" 
+                                        onclick="editUser(<?php echo $user['id']; ?>)">Edit</button>
+                                <button class="action-btn delete-btn" 
+                                        onclick="deleteUser(<?php echo $user['id']; ?>)">Delete</button>
+                            </td>
+                        </tr>
+                    <?php endwhile; ?>
+                </tbody>
+            </table>
+        </div>
 
         <!-- Pagination -->
         <div class="pagination">

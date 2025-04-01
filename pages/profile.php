@@ -22,7 +22,7 @@ $user = $stmt->get_result()->fetch_assoc();
 <head>
     <title>My Profile</title>
     <link rel="stylesheet" href="../assets/css/main.css">
-    <link rel="stylesheet" href="../assets/css/profile.css">
+    <link rel="stylesheet" href="../assets/css/profiles.css">
 </head>
 <body>
     <div class="profile-container">

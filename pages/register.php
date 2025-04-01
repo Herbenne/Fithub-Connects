@@ -36,8 +36,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Register - GymHub</title>
-    <link rel="stylesheet" href="../assets/css/main.css">
+    <title>Register - FitHub</title>
+    <link rel="stylesheet" href="../assets/css/mains.css">
     <link rel="stylesheet" href="../assets/css/auth.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
 </head>
@@ -45,7 +45,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <div class="auth-container">
         <div class="auth-header">
             <h2>Create Account</h2>
-            <p>Join GymHub today</p>
+            <p>Join Fithub today</p>
         </div>
 
         <?php if (isset($error)): ?>

@@ -1,0 +1,115 @@
+.featured-gyms {
+  margin: 2rem 0;
+  position: relative;
+  padding: 0 4rem; /* Increased padding for arrow buttons */
+}
+
+.carousel-container {
+  overflow: hidden;
+  position: relative;
+  padding: 1rem 0;
+  margin: 0 20px;
+}
+
+.gym-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr); /* Show 3 cards */
+  gap: 24px;
+  transition: transform 0.5s ease;
+}
+
+.gym-card {
+  width: calc((100% - 48px) / 3); /* Calculate width for 3 cards with gaps */
+  background: #fff;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s ease;
+}
+
+.gym-card:hover {
+  transform: translateY(-5px);
+}
+
+/* Make arrow buttons more visible */
+.carousel-btn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: #ffb22c;
+  color: #000000;
+  border: none;
+  width: 48px; /* Larger buttons */
+  height: 48px; /* Larger buttons */
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2); /* Add shadow for better visibility */
+}
+
+.carousel-btn i {
+  font-size: 1.2rem; /* Larger icons */
+}
+
+.carousel-btn:hover {
+  background: #e59f26;
+  transform: translateY(-50%) scale(1.1);
+}
+
+.carousel-btn.prev {
+  left: 10px; /* Move buttons closer to content */
+}
+
+.carousel-btn.next {
+  right: 10px; /* Move buttons closer to content */
+}
+
+.carousel-dots {
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+.dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #ddd;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.dot.active {
+  background: #ffb22c;
+  transform: scale(1.2);
+}
+
+/* Responsive adjustments */
+@media (max-width: 1200px) {
+  .gym-grid {
+    grid-template-columns: repeat(2, 1fr); /* 2 cards on medium screens */
+  }
+
+  .gym-card {
+    width: calc((100% - 24px) / 2);
+  }
+}
+
+@media (max-width: 768px) {
+  .gym-grid {
+    grid-template-columns: repeat(1, 1fr); /* 1 card on small screens */
+  }
+
+  .gym-card {
+    width: 100%;
+  }
+
+  .featured-gyms {
+    padding: 0 3rem;
+  }
+}

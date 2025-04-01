@@ -35,8 +35,8 @@ $plans = $stmt->get_result();
 <html>
 <head>
     <title>Manage Plans - GymHub</title>
-    <link rel="stylesheet" href="../assets/css/main.css">
-    <link rel="stylesheet" href="../assets/css/manage_plans.css">
+    <link rel="stylesheet" href="../assets/css/mains.css">
+    <link rel="stylesheet" href="../assets/css/manage_common.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
 </head>
 <body>

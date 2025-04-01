@@ -1,18 +1,22 @@
 <?php
 session_start();
 ?>
-
 <!DOCTYPE html>
 <html>
 <head>
     <title>FitHub - Find Your Perfect Gym</title>
-    <link rel="stylesheet" href="../assets/css/main.css">
-    <link rel="stylesheet" href="../assets/css/home.css">
+    <link rel="stylesheet" href="../assets/css/mains.css">
+    <link rel="stylesheet" href="../assets/css/homes.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
 </head>
 <body>
     <nav class="navbar">
-        <div class="nav-brand">FitHub</div>
+        <div class="nav-brand">
+            <img src="<?php echo dirname($_SERVER['PHP_SELF']) ?>/../assets/logo/FITHUB LOGO.png" 
+                 alt="Fithub Logo" 
+                 style="max-height: 50px;"
+            >
+        </div>
         <div class="nav-links">
             <?php if (isset($_SESSION['user_id'])): ?>
                 <a href="../pages/dashboard.php">Dashboard</a>

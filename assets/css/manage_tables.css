@@ -1,0 +1,310 @@
+.dashboard-container {
+  padding: 2rem;
+  max-width: 1400px;
+  margin: 0 auto;
+  background: #f7f7f7;
+}
+
+/* Header Styles */
+h1 {
+  color: #000000;
+  margin-bottom: 2rem;
+  font-size: 2em;
+  border-bottom: 3px solid #ffb22c;
+  padding-bottom: 0.5rem;
+}
+
+/* Table Actions Section */
+.table-actions {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.table-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  align-items: center;
+  justify-content: space-between;
+  background: #fff;
+  padding: 1rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Search Form */
+.search-form {
+  flex: 1;
+  min-width: 280px;
+  display: flex;
+  gap: 0.5rem;
+}
+
+.search-form input[type="search"] {
+  flex: 1;
+  padding: 0.75rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 0.9rem;
+}
+
+/* Buttons */
+.admin-btn,
+.btn {
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  background: #ffb22c;
+  color: #000000;
+}
+
+.admin-btn:hover,
+.btn:hover {
+  background: #e59f26;
+  transform: translateY(-1px);
+}
+
+/* Table Styling */
+table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  background: #fff;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  margin-bottom: 2rem;
+}
+
+th {
+  background: #ffb22c;
+  color: #000000;
+  font-weight: 600;
+  padding: 1rem;
+  text-align: left;
+}
+
+td {
+  padding: 1rem;
+  border-bottom: 1px solid #eee;
+  color: #000000;
+}
+
+/* ID Column Styling */
+td:first-child,
+td:nth-child(2) {
+  color: #000000;
+  font-weight: 500;
+}
+
+/* Row Hover Effect */
+tbody tr:hover {
+  background: rgba(255, 178, 44, 0.1);
+}
+
+/* Action Buttons in Table */
+.btn-edit,
+.btn-delete {
+  padding: 0.5rem 1rem;
+  margin: 0 0.25rem;
+  font-size: 0.9rem;
+}
+
+.btn-edit {
+  background: #ffb22c;
+  color: #000000;
+}
+
+.btn-delete {
+  background: #f7f7f7;
+  color: #000000;
+  border: 1px solid #000000;
+}
+
+/* Pagination */
+.pagination {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: center;
+  margin-top: 2rem;
+}
+
+.page-link {
+  padding: 0.5rem 1rem;
+  border: 1px solid #ffb22c;
+  color: #000000;
+  text-decoration: none;
+  border-radius: 4px;
+  transition: all 0.3s ease;
+}
+
+.page-link.active {
+  background: #ffb22c;
+  color: #000000;
+}
+
+.page-link:hover {
+  background: rgba(255, 178, 44, 0.1);
+}
+
+/* Modal Styling */
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  z-index: 1000;
+}
+
+.modal-content {
+  background: #f7f7f7;
+  padding: 2rem;
+  border-radius: 8px;
+  max-width: 500px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.modal-content h2 {
+  color: #000000;
+  margin-bottom: 1.5rem;
+  border-bottom: 2px solid #ffb22c;
+  padding-bottom: 0.5rem;
+}
+
+/* Form Styling */
+.form-group {
+  margin-bottom: 1.5rem;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 0.5rem;
+  color: #000000;
+  font-weight: 500;
+}
+
+.form-group input {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 0.9rem;
+}
+
+.form-group input:focus {
+  border-color: #ffb22c;
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(255, 178, 44, 0.25);
+}
+
+/* Bulk Actions */
+.bulk-actions {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.bulk-actions select {
+  padding: 0.75rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  background: #fff;
+  color: #000000;
+}
+
+/* Loading State */
+.loading {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1001;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .dashboard-container {
+    padding: 1rem;
+  }
+
+  .table-controls {
+    flex-direction: column;
+  }
+
+  .search-form {
+    width: 100%;
+  }
+
+  table {
+    display: block;
+    overflow-x: auto;
+  }
+
+  .modal-content {
+    margin: 1rem;
+    max-width: calc(100% - 2rem);
+  }
+
+  .btn,
+  .admin-btn {
+    padding: 0.5rem 1rem;
+    font-size: 0.9rem;
+  }
+}
+
+/* Table Header and Link Styles */
+.sort-link {
+  color: #000000;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-weight: 600;
+}
+
+.sort-link:hover {
+  color: #000000;
+}
+
+.sort-link.active {
+  color: #000000;
+}
+
+.sort-indicator {
+  margin-left: 8px;
+  color: #000000;
+}
+
+/* Table Column Styles */
+th[data-column*="id"],
+th[data-column*="_id"],
+td[data-column*="id"],
+td[data-column*="_id"] {
+  color: #000000;
+  font-weight: 500;
+}
+
+/* Date Column Styles */
+td[data-column*="date"],
+td[data-column*="_at"] {
+  color: #000000;
+  font-family: monospace;
+}

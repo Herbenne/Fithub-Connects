@@ -76,150 +76,11 @@ function displayError($message) {
 <html>
 <head>
     <title>Manage <?php echo ucfirst($table); ?></title>
-    <style>
-        /* Add the styles from earlier plus: */
-        .table-actions {
-            margin: 20px 0;
-        }
-        
-        .pagination {
-            margin: 20px 0;
-            display: flex;
-            gap: 10px;
-        }
-        
-        .page-link {
-            padding: 5px 10px;
-            border: 1px solid #ddd;
-            text-decoration: none;
-            color: #007bff;
-        }
-        
-        .page-link.active {
-            background: #007bff;
-            color: white;
-        }
-
-        .table-controls {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 20px;
-        }
-
-        .search-form {
-            display: flex;
-            gap: 10px;
-        }
-
-        .search-form input[type="search"] {
-            padding: 8px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            min-width: 300px;
-        }
-
-        .sort-link {
-            color: inherit;
-            text-decoration: none;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-
-        .sort-link.active {
-            font-weight: bold;
-        }
-
-        .modal {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0,0,0,0.5);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .modal-content {
-            background: white;
-            padding: 20px;
-            border-radius: 8px;
-            min-width: 400px;
-        }
-
-        .form-group {
-            margin-bottom: 15px;
-        }
-
-        .form-group label {
-            display: block;
-            margin-bottom: 5px;
-        }
-
-        .form-group input {
-            width: 100%;
-            padding: 8px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-        }
-
-        .bulk-actions {
-            display: flex;
-            gap: 10px;
-            align-items: center;
-        }
-
-        .btn {
-            padding: 8px 16px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            background: #007bff;
-            color: white;
-        }
-
-        .btn:hover {
-            background: #0056b3;
-        }
-
-        .error-message {
-            background-color: #ffebee;
-            color: #c62828;
-            padding: 10px;
-            margin: 10px 0;
-            border-radius: 4px;
-            border: 1px solid #ef9a9a;
-        }
-
-        .success-message {
-            background-color: #e8f5e9;
-            color: #2e7d32;
-            padding: 10px;
-            margin: 10px 0;
-            border-radius: 4px;
-            border: 1px solid #a5d6a7;
-        }
-
-        .table-meta {
-            margin: 10px 0;
-            color: #666;
-        }
-
-        .loading {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(255,255,255,0.8);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 1000;
-        }
-    </style>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="../assets/css/mains.css">
+    <link rel="stylesheet" href="../assets/css/manage_tables.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <link rel="stylesheet" href="../assets/css/table.css">
 </head>
 <body>
     <div class="dashboard-container">
@@ -251,40 +112,45 @@ function displayError($message) {
             </div>
         </div>
 
-        <table>
-            <thead>
-                <tr>
-                    <th><input type="checkbox" id="selectAll" onclick="toggleAll(this)"></th>
-                    <?php foreach ($structure as $column): ?>
-                        <th>
-                            <a href="?table=<?php echo $table; ?>&orderBy=<?php echo $column['Field']; ?>&order=<?php echo ($orderBy === $column['Field'] && $order === 'ASC') ? 'DESC' : 'ASC'; ?><?php echo $search ? "&search=$search" : ''; ?>" 
-                               class="sort-link <?php echo $orderBy === $column['Field'] ? 'active' : ''; ?>">
-                                <?php echo htmlspecialchars($column['Field']); ?>
-                                <?php if ($orderBy === $column['Field']): ?>
-                                    <span class="sort-indicator"><?php echo $order === 'ASC' ? '↑' : '↓'; ?></span>
-                                <?php endif; ?>
-                            </a>
-                        </th>
-                    <?php endforeach; ?>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                <?php while ($row = $result->fetch_assoc()): ?>
+        <div class="table-wrapper">
+            <table>
+                <thead>
                     <tr>
+                        <th><input type="checkbox" id="selectAll" onclick="toggleAll(this)"></th>
                         <?php foreach ($structure as $column): ?>
-                            <td><?php echo htmlspecialchars($row[$column['Field']]); ?></td>
+                            <th data-column="<?php echo $column['Field']; ?>">
+                                <a href="?table=<?php echo $table; ?>&orderBy=<?php echo $column['Field']; ?>&order=<?php echo ($orderBy === $column['Field'] && $order === 'ASC') ? 'DESC' : 'ASC'; ?><?php echo $search ? "&search=$search" : ''; ?>" 
+                                   class="sort-link <?php echo $orderBy === $column['Field'] ? 'active' : ''; ?>">
+                                    <?php echo htmlspecialchars($column['Field']); ?>
+                                    <?php if ($orderBy === $column['Field']): ?>
+                                        <span class="sort-indicator"><?php echo $order === 'ASC' ? '↑' : '↓'; ?></span>
+                                    <?php endif; ?>
+                                </a>
+                            </th>
                         <?php endforeach; ?>
-                        <td>
-                            <button onclick="editRecord(<?php echo $row[$structure[0]['Field']]; ?>)" 
-                                    class="btn btn-edit">Edit</button>
-                            <button onclick="deleteRecord(<?php echo $row[$structure[0]['Field']]; ?>)" 
-                                    class="btn btn-delete">Delete</button>
-                        </td>
+                        <th>Actions</th>
                     </tr>
-                <?php endwhile; ?>
-            </tbody>
-        </table>
+                </thead>
+                <tbody>
+                    <?php while ($row = $result->fetch_assoc()): ?>
+                        <tr>
+                            <td><input type="checkbox" name="record[]" value="<?php echo $row[$structure[0]['Field']]; ?>"></td>
+                            <?php foreach ($structure as $column): ?>
+                                <td data-column="<?php echo $column['Field']; ?>">
+                                    <?php echo htmlspecialchars($row[$column['Field']]); ?>
+                                </td>
+                            <?php endforeach; ?>
+                            <td>
+                                <button onclick="editRecord(<?php echo $row[$structure[0]['Field']]; ?>)" 
+                                        class="btn btn-edit">Edit</button>
+                                <button onclick="deleteRecord(<?php echo $row[$structure[0]['Field']]; ?>)" 
+                                        class="btn btn-delete">Delete</button>
+                            </td>
+                        </tr>
+                    <?php endwhile; ?>
+                </tbody>
+            </table>
+        </div>
 
         <div class="pagination">
             <?php for ($i = 1; $i <= $total_pages; $i++): ?>

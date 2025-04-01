@@ -1,4 +1,4 @@
-/* Dashboard Container */
+/* Common Management Pages Styles */
 .dashboard-container {
   max-width: 1400px;
   margin: 0 auto;
@@ -6,7 +6,6 @@
   background: #f7f7f7;
 }
 
-/* Back Button */
 .back-btn {
   display: inline-flex;
   align-items: center;
@@ -25,13 +24,112 @@
   transform: translateX(-5px);
 }
 
-/* Page Title */
 h2 {
   color: #000000;
   font-size: 2rem;
   margin-bottom: 2rem;
   padding-bottom: 0.5rem;
   border-bottom: 3px solid #ffb22c;
+}
+
+/* Table Wrapper */
+.table-wrapper {
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  margin-bottom: 2rem;
+}
+
+/* Table Styles */
+table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+th {
+  background: #ffb22c;
+  color: #000000;
+  padding: 1.25rem 1rem;
+  font-weight: 600;
+  text-align: left;
+  white-space: nowrap;
+}
+
+td {
+  padding: 1rem;
+  border-bottom: 1px solid #eee;
+  color: #000000;
+}
+
+tbody tr:hover {
+  background: rgba(255, 178, 44, 0.05);
+}
+
+/* Action Buttons */
+.action-buttons {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.action-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.edit-btn {
+  background: #ffb22c;
+  color: #000000;
+}
+
+.delete-btn {
+  background: #f7f7f7;
+  color: #000000;
+  border: 1px solid #000000;
+}
+
+.edit-btn:hover,
+.delete-btn:hover {
+  transform: translateY(-2px);
+}
+
+.delete-btn:hover {
+  background: #000000;
+  color: #f7f7f7;
+}
+
+/* Pagination */
+.pagination {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: center;
+  margin-top: 2rem;
+}
+
+.page-link {
+  padding: 0.5rem 1rem;
+  border: 1px solid #ffb22c;
+  color: #000000;
+  text-decoration: none;
+  border-radius: 4px;
+  transition: all 0.3s ease;
+}
+
+.page-link.active {
+  background: #ffb22c;
+  color: #000000;
+}
+
+.page-link:hover {
+  background: rgba(255, 178, 44, 0.05);
 }
 
 /* Alert Messages */
@@ -54,102 +152,13 @@ h2 {
   color: #000000;
 }
 
-/* Table Styles */
-.gyms-table {
-  width: 100%;
-  border-collapse: separate;
-  border-spacing: 0;
-  background: #fff;
-  border-radius: 8px;
-  overflow: hidden;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  margin-bottom: 2rem;
-}
-
-.gyms-table th {
-  background: #ffb22c;
-  color: #000000;
-  padding: 1.25rem 1rem;
-  text-align: left;
-  font-weight: 600;
-  font-size: 1rem;
-}
-
-.gyms-table td {
-  padding: 1rem;
-  border-bottom: 1px solid #eee;
-  color: #000000;
-  vertical-align: middle;
-}
-
-.gyms-table tbody tr:hover {
-  background: rgba(255, 178, 44, 0.05);
-}
-
-/* Star Rating */
-.fa-star {
-  color: #ddd;
-  margin-right: 2px;
-  font-size: 0.9rem;
-}
-
-.fa-star.active {
-  color: #ffb22c;
-}
-
-/* Action Buttons */
-.action-buttons {
-  display: flex;
-  gap: 0.75rem;
-}
-
-.action-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.5rem 1rem;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 0.9rem;
-  font-weight: 500;
-  transition: all 0.3s ease;
-}
-
-.edit-btn {
-  background: #ffb22c;
-  color: #000000;
-}
-
-.delete-btn {
-  background: #f7f7f7;
-  color: #000000;
-  border: 1px solid #000000;
-}
-
-.edit-btn:hover {
-  background: #e59f26;
-  transform: translateY(-2px);
-}
-
-.delete-btn:hover {
-  background: #000000;
-  color: #f7f7f7;
-  transform: translateY(-2px);
-}
-
-.action-btn i {
-  font-size: 0.9rem;
-}
-
 /* Responsive Design */
 @media (max-width: 1200px) {
   .dashboard-container {
     padding: 1rem;
   }
 
-  .gyms-table {
-    display: block;
+  .table-wrapper {
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
   }
@@ -168,11 +177,5 @@ h2 {
   .action-btn {
     width: 100%;
     justify-content: center;
-  }
-
-  .gyms-table th,
-  .gyms-table td {
-    padding: 0.75rem;
-    font-size: 0.9rem;
   }
 }

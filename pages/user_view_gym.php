@@ -69,10 +69,10 @@ $reviews = $stmt->get_result();
 <head></head>
     <title><?php echo htmlspecialchars($gym['gym_name']); ?> - GymHub</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
-    <link rel="stylesheet" href="../assets/css/main.css">
-    <link rel="stylesheet" href="../assets/css/user_view_gym.css">
+    <link rel="stylesheet" href="../assets/css/mains.css">
+    <link rel="stylesheet" href="../assets/css/user_view_gyms.css">
     <!-- Add page loader styles -->
-    <style>
+    <!-- <style>
         .page-loader {
             position: fixed;
             top: 0;
@@ -88,15 +88,17 @@ $reviews = $stmt->get_result();
         .page-loader.hidden {
             display: none;
         }
-    </style>
+    </style> -->    
 </head>
 <body>
     <div class="page-container">
         <!-- Navigation Bar -->
-        <nav class="navbar">
-            <a href="explore_gyms.php" class="back-btn">
+        <nav>    
+           <div class="back-to-explore-button-contianer">
+           <a href="explore_gyms.php" class="back-btn">
                 <i class="fas fa-arrow-left"></i> Back to Explore
             </a>
+           </div>
             <div class="nav-buttons">
                 <?php if ($_SESSION['role'] === 'member'): ?>
                     <a href="dashboard.php" class="nav-btn">Dashboard</a>
@@ -145,18 +147,18 @@ $reviews = $stmt->get_result();
                     <p><?php echo htmlspecialchars($gym['gym_phone_number']); ?></p>
                 </div>
 
-                <div class="info-card description">
-                    <h3><i class="fas fa-info-circle"></i> About This Gym</h3>
-                    <p><?php echo nl2br(htmlspecialchars($gym['gym_description'])); ?></p>
-                </div>
-
                 <div class="info-card">
                     <h3><i class="fas fa-dumbbell"></i> Amenities</h3>
                     <p><?php echo nl2br(htmlspecialchars($gym['gym_amenities'])); ?></p>
                 </div>
+
+                <div class="info-card full-width">
+                    <h3><i class="fas fa-info-circle"></i> About This Gym</h3>
+                    <p><?php echo nl2br(htmlspecialchars($gym['gym_description'])); ?></p>
+                </div>
             </div>
 
-            <!-- Membership Plans -->
+            <!-- Membership Plans -->   
             <div class="membership-plans">
                 <h2>Membership Plans</h2>
                 <div class="plans-grid">

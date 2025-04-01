@@ -105,8 +105,9 @@ if ($result === false) {
 
 <head>
     <title>Dashboard - FitHub</title>
-    <link rel="stylesheet" href="../assets/css/main.css">
-    <link rel="stylesheet" href="../assets/css/dashboard.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="../assets/css/mains.css">
+    <link rel="stylesheet" href="../assets/css/dashboards.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="../assets/js/main.js"></script>
@@ -115,7 +116,10 @@ if ($result === false) {
 
 <body>
     <nav class="navbar">
-        <div class="nav-brand">FitHub</div>
+        <div class="nav-brand"> <img src="<?php echo dirname($_SERVER['PHP_SELF']) ?>/../assets/logo/FITHUB LOGO.png" 
+                 alt="Fithub Logo" 
+                 style="max-height: 50px;"
+            ></div>
         <div class="nav-links">
             <a href="dashboard.php" class="active">Dashboard</a>
             <a href="profile.php">My Profile</a>
@@ -269,25 +273,6 @@ if ($result === false) {
                             <a href="manage_membership_plans.php" class="admin-btn">Manage Plans</a>
                         </div>
                     </div>
-
-                    <div class="control-section">
-                        <h3>Database Tables</h3>
-                        <div class="table-list">
-                            <?php
-                            $tables = $db_connection->query("SHOW TABLES");
-                            while ($table = $tables->fetch_array()) {
-                                $table_name = $table[0];
-                                $count = $db_connection->query("SELECT COUNT(*) as count FROM {$table_name}")->fetch_assoc()['count'];
-                                echo "<a href='manage_table.php?table={$table_name}' class='table-link'>";
-                                echo "<div class='table-item'>";
-                                echo "<span class='table-name'>" . htmlspecialchars($table_name) . "</span>";
-                                echo "<span class='record-count'>{$count} records</span>";
-                                echo "</div>";
-                                echo "</a>";
-                            }
-                            ?>
-                        </div>
-                    </div>
                 </div>
             </div>
         <?php elseif ($role === 'user' || $role === 'member'): ?>
@@ -318,30 +303,31 @@ if ($result === false) {
                         <h3>Gym Owner Application</h3>
                         <form action="../actions/submit_gym_application.php" method="POST" enctype="multipart/form-data">
                             <div class="form-group">
-                                <label>Gym Name *</label>
-                                <input type="text" name="gym_name" required>
+                                <label for="gym_name">Gym Name *</label>
+                                <input type="text" id="gym_name" name="gym_name" required>
                             </div>
 
                             <div class="form-group">
-                                <label>Location *</label>
-                                <input type="text" name="gym_location" required>
+                                <label for="gym_location">Location *</label>
+                                <input type="text" id="gym_location" name="gym_location" required>
                             </div>
 
                             <div class="form-group">
-                                <label>Phone Number *</label>
-                                <input type="tel" name="gym_phone_number" required>
+                                <label for="gym_phone">Phone Number *</label>
+                                <input type="tel" id="gym_phone" name="gym_phone_number" required 
+                                       pattern="[0-9]{10,}" title="Please enter a valid phone number">
                             </div>
 
                             <div class="form-group">
-                                <label>Description *</label>
-                                <textarea name="gym_description" rows="4" required 
-                                        placeholder="Describe your gym, its focus, and what makes it unique..."></textarea>
+                                <label for="gym_description">Description *</label>
+                                <textarea id="gym_description" name="gym_description" rows="4" required 
+                                          placeholder="Describe your gym, its focus, and what makes it unique..."></textarea>
                             </div>
 
                             <div class="form-group">
-                                <label>Amenities *</label>
-                                <textarea name="gym_amenities" rows="4" required 
-                                        placeholder="List your gym's amenities..."></textarea>
+                                <label for="gym_amenities">Amenities *</label>
+                                <textarea id="gym_amenities" name="gym_amenities" rows="4" required 
+                                          placeholder="List your gym's amenities..."></textarea>
                             </div>
 
                             <button type="submit" class="submit-btn">Submit Application</button>
@@ -352,44 +338,54 @@ if ($result === false) {
             <!-- Regular member section -->
             <section class="featured-gyms">
                 <h2>Featured Gyms</h2>
-                <div class="gym-grid">
-                    <?php
-                    if ($result && $result->num_rows > 0):
-                        while ($gym = $result->fetch_assoc()): ?>
-                            <div class="gym-card">
-                                <div class="gym-image">
-                                    <img src="<?php echo !empty($gym['gym_thumbnail']) ? 
-                                        htmlspecialchars($gym['gym_thumbnail']) : 
-                                        '../assets/images/default-gym.jpg'; ?>" 
-                                        alt="<?php echo htmlspecialchars($gym['gym_name']); ?>"
-                                        onerror="this.src='../assets/images/default-gym.jpg'">
-                                </div>
-                                <div class="gym-info">
-                                    <h3><?php echo htmlspecialchars($gym['gym_name']); ?></h3>
-                                    <div class="gym-rating">
-                                        <?php 
-                                        $avgRating = round($gym['avg_rating'], 1);
-                                        for($i = 1; $i <= 5; $i++): ?>
-                                            <i class="fas fa-star <?php echo $i <= $avgRating ? 'checked' : ''; ?>"></i>
-                                        <?php endfor; ?>
-                                        <span class="rating-text">
-                                            <?php echo number_format($avgRating, 1); ?> 
-                                            (<?php echo $gym['review_count']; ?> reviews)
-                                        </span>
+                <div class="carousel-container">
+                    <button class="carousel-btn prev" onclick="moveCarousel(-1)">
+                        <i class="fas fa-chevron-left"></i>
+                    </button>
+                    <button class="carousel-btn next" onclick="moveCarousel(1)">
+                        <i class="fas fa-chevron-right"></i>
+                    </button>
+                    
+                    <div class="gym-grid">
+                        <?php
+                        if ($result && $result->num_rows > 0):
+                            while ($gym = $result->fetch_assoc()): ?>
+                                <div class="gym-card">
+                                    <div class="gym-image">
+                                        <img src="<?php echo !empty($gym['gym_thumbnail']) ? 
+                                            htmlspecialchars($gym['gym_thumbnail']) : 
+                                            '../assets/images/default-gym.jpg'; ?>" 
+                                            alt="<?php echo htmlspecialchars($gym['gym_name']); ?>"
+                                            onerror="this.src='../assets/images/default-gym.jpg'">
                                     </div>
-                                    <p class="gym-location">
-                                        <i class="fas fa-map-marker-alt"></i> 
-                                        <?php echo htmlspecialchars($gym['gym_location']); ?>
-                                    </p>
-                                    <a href="user_view_gym.php?gym_id=<?php echo $gym['gym_id']; ?>" 
-                                       class="btn-view">View Gym</a>
+                                    <div class="gym-info">
+                                        <h3><?php echo htmlspecialchars($gym['gym_name']); ?></h3>
+                                        <div class="gym-rating">
+                                            <?php 
+                                            $avgRating = round($gym['avg_rating'], 1);
+                                            for($i = 1; $i <= 5; $i++): ?>
+                                                <i class="fas fa-star <?php echo $i <= $avgRating ? 'checked' : ''; ?>"></i>
+                                            <?php endfor; ?>
+                                            <span class="rating-text">
+                                                <?php echo number_format($avgRating, 1); ?> 
+                                                (<?php echo $gym['review_count']; ?> reviews)
+                                            </span>
+                                        </div>
+                                        <p class="gym-location">
+                                            <i class="fas fa-map-marker-alt"></i> 
+                                            <?php echo htmlspecialchars($gym['gym_location']); ?>
+                                        </p>
+                                        <a href="user_view_gym.php?gym_id=<?php echo $gym['gym_id']; ?>" 
+                                           class="btn-view">View Gym</a>
+                                    </div>
                                 </div>
-                            </div>
-                        <?php endwhile;
-                    else: ?>
-                        <p class="no-gyms">No featured gyms available at the moment.</p>
-                    <?php endif; ?>
+                            <?php endwhile;
+                        else: ?>
+                            <p class="no-gyms">No featured gyms available at the moment.</p>
+                        <?php endif; ?>
+                    </div>
                 </div>
+                <div class="carousel-dots"></div>
             </section>
 
             <!-- User's active memberships section -->
@@ -427,6 +423,7 @@ if ($result === false) {
             <?php endif; ?>
         <?php endif; ?>
     </div>
+
 
     <footer class="footer">
         <div class="footer-content">
