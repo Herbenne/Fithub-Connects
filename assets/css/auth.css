@@ -122,6 +122,18 @@
     color: #ffb22c;
   }
   
+  .checkbox-group {
+      display: flex;
+      align-items: center; /* Align checkbox and text properly */
+      gap: 8px; /* Add spacing between checkbox and label */
+    }
+
+  .checkbox-group input[type="checkbox"] {
+      width: 16px;
+      height: 16px;
+      cursor: pointer;
+    }
+    
   /* Responsive adjustments */
   @media (max-width: 480px) {
     .auth-container {
@@ -138,3 +150,6 @@
       font-size: 22px;
     }
   }
+
+
+
