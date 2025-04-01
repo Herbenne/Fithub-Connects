@@ -7,27 +7,33 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $email = $_POST['email'];
     $password = password_hash($_POST['password'], PASSWORD_DEFAULT); // Hash password
     $role = 'user'; // Default role
-    $unique_id = uniqid("USR"); // Generate a unique ID
-
-    // Check if the username or email already exists
-    $check_query = "SELECT * FROM users WHERE username = ? OR email = ?";
-    $stmt = $db_connection->prepare($check_query);
-    $stmt->bind_param("ss", $username, $email);
-    $stmt->execute();
-    $result = $stmt->get_result();
-
-    if ($result->num_rows > 0) {
-        $error = "Username or Email already exists!";
+    $unique_id = "USR" . bin2hex(random_bytes(3)); // Generate a unique ID
+    
+    // Check if terms checkbox was checked
+    if (!isset($_POST['terms'])) {
+        $error = "You must agree to the Terms and Conditions";
     } else {
-        // Insert new user
-        $insert_query = "INSERT INTO users (unique_id, username, email, password, first_name, last_name, role) VALUES (?, ?, ?, ?, ?, ?, ?)";
-        $stmt = $db_connection->prepare($insert_query);
-        $stmt->bind_param("sssssss", $unique_id, $username, $email, $password, $first_name, $last_name, $role);
+        // Check if the username or email already exists
+        $check_query = "SELECT * FROM users WHERE username = ? OR email = ?";
+        $stmt = $db_connection->prepare($check_query);
+        $stmt->bind_param("ss", $username, $email);
+        $stmt->execute();
+        $result = $stmt->get_result();
 
-        if ($stmt->execute()) {
-            echo "Registration successful! <a href='login.php'>Login here</a>";
+        if ($result->num_rows > 0) {
+            $error = "Username or Email already exists!";
         } else {
-            $error = "Error: " . $stmt->error;
+            // Insert new user
+            $insert_query = "INSERT INTO users (unique_id, username, email, password, first_name, last_name, role) 
+                             VALUES (?, ?, ?, ?, ?, ?, ?)";
+            $stmt = $db_connection->prepare($insert_query);
+            $stmt->bind_param("sssssss", $unique_id, $username, $email, $password, $first_name, $last_name, $role);
+
+            if ($stmt->execute()) {
+                echo "<div class='alert alert-success'>Registration successful! <a href='login.php'>Login here</a></div>";
+            } else {
+                $error = "Error: " . $stmt->error;
+            }
         }
     }
 }
@@ -45,7 +51,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <div class="auth-container">
         <div class="auth-header">
             <h2>Create Account</h2>
-            <p>Join Fithub today</p>
+            <p>Join FitHub today</p>
         </div>
 
         <?php if (isset($error)): ?>
@@ -79,8 +85,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 <label for="password">Password</label>
                 <div class="password-toggle">
                     <input type="password" id="password" name="password" required>
-                    <i class="fas fa-eye"></i>
+                    <i class="fas fa-eye" id="togglePassword"></i>
                 </div>
+            </div>
+
+            <div class="form-group checkbox-group">
+                <input type="checkbox" id="terms" name="terms" required>
+                <label for="terms">I agree to the <a href="#" onclick="showTerms(); return false;">Terms and Conditions</a> and Privacy Policy</label>
             </div>
 
             <button type="submit" class="submit-btn">Register</button>

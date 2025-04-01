@@ -39,4 +39,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
         setTimeout(() => alertDiv.remove(), 5000);
     }
+    // Show terms and condtions
 });
+
+function showTerms() {
+    // You can replace this with a modal or redirect to a terms page
+    alert("Terms and Conditions\n\n1. Your personal information will be stored securely.\n2. We will not share your information with third parties without your consent.\n3. You are responsible for maintaining the confidentiality of your account credentials.\n4. Misuse of the platform may result in account termination.\n\nFor more details, please contact support.");
+}
