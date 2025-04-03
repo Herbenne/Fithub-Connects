@@ -16,6 +16,16 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
+    // Add toggle for confirm password
+    const toggleConfirmPassword = document.querySelector('#toggleConfirmPassword');
+    const confirmPassword = document.querySelector('#confirm_password');
+
+    toggleConfirmPassword.addEventListener('click', function (e) {
+        const type = confirmPassword.getAttribute('type') === 'password' ? 'text' : 'password';
+        confirmPassword.setAttribute('type', type);
+        this.classList.toggle('fa-eye-slash');
+    });
+
     // Form validation
     const forms = document.querySelectorAll('form');
     forms.forEach(form => {
@@ -26,6 +36,24 @@ document.addEventListener('DOMContentLoaded', function() {
                 showAlert('Password must be at least 6 characters long', 'error');
             }
         });
+    });
+
+    // Add password match validation
+    const password = document.querySelector('#password');
+    confirmPassword.addEventListener('input', function() {
+        if (this.value !== password.value) {
+            this.setCustomValidity('Passwords do not match');
+        } else {
+            this.setCustomValidity('');
+        }
+    });
+
+    password.addEventListener('input', function() {
+        if (confirmPassword.value !== this.value) {
+            confirmPassword.setCustomValidity('Passwords do not match');
+        } else {
+            confirmPassword.setCustomValidity('');
+        }
     });
 
     // Helper function to show alerts

@@ -47,8 +47,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     ]
                 ],
                 "payment_method_types" => ["gcash", "card"],
-                "success_url" => "http://localhost/Capstone/pages/payment_success.php?gym_id=$gym_id&user_id=$user_id&plan_id=$plan_id",
-                "cancel_url" => "http://localhost/Capstone/pages/gym_details.php?gym_id=$gym_id",
+                "success_url" => "http://localhost/FITHUB-CONNECTS/pages/payment_success.php?gym_id=$gym_id&user_id=$user_id&plan_id=$plan_id",
+                "cancel_url" => "http://localhost/FITHUB-CONNECTS/pages/gym_details.php?gym_id=$gym_id",
             ]
         ]
     ];

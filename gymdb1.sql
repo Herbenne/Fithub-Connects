@@ -3,9 +3,9 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1:3307
--- Generation Time: Mar 09, 2025 at 07:48 AM
+-- Generation Time: Apr 03, 2025 at 04:46 AM
 -- Server version: 10.4.32-MariaDB
--- PHP Version: 8.0.30
+-- PHP Version: 8.2.12
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
@@ -65,16 +65,17 @@ CREATE TABLE `gym_members` (
   `plan_id` int(11) NOT NULL,
   `joined_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `start_date` date NOT NULL,
-  `end_date` date NOT NULL
+  `end_date` date NOT NULL,
+  `status` varchar(20) DEFAULT 'active'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `gym_members`
 --
 
-INSERT INTO `gym_members` (`id`, `user_id`, `gym_id`, `plan_id`, `joined_at`, `start_date`, `end_date`) VALUES
-(9, 17, 9, 9, '2025-03-09 04:00:37', '2025-03-09', '2025-04-09'),
-(10, 17, 10, 8, '2025-03-09 04:36:50', '2025-03-09', '2025-09-09');
+INSERT INTO `gym_members` (`id`, `user_id`, `gym_id`, `plan_id`, `joined_at`, `start_date`, `end_date`, `status`) VALUES
+(12, 23, 8, 5, '2025-04-03 01:35:31', '2025-04-03', '2025-05-03', 'active'),
+(13, 24, 10, 6, '2025-04-03 02:23:51', '2025-04-03', '2025-10-03', 'active');
 
 -- --------------------------------------------------------
 
@@ -96,12 +97,8 @@ CREATE TABLE `gym_reviews` (
 --
 
 INSERT INTO `gym_reviews` (`review_id`, `gym_id`, `user_id`, `rating`, `comment`, `created_at`) VALUES
-(15, 7, 17, 3, 'Plat lang', '2025-03-09 02:42:53'),
-(17, 9, 17, 4, 'almost 2k MMR', '2025-03-09 02:43:28'),
 (18, 8, 18, 5, 'WOAH', '2025-03-09 03:27:30'),
-(19, 10, 18, 2, 'ANo yan?', '2025-03-09 03:27:54'),
-(20, 10, 17, 3, 'Shishable', '2025-03-09 03:42:56'),
-(22, 8, 17, 4, 'New REview', '2025-03-09 05:20:57');
+(19, 10, 18, 2, 'ANo yan?', '2025-03-09 03:27:54');
 
 -- --------------------------------------------------------
 
@@ -144,17 +141,6 @@ CREATE TABLE `review_comments` (
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
---
--- Dumping data for table `review_comments`
---
-
-INSERT INTO `review_comments` (`comment_id`, `review_id`, `user_id`, `comment`, `created_at`) VALUES
-(18, 15, 18, 'Yabang', '2025-03-09 03:44:05'),
-(20, 17, 17, 'sml?', '2025-03-09 03:59:46'),
-(22, 15, 20, 'weeeeh', '2025-03-09 05:02:10'),
-(26, 15, 18, 'WAWAWAWA', '2025-03-09 05:19:04'),
-(27, 22, 17, 'oh diba', '2025-03-09 05:21:05');
-
 -- --------------------------------------------------------
 
 --
@@ -183,13 +169,15 @@ CREATE TABLE `users` (
 --
 
 INSERT INTO `users` (`id`, `unique_id`, `username`, `email`, `first_name`, `last_name`, `password`, `age`, `contact_number`, `profile_picture`, `reg_date`, `created_at`, `role`, `gym_id`) VALUES
-(4, 'SADM001', 'superadmin', 'superadmin@admin.com', 'Super', 'Admin', '$2y$10$OoZZUHZMS0DkmWmLbkba3OJpztFmuH6j.IKH.vRXpx7f9m3ELk2RO', NULL, NULL, NULL, '2025-03-08 09:55:11', '2025-03-08 07:38:23', 'superadmin', NULL),
-(17, 'USR67ccfc1', 'user', 'user@gmail.com', 'User', 'Name', '$2y$10$mDYgiZf2uAesT3bnlIAFC.jFY3b4SB7Jj3xtCtve2Oc0n3s4ELT/G', NULL, NULL, NULL, '2025-03-09 04:00:37', '2025-03-09 02:25:35', 'member', NULL),
+(4, 'SADM001', 'superadmin', 'superadmin@admin.com', 'Super', 'Admin', '$2y$10$OoZZUHZMS0DkmWmLbkba3OJpztFmuH6j.IKH.vRXpx7f9m3ELk2RO', NULL, '', 'assets/images/profile_pictures/profile_4_1743646283.jpg', '2025-04-03 02:11:23', '2025-03-08 07:38:23', 'superadmin', NULL),
 (18, 'USR67ccfc4', 'admin', 'admin@gmail.com', 'admin', 'admin', '$2y$10$59FhhkoJHET8xxs5GgQQROEw26I/NpMtRuvATQnbXnek8lAiFsqc2', NULL, NULL, NULL, '2025-03-09 02:29:36', '2025-03-09 02:26:11', 'admin', NULL),
 (19, 'USR67ccfc6', 'admin1', 'admin1@gmail.com', 'admin', 'admin', '$2y$10$jIVt5ydoGncD2K8n9zWfgeUYZ34tOetfk4Nsodhn19CFVjzAU4Hdq', NULL, NULL, NULL, '2025-03-09 02:30:01', '2025-03-09 02:26:47', 'admin', NULL),
 (20, 'USR67ccfc7', 'admin2', 'admin2@gmail.com', 'admin', 'admin', '$2y$10$rEKZPrZawt5jOkq2/J5KsuiyKN43wZkK8bB1KJxHjGotgOcSdKoHy', NULL, NULL, NULL, '2025-03-09 02:29:57', '2025-03-09 02:27:01', 'admin', NULL),
 (21, 'USR67ccfc8', 'Admin3', 'admin3@gmail.com', 'admin', 'admin', '$2y$10$j/6amBrbizsf8lnL5rIckei5hhsdF6lvlKx4KIh/Nyw6jNJPtCrl.', NULL, NULL, NULL, '2025-03-09 02:29:54', '2025-03-09 02:27:13', 'admin', NULL),
-(22, 'USR67cd2f6', 'user1', 'user1@gmail.com', 'User', 'Second', '$2y$10$pVDrYZToBbTgifHU5sRwW.bmwW7R5ZjbCuxbQLUW5QSpONoSmJWAK', NULL, NULL, NULL, '2025-03-09 06:04:26', '2025-03-09 06:04:26', 'user', NULL);
+(22, 'USR67cd2f6', 'user1', 'user1@gmail.com', 'User', 'Second', '$2y$10$pVDrYZToBbTgifHU5sRwW.bmwW7R5ZjbCuxbQLUW5QSpONoSmJWAK', NULL, NULL, NULL, '2025-03-09 06:04:26', '2025-03-09 06:04:26', 'user', NULL),
+(23, 'USR67ce42f', 'user', 'hi@gmail.com', 'user', 'user', '$2y$10$VJWFbISi6qrB79rhmhp5.ejGVVL9b5UMGLt//gbL1cOePqZBdI6xy', NULL, NULL, NULL, '2025-04-03 01:35:31', '2025-03-10 01:40:05', 'member', NULL),
+(24, 'USR9b41e3', 'rey', 'rey@gmail.com', 'Rey', 'Rey', '$2y$10$wrY.PLjSGYCZ/lKsCSjOjunBAbc.7/Se3SWJuUp2EcrrxF41lKuAG', NULL, NULL, NULL, '2025-04-03 02:23:51', '2025-04-03 01:00:23', 'member', NULL),
+(25, 'USR957207', 'gabayuban', 'gabayuban@gmail.com', 'Gab', 'Ayuban', '$2y$10$hLrphZp3KI0DzlxD6WPMAugl/vFPXzvV/ce967HSro8DKGbNb4p36', NULL, NULL, NULL, '2025-04-03 02:45:36', '2025-04-03 02:45:36', 'user', NULL);
 
 --
 -- Indexes for dumped tables
@@ -253,37 +241,37 @@ ALTER TABLE `users`
 -- AUTO_INCREMENT for table `gyms`
 --
 ALTER TABLE `gyms`
-  MODIFY `gym_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
+  MODIFY `gym_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
 
 --
 -- AUTO_INCREMENT for table `gym_members`
 --
 ALTER TABLE `gym_members`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14;
 
 --
 -- AUTO_INCREMENT for table `gym_reviews`
 --
 ALTER TABLE `gym_reviews`
-  MODIFY `review_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=23;
+  MODIFY `review_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=24;
 
 --
 -- AUTO_INCREMENT for table `membership_plans`
 --
 ALTER TABLE `membership_plans`
-  MODIFY `plan_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
+  MODIFY `plan_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
 
 --
 -- AUTO_INCREMENT for table `review_comments`
 --
 ALTER TABLE `review_comments`
-  MODIFY `comment_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=29;
+  MODIFY `comment_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=33;
 
 --
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=23;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=26;
 
 --
 -- Constraints for dumped tables

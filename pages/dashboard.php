@@ -271,6 +271,10 @@ if ($result === false) {
                             <a href="manage_gyms.php" class="admin-btn">Manage Gyms</a>
                             <a href="manage_memberships.php" class="admin-btn">Manage Memberships</a>
                             <a href="manage_membership_plans.php" class="admin-btn">Manage Plans</a>
+                            <!-- New Button for Analytics -->
+                            <a href="all_gyms_analytics.php" class="admin-btn">
+                                <i class="fas fa-chart-bar"></i> View All Gym Analytics
+                            </a>
                         </div>
                     </div>
                 </div>

@@ -9,8 +9,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $role = 'user'; // Default role
     $unique_id = "USR" . bin2hex(random_bytes(3)); // Generate a unique ID
     
-    // Check if terms checkbox was checked
-    if (!isset($_POST['terms'])) {
+    // Add password confirmation check
+    if ($_POST['password'] !== $_POST['confirm_password']) {
+        $error = "Passwords do not match!";
+    } else if (!isset($_POST['terms'])) {
         $error = "You must agree to the Terms and Conditions";
     } else {
         // Check if the username or email already exists
@@ -86,6 +88,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 <div class="password-toggle">
                     <input type="password" id="password" name="password" required>
                     <i class="fas fa-eye" id="togglePassword"></i>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="confirm_password">Confirm Password</label>
+                <div class="password-toggle">
+                    <input type="password" id="confirm_password" name="confirm_password" required>
+                    <i class="fas fa-eye" id="toggleConfirmPassword"></i>
                 </div>
             </div>
 
