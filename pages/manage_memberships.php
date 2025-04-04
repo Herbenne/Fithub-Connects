@@ -8,13 +8,13 @@ if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'superadmin') {
     exit();
 }
 
-// Update the query to handle status dynamically if column doesn't exist
+// Replace the existing query with:
 $query = "SELECT gm.id, gm.user_id, gm.gym_id, gm.plan_id, gm.start_date, 
           gm.end_date, g.gym_name, 
           CONCAT(u.first_name, ' ', u.last_name) as member_name,
           mp.plan_name, mp.price,
           CASE 
-              WHEN gm.end_date >= CURDATE() THEN 'active'
+              WHEN gm.end_date >= CURDATE() AND gm.status = 'active' THEN 'active'
               ELSE 'expired'
           END as status
           FROM gym_members gm
@@ -293,6 +293,32 @@ $result = $db_connection->query($query);
     window.onclick = function(event) {
         if (event.target == modal) {
             modal.style.display = "none";
+        }
+    }
+
+    // Add this function after the existing script tag
+    function confirmDelete(membershipId) {
+        if (confirm('Are you sure you want to delete this membership?')) {
+            const formData = new FormData();
+            formData.append('id', membershipId);
+            
+            fetch('../actions/delete_membership.php', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Membership deleted successfully!');
+                    window.location.reload();
+                } else {
+                    throw new Error(data.message || 'Delete failed');
+                }
+            })
+            .catch(error => {
+                alert('Error deleting membership: ' + error.message);
+                console.error('Error:', error);
+            });
         }
     }
     </script>
