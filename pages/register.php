@@ -32,7 +32,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $stmt->bind_param("sssssss", $unique_id, $username, $email, $password, $first_name, $last_name, $role);
 
             if ($stmt->execute()) {
-                echo "<div class='alert alert-success'>Registration successful! <a href='login.php'>Login here</a></div>";
+                // Set a success message in session
+                session_start();
+                $_SESSION['registration_success'] = "Account created successfully! Please login.";
+                // Redirect to login page
+                header("Location: login.php");
+                exit();
             } else {
                 $error = "Error: " . $stmt->error;
             }

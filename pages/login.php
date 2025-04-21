@@ -2,6 +2,13 @@
 include '../config/database.php';
 session_start();
 
+// Add this near the top of your login page, after session_start()
+$success_message = '';
+if (isset($_SESSION['registration_success'])) {
+    $success_message = $_SESSION['registration_success'];
+    unset($_SESSION['registration_success']); // Clear the message after displaying
+}
+
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $username = $_POST['username'];
     $password = $_POST['password'];
@@ -42,6 +49,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             <h2>Welcome Back</h2>
             <p>Please login to continue</p>
         </div>
+
+        <!-- Add this in your HTML where you want to display the success message -->
+        <?php if ($success_message): ?>
+            <div class="alert alert-success">
+                <?php echo htmlspecialchars($success_message); ?>
+            </div>
+        <?php endif; ?>
 
         <?php if (isset($error)): ?>
             <div class="alert alert-error"><?php echo $error; ?></div>

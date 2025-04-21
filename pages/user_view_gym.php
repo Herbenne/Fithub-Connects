@@ -70,7 +70,7 @@ $reviews = $stmt->get_result();
     <title><?php echo htmlspecialchars($gym['gym_name']); ?> - GymHub</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
     <link rel="stylesheet" href="../assets/css/mains.css">
-    <link rel="stylesheet" href="../assets/css/user_view_gyms.css">
+    <link rel="stylesheet" href="../assets/css/user_view_gym.css">
     <!-- Add page loader styles -->
     <!-- <style>
         .page-loader {

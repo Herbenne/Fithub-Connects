@@ -47,7 +47,7 @@ if ($result === false) {
         <?php endif; ?>
 
         <div class="action-bar">
-            <button class="add-btn" onclick="location.href='add_plan.php'">
+            <button class="add-btn" onclick="location.href='add_plan.php'" style="background-color: #4CAF50; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; margin: 10px 0;"> 
                 <i class="fas fa-plus"></i> Add New Plan
             </button>
         </div>

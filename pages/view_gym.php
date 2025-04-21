@@ -169,90 +169,54 @@ $is_gym_owner = isGymOwner($_SESSION['user_id'] ?? null, $gym);
 <!DOCTYPE html>
 <html>
 <head>
-    <title>View Gym Details - Admin</title>
+    <title><?php echo htmlspecialchars($gym['gym_name']); ?> - Admin View</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
-    <link rel="stylesheet" href="../assets/css/main.css">
+    <link rel="stylesheet" href="../assets/css/mains.css">
     <link rel="stylesheet" href="../assets/css/user_view_gym.css">
-    <style>
-        /* Additional admin-specific styles */
-        .admin-notice {
-            background: #2c3e50;
-            color: white;
-            padding: 15px;
-            margin-bottom: 20px;
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .admin-actions {
-            background: #f8f9fa;
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            display: flex;
-            gap: 10px;
-        }
-
-        .admin-btn {
-            padding: 8px 16px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .admin-btn.edit {
-            background: #007bff;
-            color: white;
-        }
-
-        .admin-btn.delete {
-            background: #dc3545;
-            color: white;
-        }
-    </style>
 </head>
 <body>
     <div class="page-container">
         <!-- Navigation Bar -->
-        <nav class="navbar">
-            <div class="navbar-content">
+        <nav>
+            <div class="back-to-explore-button-contianer">
                 <a href="explore_gyms.php" class="back-btn">
                     <i class="fas fa-arrow-left"></i> Back to Explorer
                 </a>
-                <div class="nav-buttons">
-                    <a href="dashboard.php" class="nav-btn">Dashboard</a>
-                </div>
             </div>
+           
         </nav>
 
         <!-- Admin Notice -->
-        <div class="admin-notice">
-            <i class="<?php echo $is_superadmin ? 'fas fa-shield-alt' : 'fas fa-user-shield'; ?>"></i>
-            <?php if ($is_superadmin): ?>
-                You are viewing this gym as a superadmin. You have full administrative privileges.
-            <?php else: ?>
-                You are viewing this gym as an administrator.
-            <?php endif; ?>
+        <div class="info-card admin-notice">
+            <h3>
+                <i class="<?php echo $is_superadmin ? 'fas fa-shield-alt' : 'fas fa-user-shield'; ?>"></i>
+                Admin Access
+            </h3>
+            <p>
+                <?php if ($is_superadmin): ?>
+                    You are viewing this gym as a superadmin. You have full administrative privileges.
+                <?php else: ?>
+                    You are viewing this gym as an administrator.
+                <?php endif; ?>
+            </p>
         </div>
 
         <!-- Admin Actions -->
         <?php if ($is_superadmin): ?>
-        <div class="admin-actions">
-            <button class="admin-btn edit" onclick="window.location.href='edit_gym.php?gym_id=<?php echo $gym_id; ?>'">
-                <i class="fas fa-edit"></i> Edit Gym
-            </button>
-            <form action="../actions/delete_gym.php" method="POST" style="display: inline;">
-                <input type="hidden" name="gym_id" value="<?php echo $gym_id; ?>">
-                <button type="submit" class="admin-btn delete" 
-                        onclick="return confirm('Are you sure you want to delete this gym? This action cannot be undone.');">
-                    <i class="fas fa-trash-alt"></i> Delete Gym
+        <div class="info-card admin-actions">
+            <h3><i class="fas fa-tools"></i> Admin Controls</h3>
+            <div class="admin-buttons">
+                <button class="join-btn edit-btn" onclick="window.location.href='edit_gym.php?gym_id=<?php echo $gym_id; ?>'">
+                    <i class="fas fa-edit"></i> Edit Gym
                 </button>
-            </form>
+                <form action="../actions/delete_gym.php" method="POST" style="display: inline;">
+                    <input type="hidden" name="gym_id" value="<?php echo $gym_id; ?>">
+                    <button type="submit" class="join-btn delete-btn" 
+                            onclick="return confirm('Are you sure you want to delete this gym? This action cannot be undone.');">
+                        <i class="fas fa-trash-alt"></i> Delete Gym
+                    </button>
+                </form>
+            </div>
         </div>
         <?php endif; ?>
 
@@ -340,7 +304,7 @@ $is_gym_owner = isGymOwner($_SESSION['user_id'] ?? null, $gym);
 
                             <!-- Reply Button and Form -->
                             <button class="reply-btn" onclick="toggleReplyForm(<?php echo $review['review_id']; ?>)">
-                                Reply as Admin
+                                <i class="fas fa-reply"></i> Reply as Admin
                             </button>
 
                             <div id="reply-form-<?php echo $review['review_id']; ?>" class="comment-form" style="display: none;">

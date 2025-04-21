@@ -39,9 +39,11 @@ $gyms = $db_connection->query($gyms_query);
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Edit Membership Plan</title>
-    <link rel="stylesheet" href="../assets/css/main.css">
+    <title>Edit Membership Plan - FitHub</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="../assets/css/mains.css">
     <link rel="stylesheet" href="../assets/css/manage_plans.css">
+    <link rel="stylesheet" href="../assets/css/edit_plan.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
 </head>
 <body>

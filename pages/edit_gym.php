@@ -101,100 +101,144 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['delete_plan'])) {
 
 <!DOCTYPE html>
 <html>
-
 <head>
-    <title>Edit Gym</title>
+    <title>Edit Gym - FitHub</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="../assets/css/mains.css">
+    <link rel="stylesheet" href="../assets/css/edit_gym.css">
+    <!-- Add Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css" rel="stylesheet">
 </head>
-
 <body>
-    <h2>Edit Gym Details</h2>
-    <form method="POST" enctype="multipart/form-data">
-        <label>Gym Name:</label>
-        <input type="text" name="gym_name" value="<?php echo htmlspecialchars($gym['gym_name']); ?>" required>
+    <nav class="navbar">
+        <div class="nav-brand">
+            <img src="../assets/logo/FITHUB LOGO.png" alt="FitHub Logo" style="max-height: 50px;">
+        </div>
+        <div class="nav-links">
+            <a href="dashboard.php">Dashboard</a>
+            <a href="profile.php">My Profile</a>
+            <a href="../actions/logout.php">Logout</a>
+        </div>
+    </nav>
 
-        <label>Location:</label>
-        <input type="text" name="gym_location" value="<?php echo htmlspecialchars($gym['gym_location']); ?>" required>
+    <div class="container">
+        <div class="edit-gym-section">
+            <h2>Edit Gym Details</h2>
+            <form method="POST" enctype="multipart/form-data" class="edit-gym-form">
+                <div class="form-group">
+                    <label>Gym Name:</label>
+                    <input type="text" name="gym_name" value="<?php echo htmlspecialchars($gym['gym_name']); ?>" required>
+                </div>
 
-        <label>Phone Number:</label>
-        <input type="text" name="gym_phone_number" value="<?php echo htmlspecialchars($gym['gym_phone_number']); ?>" required>
+                <div class="form-group">
+                    <label>Location:</label>
+                    <input type="text" name="gym_location" value="<?php echo htmlspecialchars($gym['gym_location']); ?>" required>
+                </div>
 
-        <label>Description:</label>
-        <textarea name="gym_description" required><?php echo htmlspecialchars($gym['gym_description']); ?></textarea>
+                <div class="form-group">
+                    <label>Phone Number:</label>
+                    <input type="text" name="gym_phone_number" value="<?php echo htmlspecialchars($gym['gym_phone_number']); ?>" required>
+                </div>
 
-        <label>Amenities:</label>
-        <input type="text" name="gym_amenities" value="<?php echo htmlspecialchars($gym['gym_amenities']); ?>" required>
+                <div class="form-group">
+                    <label>Description:</label>
+                    <textarea name="gym_description" required rows="4"><?php echo htmlspecialchars($gym['gym_description']); ?></textarea>
+                </div>
 
-        <label>Gym Thumbnail:</label>
-        <input type="file" name="gym_thumbnail" accept="image/*">
-        <?php if (!empty($gym['gym_thumbnail'])): ?>
-            <img src="<?php echo $gym['gym_thumbnail']; ?>" width="100">
-        <?php endif; ?>
+                <div class="form-group">
+                    <label>Amenities:</label>
+                    <textarea name="gym_amenities" required rows="3"><?php echo htmlspecialchars($gym['gym_amenities']); ?></textarea>
+                </div>
 
-        <label>Equipment Images:</label>
-        <input type="file" name="equipment_images[]" accept="image/*" multiple>
-        <?php
-        $equipment_images = json_decode($gym['equipment_images'] ?? "[]", true);
-        foreach ($equipment_images as $image): ?>
-            <img src="<?php echo $image; ?>" width="100">
-        <?php endforeach; ?>
+                <div class="form-group">
+                    <label>Gym Thumbnail:</label>
+                    <input type="file" name="gym_thumbnail" accept="image/*" class="file-input">
+                    <?php if (!empty($gym['gym_thumbnail'])): ?>
+                        <div class="current-image">
+                            <img src="<?php echo $gym['gym_thumbnail']; ?>" alt="Current thumbnail">
+                            <span>Current thumbnail</span>
+                        </div>
+                    <?php endif; ?>
+                </div>
 
-        <button type="submit" name="update_gym">Update Gym</button>
-    </form>
+                <div class="form-group">
+                    <label>Equipment Images:</label>
+                    <input type="file" name="equipment_images[]" accept="image/*" multiple class="file-input">
+                    <div class="equipment-images">
+                        <?php
+                        $equipment_images = json_decode($gym['equipment_images'] ?? "[]", true);
+                        foreach ($equipment_images as $image): ?>
+                            <div class="equipment-image">
+                                <img src="<?php echo $image; ?>" alt="Equipment">
+                            </div>
+                        <?php endforeach; ?>
+                    </div>
+                </div>
 
-    <h3>Manage Membership Plans</h3>
-    <form method="POST">
-        <label>Plan Name:</label>
-        <input type="text" name="plan_name" required>
+                <button type="submit" name="update_gym" class="submit-btn">Update Gym</button>
+            </form>
+        </div>
 
-        <label>Price:</label>
-        <input type="number" step="0.01" name="price" required>
+        <div class="membership-plans-section">
+            <h3>Manage Membership Plans</h3>
+            <form method="POST" class="add-plan-form">
+                <label>Plan Name:</label>
+                <input type="text" name="plan_name" required>
 
-        <label>Duration (in months):</label>
-        <select name="duration" required>
-            <option value="1 month">1 Month</option>
-            <option value="3 months">3 Months</option>
-            <option value="6 months">6 Months</option>
-            <option value="12 months">12 Months</option>
-        </select>
+                <label>Price:</label>
+                <input type="number" step="0.01" name="price" required>
 
-        <label>Description:</label>
-        <textarea name="description" required></textarea>
+                <label>Duration (in months):</label>
+                <select name="duration" required>
+                    <option value="1 month">1 Month</option>
+                    <option value="3 months">3 Months</option>
+                    <option value="6 months">6 Months</option>
+                    <option value="12 months">12 Months</option>
+                </select>
 
-        <button type="submit" name="add_plan">Add Plan</button>
-    </form>
+                <label>Description:</label>
+                <textarea name="description" required></textarea>
 
-    <h3>Existing Membership Plans</h3>
-    <table border="1">
-        <tr>
-            <th>Plan Name</th>
-            <th>Price</th>
-            <th>Duration</th>
-            <th>Description</th>
-            <th>Actions</th>
-        </tr>
-        <?php
-        $query = "SELECT * FROM membership_plans WHERE gym_id = ?";
-        $stmt = $db_connection->prepare($query);
-        $stmt->bind_param("i", $gym_id);
-        $stmt->execute();
-        $result = $stmt->get_result();
+                <button type="submit" name="add_plan" class="submit-btn">Add Plan</button>
+            </form>
 
-        while ($plan = $result->fetch_assoc()):
-        ?>
-            <tr>
-                <td><?php echo htmlspecialchars($plan['plan_name']); ?></td>
-                <td><?php echo number_format($plan['price'], 2); ?></td>
-                <td><?php echo htmlspecialchars($plan['duration']); ?></td>
-                <td><?php echo htmlspecialchars($plan['description']); ?></td>
-                <td>
-                    <form method="POST">
-                        <input type="hidden" name="plan_id" value="<?php echo $plan['plan_id']; ?>">
-                        <button type="submit" name="delete_plan">Delete</button>
-                    </form>
-                </td>
-            </tr>
-        <?php endwhile; ?>
-    </table>
+            <div class="existing-plans">
+                <h3>Existing Membership Plans</h3>
+                <div class="plans-table">
+                    <table border="1">
+                        <tr>
+                            <th>Plan Name</th>
+                            <th>Price</th>
+                            <th>Duration</th>
+                            <th>Description</th>
+                            <th>Actions</th>
+                        </tr>
+                        <?php
+                        $query = "SELECT * FROM membership_plans WHERE gym_id = ?";
+                        $stmt = $db_connection->prepare($query);
+                        $stmt->bind_param("i", $gym_id);
+                        $stmt->execute();
+                        $result = $stmt->get_result();
+
+                        while ($plan = $result->fetch_assoc()):
+                        ?>
+                            <tr>
+                                <td><?php echo htmlspecialchars($plan['plan_name']); ?></td>
+                                <td><?php echo number_format($plan['price'], 2); ?></td>
+                                <td><?php echo htmlspecialchars($plan['duration']); ?></td>
+                                <td><?php echo htmlspecialchars($plan['description']); ?></td>
+                                <td>
+                                    <form method="POST">
+                                        <input type="hidden" name="plan_id" value="<?php echo $plan['plan_id']; ?>">
+                                        <button type="submit" name="delete_plan" class="delete-btn">Delete</button>
+                                    </form>
+                                </td>
+                            </tr>
+                        <?php endwhile; ?>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
 </body>
-
 </html>

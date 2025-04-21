@@ -108,10 +108,10 @@ if ($result === false) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="../assets/css/mains.css">
     <link rel="stylesheet" href="../assets/css/dashboards.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="../assets/js/main.js"></script>
-    <script src="../assets/js/dashboard.js"></script>
+    <!-- Add Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Add Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css" rel="stylesheet">
 </head>
 
 <body>
@@ -342,55 +342,92 @@ if ($result === false) {
             <!-- Regular member section -->
             <section class="featured-gyms">
                 <h2>Featured Gyms</h2>
-                <div class="carousel-container">
-                    <button class="carousel-btn prev" onclick="moveCarousel(-1)">
-                        <i class="fas fa-chevron-left"></i>
-                    </button>
-                    <button class="carousel-btn next" onclick="moveCarousel(1)">
-                        <i class="fas fa-chevron-right"></i>
-                    </button>
-                    
-                    <div class="gym-grid">
-                        <?php
+                <div id="gymCarousel" class="carousel slide" data-bs-ride="carousel">
+                    <div class="carousel-inner">
+                        <?php 
                         if ($result && $result->num_rows > 0):
-                            while ($gym = $result->fetch_assoc()): ?>
-                                <div class="gym-card">
-                                    <div class="gym-image">
-                                        <img src="<?php echo !empty($gym['gym_thumbnail']) ? 
-                                            htmlspecialchars($gym['gym_thumbnail']) : 
-                                            '../assets/images/default-gym.jpg'; ?>" 
-                                            alt="<?php echo htmlspecialchars($gym['gym_name']); ?>"
-                                            onerror="this.src='../assets/images/default-gym.jpg'">
-                                    </div>
-                                    <div class="gym-info">
-                                        <h3><?php echo htmlspecialchars($gym['gym_name']); ?></h3>
-                                        <div class="gym-rating">
-                                            <?php 
-                                            $avgRating = round($gym['avg_rating'], 1);
-                                            for($i = 1; $i <= 5; $i++): ?>
-                                                <i class="fas fa-star <?php echo $i <= $avgRating ? 'checked' : ''; ?>"></i>
-                                            <?php endfor; ?>
-                                            <span class="rating-text">
-                                                <?php echo number_format($avgRating, 1); ?> 
-                                                (<?php echo $gym['review_count']; ?> reviews)
-                                            </span>
+                            $items = array_chunk(iterator_to_array($result), 3); // Group items by 3
+                            foreach($items as $index => $group): 
+                        ?>
+                            <div class="carousel-item <?php echo $index === 0 ? 'active' : ''; ?>">
+                                <div class="row">
+                                    <?php foreach($group as $gym): ?>
+                                        <div class="col-md-4">
+                                            <div class="gym-card">
+                                                <img src="<?php echo !empty($gym['gym_thumbnail']) ? 
+                                                    htmlspecialchars($gym['gym_thumbnail']) : 
+                                                    '../assets/images/default-gym.jpg'; ?>" 
+                                                    alt="<?php echo htmlspecialchars($gym['gym_name']); ?>"
+                                                    class="gym-thumbnail">
+                                                <div class="gym-info">
+                                                    <h3><?php echo htmlspecialchars($gym['gym_name']); ?></h3>
+                                                    <div class="gym-rating">
+                                                        <?php 
+                                                        $rating = round($gym['avg_rating'], 1);
+                                                        for ($i = 1; $i <= 5; $i++): ?>
+                                                            <i class="bi bi-star-fill <?php echo $i <= $rating ? 'checked' : ''; ?>"></i>
+                                                        <?php endfor; ?>
+                                                        <span>(<?php echo $gym['review_count']; ?> reviews)</span>
+                                                    </div>
+                                                    <a href="user_view_gym.php?gym_id=<?php echo $gym['gym_id']; ?>" 
+                                                       class="btn btn-primary view-gym-btn">View Gym</a>
+                                                </div>
+                                            </div>
                                         </div>
-                                        <p class="gym-location">
-                                            <i class="fas fa-map-marker-alt"></i> 
-                                            <?php echo htmlspecialchars($gym['gym_location']); ?>
-                                        </p>
-                                        <a href="user_view_gym.php?gym_id=<?php echo $gym['gym_id']; ?>" 
-                                           class="btn-view">View Gym</a>
-                                    </div>
+                                    <?php endforeach; ?>
                                 </div>
-                            <?php endwhile;
-                        else: ?>
-                            <p class="no-gyms">No featured gyms available at the moment.</p>
-                        <?php endif; ?>
+                            </div>
+                        <?php 
+                            endforeach;
+                        endif; 
+                        ?>
                     </div>
+                    
+                    <!-- Updated carousel controls with custom styling -->
+                    <button class="custom-carousel-control custom-prev" type="button" data-bs-target="#gymCarousel" data-bs-slide="prev">
+                        <i class="bi bi-chevron-left"></i>
+                    </button>
+                    <button class="custom-carousel-control custom-next" type="button" data-bs-target="#gymCarousel" data-bs-slide="next">
+                        <i class="bi bi-chevron-right"></i>
+                    </button>
                 </div>
-                <div class="carousel-dots"></div>
             </section>
+
+<style>
+.custom-carousel-control {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 40px;
+    height: 40px;
+    background-color: #007bff;
+    border: none;
+    border-radius: 50%;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0.7;
+    transition: opacity 0.3s;
+}
+
+.custom-carousel-control:hover {
+    opacity: 1;
+    background-color: #0056b3;
+}
+
+.custom-prev {
+    left: -20px;
+}
+
+.custom-next {
+    right: -20px;
+}
+
+.bi-chevron-left, .bi-chevron-right {
+    font-size: 20px;
+}
+</style>
 
             <!-- User's active memberships section -->
             <?php if ($role === 'member' && $memberships && $memberships->num_rows > 0): ?>
@@ -451,6 +488,12 @@ if ($result === false) {
             <p>&copy; 2024 FitHub. All rights reserved.</p>
         </div>
     </footer>
+
+    <!-- Move JavaScript to end of body -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="../assets/js/main.js"></script>
+    <script src="../assets/js/dashboard.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 
 </html>

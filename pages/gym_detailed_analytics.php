@@ -160,7 +160,26 @@ $rating_stats = $stmt->get_result();
         background: white;
         border-radius: 10px;
         box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        
     }
+
+    .back-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    color: #000000;
+    text-decoration: none;
+    border: 2px solid #FFB22C;
+    border-radius: 6px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+    .back-btn:hover {
+    background: #FFB22C;
+    transform: translateX(-5px);
+}
 
     .gym-overview {
         background: white;

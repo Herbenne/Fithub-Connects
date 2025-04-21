@@ -17,8 +17,9 @@ $gyms = $db_connection->query($gyms_query);
 <html>
 <head>
     <title>Add New Membership Plan</title>
-    <link rel="stylesheet" href="../assets/css/main.css">
+    <link rel="stylesheet" href="../assets/css/mains.css">
     <link rel="stylesheet" href="../assets/css/manage_plans.css">
+    <link rel="stylesheet" href="../assets/css/add_plan.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
 </head>
 <body>
@@ -49,7 +50,7 @@ $gyms = $db_connection->query($gyms_query);
                 <textarea name="description" rows="4" required></textarea>
             </div>
 
-            <div class="form-group">
+            <div class="form-group price-input">
                 <label>Price (PHP)</label>
                 <input type="number" name="price" required min="0" step="0.01">
             </div>

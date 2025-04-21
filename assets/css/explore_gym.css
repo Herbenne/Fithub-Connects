@@ -38,7 +38,7 @@ body {
     justify-content: center;
     border-bottom: 1px solid #eee;
     margin-bottom: 30px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+   
 }
 
 .navbar > * {
@@ -64,20 +64,23 @@ body {
 }
 
 .back-btn {
-    color: #007bff;
-    text-decoration: none;
-    display: flex;
+    display: inline-flex;
     align-items: center;
-    gap: 8px;
-    flex: 0 0 auto;
-    position: relative; /* Add this */
-    z-index: 2; /* Add this */
-}
-
-.back-btn:hover {
-    color: #0056b3;
-}
-
+    gap: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    color: #000000;
+    text-decoration: none;
+    border: 2px solid #FFB22C;
+    border-radius: 6px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    margin-bottom: 2rem;
+  }
+  
+  .back-btn:hover {
+    background: #FFB22C;
+    transform: translateX(-5px);
+  }
 /* Admin notice */
 .admin-notice {
     background-color: #e3f2fd;

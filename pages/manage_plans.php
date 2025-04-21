@@ -34,14 +34,18 @@ $plans = $stmt->get_result();
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Manage Plans - GymHub</title>
+    <title>Manage Plans - FitHub</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="../assets/css/mains.css">
-    <link rel="stylesheet" href="../assets/css/manage_common.css">
+    <link rel="stylesheet" href="../assets/css/manage_plans.css">
+
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
 </head>
 <body>
     <div class="dashboard-container">
-        <a href="dashboard.php" class="back-btn">← Back to Dashboard</a>
+        <a href="dashboard.php" class="back-btn">
+            <i class="fas fa-arrow-left"></i> Back to Dashboard
+        </a>
         
         <h2>Manage Membership Plans - <?php echo htmlspecialchars($gym['gym_name']); ?></h2>
 

@@ -16,8 +16,13 @@ $stmt->bind_param("i", $user_id);
 $stmt->execute();
 $user = $stmt->get_result()->fetch_assoc();
 
-// Improve profile picture path handling
-$profile_pic = '../assets/images/default-profile.png'; // Default image path
+// Update the default image path handling
+$default_image = '../assets/images/default-profile.png';
+$fallback_image = 'data:image/svg+xml,' . urlencode('<svg xmlns="http://www.w3.org/2000/svg" width="150" height="150" viewBox="0 0 150 150"><rect width="150" height="150" fill="#f5f5f5"/><text x="50%" y="50%" font-family="Arial" font-size="14" fill="#999" text-anchor="middle" dy=".3em">No Image</text></svg>');
+
+// Profile picture path handling
+$profile_pic = $default_image; // Default image path
+
 if (!empty($user['profile_picture'])) {
     // Clean and normalize the path
     $image_path = str_replace('\\', '/', $user['profile_picture']);
@@ -39,7 +44,7 @@ header('Expires: ' . gmdate('D, d M Y H:i:s', time() + 31536000) . ' GMT');
 <html>
 <head>
     <title>My Profile</title>
-    <link rel="stylesheet" href="../assets/css/main.css">
+    <link rel="stylesheet" href="../assets/css/mains.css">
     <link rel="stylesheet" href="../assets/css/profiles.css">
     <style>
         .profile-picture {
@@ -167,9 +172,10 @@ header('Expires: ' . gmdate('D, d M Y H:i:s', time() + 31536000) . ' GMT');
     <script>
         // Improved image handling functions
         function handleImageError(img) {
-            if (img.src !== '../assets/images/default-profile.png') {
-                img.src = '../assets/images/default-profile.png';
-            }
+            const fallbackImage = 'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="150" height="150" viewBox="0 0 150 150"><rect width="150" height="150" fill="#f5f5f5"/><text x="50%" y="50%" font-family="Arial" font-size="14" fill="#999" text-anchor="middle" dy=".3em">No Image</text></svg>');
+            
+            img.onerror = null; // Prevent infinite error loop
+            img.src = fallbackImage;
             img.classList.remove('image-loading');
         }
 

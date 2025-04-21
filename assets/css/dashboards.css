@@ -1,4 +1,6 @@
 /* Dashboard Statistics Styles */
+
+
 .stats-dashboard {
   padding: 20px;
   max-width: 1200px;
@@ -16,6 +18,7 @@
 .stat-card {
   background: white;
   padding: 20px;
+  margin: 19px 0;
   border-radius: 10px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   display: flex;
@@ -676,311 +679,23 @@
 }
 
 /* Carousel Styles */
-.gym-carousel {
-  position: relative;
-  width: 100%;
-  padding: 0 40px;
-  margin: 20px 0;
-}
-
-.gym-slider {
-  overflow: hidden;
-  position: relative;
-  width: 100%;
-}
-
-.gym-track {
-  display: flex;
-  transition: transform 0.5s ease;
-}
-
-.gym-card {
-  flex: 0 0 calc(33.33% - 20px);
-  margin: 0 10px;
-  background: white;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  overflow: hidden;
-}
-
-.carousel-btn {
-  position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 40px;
-  height: 40px;
-  background: #ffb22c; /* Changed from #007bff */
-  color: #000000; /* Changed from white */
-  border: none;
-  border-radius: 50%;
-  cursor: pointer;
-  z-index: 2;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.carousel-btn.prev {
-  left: 0;
-}
-
-.carousel-btn.next {
-  right: 0;
-}
-
-.carousel-btn:disabled {
-  background: #ccc;
-  cursor: not-allowed;
-}
-
-/* Update existing gym card styles */
-.gym-card img {
-  width: 100%;
-  height: 200px;
-  object-fit: cover;
-}
-
-.gym-card h3 {
-  padding: 15px;
-  margin: 0;
-}
-
-.gym-card .gym-rating {
-  padding: 0 15px;
-}
-
-.gym-card .gym-location {
-  padding: 10px 15px;
-}
-
-.gym-card .btn {
-  margin: 15px;
-}
-
-/* Featured Gyms Carousel */
-.featured-gyms {
-  margin: 30px 0;
-  padding: 0 20px;
-}
-
-.gym-carousel {
-  position: relative;
-  margin: 20px 0;
-}
-
-.gym-slider {
-  overflow: hidden;
-  margin: 0 40px;
-}
-
-.gym-track {
-  display: flex;
-  transition: transform 0.5s ease;
-}
-
-.gym-card {
-  flex: 0 0 calc(33.333% - 20px);
-  margin: 0 10px;
-  background: white;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  padding: 15px;
-}
-
-.gym-card img {
-  width: 100%;
-  height: 200px;
-  object-fit: cover;
-  border-radius: 4px;
-}
-
-.carousel-btn {
-  position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 40px;
-  height: 40px;
-  background: #ffb22c; /* Changed from #007bff */
-  color: #000000; /* Changed from white */
-  border: none;
-  border-radius: 50%;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 2;
-}
-
-.carousel-btn.prev {
-  left: 0;
-}
-
-.carousel-btn.next {
-  right: 0;
-}
-
-.carousel-btn:disabled {
-  background: #ccc;
-  cursor: not-allowed;
-}
-
-/* Carousel styles */
-.gym-carousel {
-  position: relative;
-  width: 100%;
-  margin: 20px 0;
-  padding: 0 40px;
-}
-
-.gym-slider {
-  overflow: hidden;
-}
-
-.gym-track {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 20px;
-  transition: transform 0.3s ease;
-}
-
-.gym-card {
-  background: white;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-}
-
-.gym-card img {
-  width: 100%;
-  height: 200px;
-  object-fit: cover;
-}
-
-.carousel-btn {
-  position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 40px;
-  height: 40px;
-  background: #ffb22c; /* Changed from #007bff */
-  color: #000000; /* Changed from white */
-  border: none;
-  border-radius: 50%;
-  cursor: pointer;
-  z-index: 2;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.carousel-btn:disabled {
-  background: #ccc;
-  cursor: not-allowed;
-}
-
-.carousel-btn.prev {
-  left: 0;
-}
-
-.carousel-btn.next {
-  right: 0;
-}
-
-.gym-card h3 {
-  padding: 15px;
-  margin: 0;
-  font-size: 1.2em;
-}
-
-.gym-rating {
-  padding: 0 15px;
-}
-
-.gym-location {
-  padding: 10px 15px;
-  color: #666;
-}
-
-.btn-primary {
-  margin: 15px;
-  padding: 8px 16px;
-  background: #ffb22c; /* Changed from #007bff */
-  color: #000000; /* Changed from white */
-  text-decoration: none;
-  border-radius: 4px;
-  text-align: center;
-  transition: background-color 0.3s;
-}
-
-.btn-primary:hover {
-  background: #e59f26; /* Darker shade of #FFB22C */
-}
-
-/* Featured Gyms Carousel */
 .carousel-container {
   position: relative;
+  overflow: hidden;
+  margin: 20px auto;
   width: 100%;
-  padding: 0 40px;
-  margin: 20px 0;
+  padding: 0 40px; /* Add padding for the buttons */
 }
 
-.gym-cards {
-  overflow: hidden;
-  position: relative;
-}
-
-.carousel-page {
-  display: none;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 20px;
-  opacity: 0;
-  transition: opacity 0.3s ease;
-}
-
-.carousel-page.active {
-  display: grid;
-  opacity: 1;
-}
-
-.gym-card {
-  background: white;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  overflow: hidden;
+.carousel-track {
   display: flex;
-  flex-direction: column;
+  transition: transform 0.5s ease-in-out;
+  gap: 20px; /* Space between slides */
 }
 
-.gym-card img {
-  width: 100%;
-  height: 200px;
-  object-fit: cover;
-}
-
-.gym-card h3 {
-  padding: 15px;
-  margin: 0;
-  font-size: 1.2em;
-}
-
-.gym-rating {
-  padding: 0 15px;
-}
-
-.gym-rating .fa-star {
-  color: #ddd;
-}
-
-.gym-rating .fa-star.checked {
-  color: #ffb22c; /* Changed from #ffc107 */
-}
-
-.gym-location {
-  padding: 10px 15px;
-  color: #666;
-  margin: 0;
+.carousel-slide {
+  min-width: 300px;
+  flex: 0 0 auto;
 }
 
 .carousel-btn {
@@ -989,21 +704,21 @@
   transform: translateY(-50%);
   width: 40px;
   height: 40px;
-  background: #ffb22c; /* Changed from #007bff */
-  color: #000000; /* Changed from white */
+  background: #FFB22C;
+  color: #000000;
   border: none;
   border-radius: 50%;
   cursor: pointer;
-  z-index: 2;
+  z-index: 10;
   display: flex;
   align-items: center;
   justify-content: center;
+  transition: all 0.3s ease;
 }
 
-.carousel-btn:disabled {
-  background: #ccc;
-  cursor: not-allowed;
-  opacity: 0.5;
+.carousel-btn:hover {
+  background: #e59f26;
+  transform: translateY(-50%) scale(1.1);
 }
 
 .carousel-btn.prev {
@@ -1014,20 +729,27 @@
   right: 0;
 }
 
-.btn-primary {
-  display: inline-block;
-  margin: 15px;
-  padding: 8px 16px;
-  background: #ffb22c; /* Changed from #007bff */
-  color: #000000; /* Changed from white */
-  text-decoration: none;
-  border-radius: 4px;
-  text-align: center;
-  transition: background-color 0.3s;
+.carousel-btn i {
+  font-size: 1.2rem;
 }
 
-.btn-primary:hover {
-  background: #e59f26; /* Darker shade of #FFB22C */
-  text-decoration: none;
-  color: white;
+.carousel-dots {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 20px;
+}
+
+.dot {
+  width: 10px;
+  height: 10px;
+  background: #ddd;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.dot.active {
+  background: #FFB22C;
+  transform: scale(1.2);
 }

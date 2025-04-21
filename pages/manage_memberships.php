@@ -29,8 +29,9 @@ $result = $db_connection->query($query);
 <html>
 <head>
     <title>Manage Memberships</title>
-    <link rel="stylesheet" href="../assets/css/mains.css">
     <link rel="stylesheet" href="../assets/css/manage_common.css">
+    <link rel="stylesheet" href="../assets/css/mains.css">
+    <link rel="stylesheet" href="../assets/css/partial_manage_membership.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
     <style>
         /* Copy styles from manage_users.php and add: */

@@ -142,6 +142,61 @@ h2 {
   font-size: 0.9rem;
 }
 
+/* Button styles */
+.actions button {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.3s ease;
+  margin: 0 4px;
+}
+
+.view-btn {
+  background-color: #ffb22c;
+  color: #000000;
+}
+
+.view-btn:hover {
+  background-color: #e59f26;
+  transform: translateY(-2px);
+}
+
+.approve-btn {
+  background-color: #28a745;
+  color: #ffffff;
+}
+
+.approve-btn:hover {
+  background-color: #218838;
+  transform: translateY(-2px);
+}
+
+.reject-btn {
+  background-color: #dc3545;
+  color: #ffffff;
+}
+
+.reject-btn:hover {
+  background-color: #c82333;
+  transform: translateY(-2px);
+}
+
+/* Icon styling */
+.fas {
+  font-size: 14px;
+}
+
+/* Remove inline styles from buttons */
+.actions form {
+  display: inline-block;
+  margin: 0 4px;
+}
+
 /* Responsive Design */
 @media (max-width: 1200px) {
   .dashboard-container {
