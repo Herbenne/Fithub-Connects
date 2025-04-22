@@ -34,6 +34,17 @@ if (!$plan) {
 // Fetch all gyms for dropdown
 $gyms_query = "SELECT gym_id, gym_name FROM gyms WHERE status = 'approved'";
 $gyms = $db_connection->query($gyms_query);
+
+// Function to extract number from duration string
+function extractDuration($duration) {
+    return (int) filter_var($duration, FILTER_SANITIZE_NUMBER_INT);
+}
+
+// Current duration value from database
+$current_duration = extractDuration($plan['duration']);
+
+// Available duration options
+$duration_options = [1, 3, 6, 12]; // Common membership durations in months
 ?>
 
 <!DOCTYPE html>
@@ -82,8 +93,15 @@ $gyms = $db_connection->query($gyms_query);
             </div>
 
             <div class="form-group">
-                <label>Duration (months)</label>
-                <input type="number" name="duration" value="<?php echo htmlspecialchars($plan['duration']); ?>" required>
+                <label>Duration</label>
+                <select name="duration" required>
+                    <?php foreach ($duration_options as $months): ?>
+                        <option value="<?php echo $months; ?>" 
+                                <?php echo $current_duration == $months ? 'selected' : ''; ?>>
+                            <?php echo $months . ' ' . ($months == 1 ? 'month' : 'months'); ?>
+                        </option>
+                    <?php endforeach; ?>
+                </select>
             </div>
 
             <button type="submit" class="submit-btn">Update Plan</button>

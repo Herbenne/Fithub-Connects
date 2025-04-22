@@ -214,13 +214,15 @@ if ($result === false) {
                 
                 <div class="stats-grid">
                     <?php
-                    // Quick statistics for superadmin
+                    // Updated statistics for superadmin
                     $total_users = $db_connection->query("SELECT COUNT(*) as count FROM users")->fetch_assoc()['count'];
-                    $total_gyms = $db_connection->query("SELECT COUNT(*) as count FROM gyms")->fetch_assoc()['count'];
-                    $pending_gyms = $db_connection->query("SELECT COUNT(*) as count FROM gyms WHERE status='pending'")->fetch_assoc()['count'];
+                    // Modified to count only approved gyms
+                    $total_gyms = $db_connection->query("SELECT COUNT(*) as count FROM gyms WHERE status = 'approved'")->fetch_assoc()['count'];
+                    $pending_gyms = $db_connection->query("SELECT COUNT(*) as count FROM gyms WHERE status = 'pending'")->fetch_assoc()['count'];
                     $total_members = $db_connection->query("SELECT COUNT(*) as count FROM gym_members")->fetch_assoc()['count'];
                     ?>
                     
+                    <!-- Rest of the stats cards stay the same -->
                     <div class="stat-card">
                         <div class="stat-icon">
                             <i class="fas fa-users"></i>
@@ -236,7 +238,7 @@ if ($result === false) {
                             <i class="fas fa-dumbbell"></i>
                         </div>
                         <div class="stat-info">
-                            <h3>Total Gyms</h3>
+                            <h3>Approved Gyms</h3>
                             <p class="stat-number"><?php echo $total_gyms; ?></p>
                         </div>
                     </div>

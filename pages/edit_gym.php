@@ -24,7 +24,7 @@ if (!$gym) {
     exit();
 }
 
-$gym_id = $gym['gym_id']; // Ensure correct gym_id reference
+$gym_id = $gym['gym_id'];
 
 // Handle gym details update
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['update_gym'])) {
@@ -65,38 +65,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['update_gym'])) {
     }
 }
 
-// Handle adding a new membership plan
-if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['add_plan'])) {
-    $plan_name = $_POST['plan_name'];
-    $price = $_POST['price'];
-    $duration = $_POST['duration'];
-    $description = $_POST['description'];
-
-    $insertQuery = "INSERT INTO membership_plans (gym_id, plan_name, price, duration, description) VALUES (?, ?, ?, ?, ?)";
-    $stmt = $db_connection->prepare($insertQuery);
-    $stmt->bind_param("isdss", $gym_id, $plan_name, $price, $duration, $description);
-
-    if ($stmt->execute()) {
-        echo "Membership plan added successfully!";
-    } else {
-        echo "Error adding plan: " . $stmt->error;
-    }
-}
-
-// Handle deleting a membership plan
-if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['delete_plan'])) {
-    $plan_id = $_POST['plan_id'];
-
-    $deleteQuery = "DELETE FROM membership_plans WHERE plan_id = ?";
-    $stmt = $db_connection->prepare($deleteQuery);
-    $stmt->bind_param("i", $plan_id);
-
-    if ($stmt->execute()) {
-        echo "Plan deleted successfully!";
-    } else {
-        echo "Error deleting plan: " . $stmt->error;
-    }
-}
 ?>
 
 <!DOCTYPE html>
@@ -106,7 +74,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['delete_plan'])) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="../assets/css/mains.css">
     <link rel="stylesheet" href="../assets/css/edit_gym.css">
-    <!-- Add Bootstrap Icons -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css" rel="stylesheet">
 </head>
 <body>
@@ -179,66 +146,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['delete_plan'])) {
             </form>
         </div>
 
-        <div class="membership-plans-section">
-            <h3>Manage Membership Plans</h3>
-            <form method="POST" class="add-plan-form">
-                <label>Plan Name:</label>
-                <input type="text" name="plan_name" required>
-
-                <label>Price:</label>
-                <input type="number" step="0.01" name="price" required>
-
-                <label>Duration (in months):</label>
-                <select name="duration" required>
-                    <option value="1 month">1 Month</option>
-                    <option value="3 months">3 Months</option>
-                    <option value="6 months">6 Months</option>
-                    <option value="12 months">12 Months</option>
-                </select>
-
-                <label>Description:</label>
-                <textarea name="description" required></textarea>
-
-                <button type="submit" name="add_plan" class="submit-btn">Add Plan</button>
-            </form>
-
-            <div class="existing-plans">
-                <h3>Existing Membership Plans</h3>
-                <div class="plans-table">
-                    <table border="1">
-                        <tr>
-                            <th>Plan Name</th>
-                            <th>Price</th>
-                            <th>Duration</th>
-                            <th>Description</th>
-                            <th>Actions</th>
-                        </tr>
-                        <?php
-                        $query = "SELECT * FROM membership_plans WHERE gym_id = ?";
-                        $stmt = $db_connection->prepare($query);
-                        $stmt->bind_param("i", $gym_id);
-                        $stmt->execute();
-                        $result = $stmt->get_result();
-
-                        while ($plan = $result->fetch_assoc()):
-                        ?>
-                            <tr>
-                                <td><?php echo htmlspecialchars($plan['plan_name']); ?></td>
-                                <td><?php echo number_format($plan['price'], 2); ?></td>
-                                <td><?php echo htmlspecialchars($plan['duration']); ?></td>
-                                <td><?php echo htmlspecialchars($plan['description']); ?></td>
-                                <td>
-                                    <form method="POST">
-                                        <input type="hidden" name="plan_id" value="<?php echo $plan['plan_id']; ?>">
-                                        <button type="submit" name="delete_plan" class="delete-btn">Delete</button>
-                                    </form>
-                                </td>
-                            </tr>
-                        <?php endwhile; ?>
-                    </table>
-                </div>
-            </div>
-        </div>
     </div>
 </body>
 </html>
