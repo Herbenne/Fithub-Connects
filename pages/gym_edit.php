@@ -1,6 +1,18 @@
 <?php
 session_start();
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
 include '../config/database.php';
+
+$upload_dir = "../assets/images/";
+if (!file_exists($upload_dir)) {
+    mkdir($upload_dir, 0777, true);
+    error_log("Created upload directory: " . $upload_dir);
+}
+
+if (!is_writable($upload_dir)) {
+    error_log("Upload directory is not writable: " . $upload_dir);
+}
 
 // Ensure user is superadmin
 if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'superadmin') {
@@ -31,6 +43,14 @@ if (!$gym) {
     exit();
 }
 
+// Add this before displaying images to check paths
+if ($gym['gym_thumbnail']) {
+    error_log("Thumbnail path: " . $gym['gym_thumbnail']);
+}
+if ($gym['equipment_images']) {
+    error_log("Equipment images: " . $gym['equipment_images']);
+}
+
 // Fetch all users who could be owners (role = 'admin')
 $users_query = "SELECT id, username, first_name, last_name FROM users WHERE role = 'admin'";
 $users = $db_connection->query($users_query);
@@ -54,6 +74,9 @@ $users = $db_connection->query($users_query);
 
         <form action="../actions/edit_gym.php" method="POST" enctype="multipart/form-data" class="edit-form">
             <input type="hidden" name="gym_id" value="<?php echo $gym['gym_id']; ?>">
+            <?php if ($gym['gym_thumbnail']): ?>
+                <input type="hidden" name="current_thumbnail" value="<?php echo htmlspecialchars($gym['gym_thumbnail']); ?>">
+            <?php endif; ?>
             
             <div class="form-grid">
                 <div class="form-column">
@@ -105,7 +128,9 @@ $users = $db_connection->query($users_query);
                     <label for="gym_thumbnail">Gym Thumbnail</label>
                     <?php if ($gym['gym_thumbnail']): ?>
                         <div class="current-thumbnail">
-                            <img src="../<?php echo htmlspecialchars($gym['gym_thumbnail']); ?>" alt="Current thumbnail">
+                            <img src="<?php echo htmlspecialchars($gym['gym_thumbnail']); ?>" 
+                                 alt="Current thumbnail"
+                                 onerror="this.onerror=null; this.src='../assets/images/placeholder.png';">
                         </div>
                     <?php endif; ?>
                     <div class="file-upload-wrapper">
@@ -127,7 +152,9 @@ $users = $db_connection->query($users_query);
                             <div class="current-equipment">
                                 <?php foreach ($equipment_images as $index => $image): ?>
                                     <div class="equipment-item">
-                                        <img src="<?php echo htmlspecialchars($image); ?>" alt="Equipment <?php echo $index + 1; ?>">
+                                        <img src="<?php echo htmlspecialchars($image); ?>" 
+                                             alt="Equipment <?php echo $index + 1; ?>"
+                                             onerror="this.onerror=null; this.src='../assets/images/placeholder.png';">
                                         <button type="button" class="remove-image" onclick="removeEquipment(<?php echo $index; ?>)">
                                             <i class="fas fa-times"></i>
                                         </button>
@@ -175,6 +202,7 @@ $users = $db_connection->query($users_query);
         }
     }
 
+    // Single event listener for equipment upload preview
     document.getElementById('equipment_upload').addEventListener('change', function(e) {
         const files = e.target.files;
         const preview = document.querySelector('.equipment-preview');
@@ -184,21 +212,48 @@ $users = $db_connection->query($users_query);
             preview.classList.add('active');
         }
         
-        for (let i = 0; i < files.length; i++) {
+        Array.from(files).forEach((file, i) => {
             const reader = new FileReader();
             reader.onload = function(e) {
                 const div = document.createElement('div');
                 div.className = 'equipment-item new';
-                div.innerHTML = `
-                    <img src="${e.target.result}" alt="New equipment ${i + 1}">
-                    <button type="button" class="remove-preview" onclick="this.parentElement.remove()">
-                        <i class="fas fa-times"></i>
-                    </button>
-                `;
+                const img = document.createElement('img');
+                img.src = e.target.result;
+                img.alt = `New equipment ${i + 1}`;
+                img.style.opacity = '0';
+                
+                img.onload = function() {
+                    img.style.opacity = '1';
+                };
+                
+                const removeBtn = document.createElement('button');
+                removeBtn.className = 'remove-preview';
+                removeBtn.innerHTML = '<i class="fas fa-times"></i>';
+                removeBtn.onclick = function() {
+                    div.remove();
+                };
+                
+                div.appendChild(img);
+                div.appendChild(removeBtn);
                 preview.appendChild(div);
-            }
-            reader.readAsDataURL(files[i]);
-        }
+            };
+            reader.readAsDataURL(file);
+        });
+    });
+
+    // Image loading handling
+    document.addEventListener('DOMContentLoaded', function() {
+        const images = document.querySelectorAll('.current-thumbnail img, .equipment-item img');
+        
+        images.forEach(img => {
+            img.addEventListener('load', function() {
+                this.style.opacity = '1';
+            });
+            
+            img.addEventListener('error', function() {
+                this.src = '../assets/images/placeholder.png';
+            });
+        });
     });
     </script>
 </body>

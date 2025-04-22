@@ -2,14 +2,47 @@
 session_start();
 include '../config/database.php';
 
+// Get gym_id first so it's available for all operations
+$gym_id = $_GET['gym_id'] ?? null;
+
+// Handle delete operation
+if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['delete_plan'])) {
+    $plan_id = $_POST['plan_id'];
+
+    // First verify the plan belongs to this gym
+    $verify_query = "SELECT * FROM membership_plans WHERE plan_id = ? AND gym_id = ?";
+    $stmt = $db_connection->prepare($verify_query);
+    $stmt->bind_param("ii", $plan_id, $gym_id);
+    $stmt->execute();
+    $result = $stmt->get_result();
+
+    if ($result->num_rows > 0) {
+        // Plan exists and belongs to this gym, proceed with deletion
+        $delete_query = "DELETE FROM membership_plans WHERE plan_id = ?";
+        $stmt = $db_connection->prepare($delete_query);
+        $stmt->bind_param("i", $plan_id);
+        
+        if ($stmt->execute()) {
+            header("Location: manage_plans.php?gym_id=" . $gym_id . "&success=deleted");
+            exit();
+        } else {
+            header("Location: manage_plans.php?gym_id=" . $gym_id . "&error=delete_failed");
+            exit();
+        }
+    } else {
+        header("Location: manage_plans.php?gym_id=" . $gym_id . "&error=invalid_plan");
+        exit();
+    }
+}
+
 // Ensure user is admin
 if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'admin') {
     header("Location: login.php");
     exit();
 }
 
-// Get gym_id from URL
-$gym_id = $_GET['gym_id'] ?? null;
+// Available duration options
+$duration_options = [1, 3, 6, 12]; // Common membership durations in months
 
 // Verify this gym belongs to the admin
 $verify_query = "SELECT * FROM gyms WHERE gym_id = ? AND owner_id = ?";
@@ -62,7 +95,20 @@ $plans = $stmt->get_result();
 
         <?php if (isset($_GET['error'])): ?>
             <div class="alert alert-error">
-                <?php echo htmlspecialchars($_GET['error']); ?>
+                <?php 
+                $error_message = '';
+                switch($_GET['error']) {
+                    case 'delete_failed':
+                        $error_message = 'Failed to delete the plan. Please try again.';
+                        break;
+                    case 'invalid_plan':
+                        $error_message = 'Invalid plan or you do not have permission to delete it.';
+                        break;
+                    default:
+                        $error_message = htmlspecialchars($_GET['error']);
+                }
+                echo $error_message;
+                ?>
             </div>
         <?php endif; ?>
 
@@ -83,7 +129,13 @@ $plans = $stmt->get_result();
 
                     <div class="form-group">
                         <label>Duration *</label>
-                        <input type="text" name="duration" required placeholder="e.g., 1 Month, 3 Months">
+                        <select name="duration" required>
+                            <?php foreach ($duration_options as $months): ?>
+                                <option value="<?php echo $months; ?>">
+                                    <?php echo $months . ' ' . ($months == 1 ? 'month' : 'months'); ?>
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
                     </div>
 
                     <div class="form-group">
@@ -115,7 +167,13 @@ $plans = $stmt->get_result();
 
                     <div class="form-group">
                         <label>Duration *</label>
-                        <input type="text" name="duration" id="edit_duration" required>
+                        <select name="duration" id="edit_duration" required>
+                            <?php foreach ($duration_options as $months): ?>
+                                <option value="<?php echo $months; ?>">
+                                    <?php echo $months . ' ' . ($months == 1 ? 'month' : 'months'); ?>
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
                     </div>
 
                     <div class="form-group">
@@ -144,13 +202,11 @@ $plans = $stmt->get_result();
                                             class="edit-btn">
                                         <i class="fas fa-edit"></i>
                                     </button>
-                                    <form action="../actions/delete_plan.php" method="POST" 
-                                          onsubmit="return confirm('Are you sure you want to delete this plan?');"
-                                          style="display: inline;">
+                                    <form method="POST" class="delete-form" onsubmit="return confirm('Are you sure you want to delete this plan?');">
                                         <input type="hidden" name="plan_id" value="<?php echo $plan['plan_id']; ?>">
-                                        <input type="hidden" name="gym_id" value="<?php echo $gym_id; ?>">
+                                        <input type="hidden" name="delete_plan" value="1">
                                         <button type="submit" class="delete-btn">
-                                            <i class="fas fa-trash"></i>
+                                            <i class="fas fa-trash"></i> Delete
                                         </button>
                                     </form>
                                 </div>
@@ -187,7 +243,11 @@ $plans = $stmt->get_result();
     function showEditPlanForm(plan) {
         document.getElementById('edit_plan_id').value = plan.plan_id;
         document.getElementById('edit_plan_name').value = plan.plan_name;
-        document.getElementById('edit_duration').value = plan.duration;
+        
+        // Extract the number from duration string (e.g., "3 months" -> 3)
+        const durationNumber = parseInt(plan.duration);
+        document.getElementById('edit_duration').value = durationNumber;
+        
         document.getElementById('edit_price').value = plan.price;
         document.getElementById('edit_description').value = plan.description;
         document.getElementById('editPlanForm').style.display = 'block';

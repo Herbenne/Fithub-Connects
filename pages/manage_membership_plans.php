@@ -2,6 +2,36 @@
 session_start();
 include '../config/database.php';
 
+// Handle delete operation
+if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['delete_plan'])) {
+    $plan_id = $_POST['plan_id'];
+
+    // First verify the plan exists
+    $verify_query = "SELECT * FROM membership_plans WHERE plan_id = ?";
+    $stmt = $db_connection->prepare($verify_query);
+    $stmt->bind_param("i", $plan_id);
+    $stmt->execute();
+    $result = $stmt->get_result();
+
+    if ($result->num_rows > 0) {
+        // Plan exists, proceed with deletion
+        $delete_query = "DELETE FROM membership_plans WHERE plan_id = ?";
+        $stmt = $db_connection->prepare($delete_query);
+        $stmt->bind_param("i", $plan_id);
+        
+        if ($stmt->execute()) {
+            header("Location: manage_membership_plans.php?success=deleted");
+            exit();
+        } else {
+            header("Location: manage_membership_plans.php?error=delete_failed");
+            exit();
+        }
+    } else {
+        header("Location: manage_membership_plans.php?error=invalid_plan");
+        exit();
+    }
+}
+
 // Ensure user is superadmin
 if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'superadmin') {
     header("Location: login.php");
@@ -75,13 +105,16 @@ if ($result === false) {
                             <td><?php echo htmlspecialchars($plan['duration']); ?></td>
                             <td>
                                 <button class="action-btn edit-btn" 
-                                        onclick="editPlan(<?php echo $plan['plan_id']; ?>)">
+                                        onclick="window.location.href='edit_plan.php?plan_id=<?php echo $plan['plan_id']; ?>'">
                                     <i class="fas fa-edit"></i> Edit
                                 </button>
-                                <button class="action-btn delete-btn" 
-                                        onclick="deletePlan(<?php echo $plan['plan_id']; ?>)">
-                                    <i class="fas fa-trash"></i> Delete
-                                </button>
+                                <form method="POST" style="display: inline;" onsubmit="return confirm('Are you sure you want to delete this plan?');">
+                                    <input type="hidden" name="plan_id" value="<?php echo $plan['plan_id']; ?>">
+                                    <input type="hidden" name="delete_plan" value="1">
+                                    <button type="submit" class="delete-btn">
+                                        <i class="fas fa-trash"></i> Delete
+                                    </button>
+                                </form>
                             </td>
                         </tr>
                     <?php endwhile;

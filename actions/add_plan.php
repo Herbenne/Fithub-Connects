@@ -26,8 +26,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         exit();
     }
 
+    // Format the duration string
+    $months = $_POST['duration'];
+    $duration = $months . ' ' . ($months == 1 ? 'month' : 'months');
+
     // Insert the new plan
-    $query = "INSERT INTO membership_plans (gym_id, plan_name, duration, price, description) 
+    $query = "INSERT INTO membership_plans (gym_id, plan_name, description, price, duration) 
               VALUES (?, ?, ?, ?, ?)";
     
     $stmt = $db_connection->prepare($query);
@@ -36,7 +40,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         exit();
     }
 
-    $stmt->bind_param("issds", $gym_id, $plan_name, $duration, $price, $description);
+    $stmt->bind_param("issds", $gym_id, $plan_name, $description, $price, $duration);
     
     if ($stmt->execute()) {
         header("Location: ../pages/manage_plans.php?gym_id=$gym_id&success=create");
