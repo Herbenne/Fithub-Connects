@@ -71,7 +71,6 @@ $plans = $stmt->get_result();
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="../assets/css/mains.css">
     <link rel="stylesheet" href="../assets/css/manage_plans.css">
-
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
 </head>
 <body>
@@ -200,7 +199,7 @@ $plans = $stmt->get_result();
                                 <div class="plan-actions">
                                     <button onclick='showEditPlanForm(<?php echo json_encode($plan); ?>)' 
                                             class="edit-btn">
-                                        <i class="fas fa-edit"></i>
+                                        <i class="fas fa-edit"></i> Edit
                                     </button>
                                     <form method="POST" class="delete-form" onsubmit="return confirm('Are you sure you want to delete this plan?');">
                                         <input type="hidden" name="plan_id" value="<?php echo $plan['plan_id']; ?>">

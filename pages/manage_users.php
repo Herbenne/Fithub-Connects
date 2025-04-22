@@ -30,7 +30,8 @@ $total_pages = ceil($total / $per_page);
 <head>
     <title>Manage Users</title>
     <link rel="stylesheet" href="../assets/css/mains.css">
-    <link rel="stylesheet" href="../assets/css/manage_common.css">
+    <link rel="stylesheet" href="../assets/css/manage_user.css">
+    
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
     <script src="../assets/js/manage_users.js" defer></script>
 </head>
@@ -62,10 +63,14 @@ $total_pages = ceil($total / $per_page);
                             <td><?php echo htmlspecialchars($user['role']); ?></td>
                             <td><?php echo date('M d, Y', strtotime($user['reg_date'])); ?></td>
                             <td>
-                                <a href="edit_user.php?id=<?php echo $user['id']; ?>" class="action-btn edit-btn">Edit</a>
-                                <a href="../actions/delete_user.php?id=<?php echo $user['id']; ?>" 
-                                   class="action-btn delete-btn" 
-                                   onclick="return confirm('Are you sure you want to delete this user?');">Delete</a>
+                                <div class="action-buttons">
+                                    <button class="action-btn edit-btn" onclick="editUser(<?php echo $user['id']; ?>)">
+                                        <i class="fas fa-edit"></i> Edit
+                                    </button>
+                                    <button class="action-btn delete-btn" onclick="deleteUser(<?php echo $user['id']; ?>)">
+                                        <i class="fas fa-trash"></i> Delete
+                                    </button>
+                                </div>
                             </td>
                         </tr>
                     <?php endwhile; ?>

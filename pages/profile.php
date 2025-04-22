@@ -45,41 +45,7 @@ header('Expires: ' . gmdate('D, d M Y H:i:s', time() + 31536000) . ' GMT');
 <head>
     <title>My Profile</title>
     <link rel="stylesheet" href="../assets/css/mains.css">
-    <link rel="stylesheet" href="../assets/css/profiles.css">
-    <style>
-        .profile-picture {
-            width: 150px;
-            height: 150px;
-            object-fit: cover;
-            border-radius: 50%;
-            border: 3px solid #4CAF50;
-            background-color: #f5f5f5; /* Add background color while loading */
-        }
-        
-        .profile-picture-container {
-            position: relative;
-            display: inline-block;
-            width: 150px; /* Fixed width */
-            height: 150px; /* Fixed height */
-            border-radius: 50%;
-            overflow: hidden; /* Prevent image overflow */
-        }
-
-        /* Remove loading state opacity to prevent flickering */
-        .image-loading {
-            background-color: #f5f5f5;
-        }
-
-        /* Add fade-in animation */
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-
-        .profile-picture.loaded {
-            animation: fadeIn 0.3s ease-in;
-        }
-    </style>
+    <link rel="stylesheet" href="../assets/css/profile.css">
 </head>
 <body>
     <div class="profile-container">
@@ -102,7 +68,6 @@ header('Expires: ' . gmdate('D, d M Y H:i:s', time() + 31536000) . ' GMT');
                      onload="handleImageLoad(this);"
                      loading="eager">
             </div>
-            <h2>My Profile</h2>
         </div>
 
         <?php if (isset($_SESSION['debug'])): ?>

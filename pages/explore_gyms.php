@@ -30,7 +30,7 @@ if (!$result) {
     <title>Explore Gyms - GymHub</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
     <link rel="stylesheet" href="../assets/css/main.css">
-    <link rel="stylesheet" href="../assets/css/explore_gym.css">
+    <link rel="stylesheet" href="../assets/css/explore_gyms.css">
 </head>
 <body>
     <div class="page-container">

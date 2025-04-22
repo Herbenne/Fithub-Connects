@@ -1,75 +1,183 @@
-
-
-*{
-    border: 1px solid red;
-}
+/* Common Management Pages Styles */
 .dashboard-container {
-    padding: 20px;
-    max-width: 1200px;
+    max-width: 1400px;
     margin: 0 auto;
-}
-
-.user-table {
+    padding: 2rem;
+    background: #f7f7f7;
+  }
+  
+  .back-btn {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.75rem 1.5rem;
+    color: #000000;
+    text-decoration: none;
+    border: 2px solid #ffb22c;
+    border-radius: 6px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    margin-bottom: 2rem;
+  }
+  
+  .back-btn:hover {
+    background: #ffb22c;
+    transform: translateX(-5px);
+  }
+  
+  h2 {
+    color: #000000;
+    font-size: 2rem;
+    margin-bottom: 2rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 3px solid #ffb22c;
+  }
+  
+  /* Table Wrapper */
+  .table-wrapper {
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    margin-bottom: 2rem;
+  }
+  
+  /* Table Styles */
+  table {
     width: 100%;
-    border-collapse: collapse;
-    margin-top: 20px;
-}
-
-.user-table th, 
-.user-table td {
-    padding: 10px;
-    border: 1px solid #ddd;
+    border-collapse: separate;
+    border-spacing: 0;
+  }
+  
+  th {
+    background: #ffb22c;
+    color: #000000;
+    padding: 1.25rem 1rem;
+    font-weight: 600;
     text-align: left;
-}
-
-.user-table th {
-    background: #f5f5f5;
-}
-
-.action-btn {
-    padding: 5px 10px;
-    border: none;
-    border-radius: 3px;
-    cursor: pointer;
-    margin: 2px;
-}
-
-.edit-btn { 
-    background: #2196F3; 
-    color: white; 
-}
-
-.delete-btn { 
-    background: #f44336; 
-    color: white; 
-}
-
-.back-btn {
-    display: inline-block;
-    padding: 10px 20px;
-    background: #007bff;
-    color: white;
-    text-decoration: none;
-    border-radius: 5px;
-    margin-bottom: 20px;
-}
-
-.pagination {
-    margin-top: 20px;
+    white-space: nowrap;
+  }
+  
+  td {
+    padding: 1rem;
+    border-bottom: 1px solid #eee;
+    color: #000000;
+  }
+  
+  tbody tr:hover {
+    background: rgba(255, 178, 44, 0.05);
+  }
+  
+  /* Action Buttons */
+  .action-buttons {
     display: flex;
-    gap: 5px;
-    justify-content: center;
-}
-
-.page-link {
-    padding: 5px 10px;
-    border: 1px solid #ddd;
+    gap: 0.75rem;
+  }
+  
+  .action-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: all 0.3s ease;
     text-decoration: none;
-    color: #007bff;
-}
-
-.page-link.active {
-    background: #007bff;
-    color: white;
-    border-color: #007bff;
-}
+  }
+  
+  .edit-btn {
+    background: #ffb22c;
+    color: #000000;
+  }
+  
+  .delete-btn {
+    background: #f7f7f7;
+    color: #000000;
+    border: 1px solid #000000;
+  }
+  
+  .edit-btn:hover,
+  .delete-btn:hover {
+    transform: translateY(-2px);
+  }
+  
+  .delete-btn:hover {
+    background: #000000;
+    color: #f7f7f7;
+  }
+  
+  /* Pagination */
+  .pagination {
+    display: flex;
+    gap: 0.5rem;
+    justify-content: center;
+    margin-top: 2rem;
+  }
+  
+  .page-link {
+    padding: 0.5rem 1rem;
+    border: 1px solid #ffb22c;
+    color: #000000;
+    text-decoration: none;
+    border-radius: 4px;
+    transition: all 0.3s ease;
+  }
+  
+  .page-link.active {
+    background: #ffb22c;
+    color: #000000;
+  }
+  
+  .page-link:hover {
+    background: rgba(255, 178, 44, 0.05);
+  }
+  
+  /* Alert Messages */
+  .alert {
+    padding: 1rem 1.5rem;
+    border-radius: 6px;
+    margin-bottom: 2rem;
+    font-weight: 500;
+  }
+  
+  .alert-success {
+    background: rgba(255, 178, 44, 0.1);
+    border-left: 4px solid #ffb22c;
+    color: #000000;
+  }
+  
+  .alert-error {
+    background: #f7f7f7;
+    border-left: 4px solid #000000;
+    color: #000000;
+  }
+  
+  /* Responsive Design */
+  @media (max-width: 1200px) {
+    .dashboard-container {
+      padding: 1rem;
+    }
+  
+    .table-wrapper {
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+  }
+  
+  @media (max-width: 768px) {
+    h2 {
+      font-size: 1.5rem;
+    }
+  
+    .action-buttons {
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+  
+    .action-btn {
+      width: 100%;
+      justify-content: center;
+    }
+  }
+  

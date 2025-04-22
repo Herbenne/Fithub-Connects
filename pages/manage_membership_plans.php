@@ -55,7 +55,8 @@ if ($result === false) {
 <head>
     <title>Manage Membership Plans</title>
     <link rel="stylesheet" href="../assets/css/mains.css">
-    <link rel="stylesheet" href="../assets/css/manage_plan.css">
+
+    <link rel="stylesheet" href="../assets/css/manage_membership_plan.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
     <script src="../assets/js/manage_plans.js" defer></script>
 </head>
@@ -111,7 +112,7 @@ if ($result === false) {
                                 <form method="POST" style="display: inline;" onsubmit="return confirm('Are you sure you want to delete this plan?');">
                                     <input type="hidden" name="plan_id" value="<?php echo $plan['plan_id']; ?>">
                                     <input type="hidden" name="delete_plan" value="1">
-                                    <button type="submit" class="delete-btn">
+                                    <button type="submit" class="action-btn delete-btn">
                                         <i class="fas fa-trash"></i> Delete
                                     </button>
                                 </form>
