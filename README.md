@@ -8,19 +8,19 @@ Set-up:
 
 Accounts:
 
-#Superadmin
+#Superadmin:
   superadmin
   admin123
 
-#Gym Owners
+#Gym Owners:
   Gym, Gym1, Gym2, Gym3
-  12456
+  123456
 
 #Users/Members
   Imman, Nyl, Gabby, Raffyroad, Jallen
   123456
 
-Group Members
+Group Members:
   Dichosa, Immanuel
   Flores, Bastian Bragi
   Oreas, Nyl Bhoy
