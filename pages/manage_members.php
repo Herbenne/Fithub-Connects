@@ -9,8 +9,8 @@ if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'admin') {
 
 $gym_owner_id = $_SESSION['user_id'];
 
-// Fetch the gym owned by the logged-in admin
-$query = "SELECT gym_id FROM gyms WHERE owner_id = ?";
+// Update the gym query to only get the approved gym
+$query = "SELECT gym_id FROM gyms WHERE owner_id = ? AND status = 'approved'";
 $stmt = $db_connection->prepare($query);
 if (!$stmt) {
     die("Query preparation failed (gyms): " . $db_connection->error);
@@ -21,7 +21,7 @@ $stmt->execute();
 $result = $stmt->get_result();
 
 if ($result->num_rows === 0) {
-    die("No gym found for this owner.");
+    die("No approved gym found for this owner.");
 }
 
 $gym = $result->fetch_assoc();
@@ -29,13 +29,22 @@ $gym_id = $gym['gym_id'];
 
 $stmt->close();
 
-// Fetch gym members
+// Update the members query to include user_id
 $query = "
-    SELECT gm.id, u.username, u.email, mp.plan_name, gm.start_date, gm.end_date
+    SELECT 
+        gm.id, 
+        gm.user_id,
+        u.username, 
+        u.email, 
+        mp.plan_name, 
+        gm.start_date, 
+        gm.end_date,
+        gm.status
     FROM gym_members gm
-    JOIN users u ON gm.user_id = u.id
-    JOIN membership_plans mp ON gm.plan_id = mp.plan_id
-    WHERE gm.gym_id = ?";
+    INNER JOIN users u ON gm.user_id = u.id
+    INNER JOIN membership_plans mp ON gm.plan_id = mp.plan_id
+    WHERE gm.gym_id = ? 
+    ORDER BY gm.joined_at DESC";
 
 $stmt = $db_connection->prepare($query);
 if (!$stmt) {
@@ -45,6 +54,8 @@ if (!$stmt) {
 $stmt->bind_param("i", $gym_id);
 $stmt->execute();
 $result = $stmt->get_result();
+
+
 $stmt->close();
 ?>
 
