@@ -8,11 +8,16 @@ if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'superadmin') {
     exit();
 }
 
-// Get all approved gyms
-$query = "SELECT g.*, u.username as owner_name 
+// Update the query at the top of the file
+$query = "SELECT g.*, 
+          u.username as owner_name,
+          COALESCE(ROUND(AVG(gr.rating), 1), 0) as rating,
+          COUNT(gr.review_id) as review_count
           FROM gyms g 
           LEFT JOIN users u ON g.owner_id = u.id 
+          LEFT JOIN gym_reviews gr ON g.gym_id = gr.gym_id
           WHERE g.status = 'approved' 
+          GROUP BY g.gym_id, g.gym_name, g.gym_location, u.username
           ORDER BY g.gym_name";
 $result = $db_connection->query($query);
 ?>
@@ -72,9 +77,11 @@ $result = $db_connection->query($query);
                             <td>
                                 <?php 
                                 $rating = floatval($gym['rating']);
+                                echo number_format($rating, 1) . ' ';
                                 for($i = 1; $i <= 5; $i++): ?>
                                     <i class="fas fa-star <?php echo $i <= $rating ? 'active' : ''; ?>"></i>
                                 <?php endfor; ?>
+                                <span class="review-count">(<?php echo $gym['review_count']; ?>)</span>
                             </td>
                             <td>
                                 <div class="action-buttons">
