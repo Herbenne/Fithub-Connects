@@ -50,66 +50,68 @@ $stmt->close();
 
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Manage Members</title>
-    <link rel="stylesheet" href="../assets/css/main.css">
-    <link rel="stylesheet" href="../assets/css/manage_common.css">
+    <title>Manage Members - FitHub</title>
+    <link rel="stylesheet" href="../assets/css/mains.css">
+    <link rel="stylesheet" href="../assets/css/manage_members.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
-    <style>
-        .back-btn {
-            background-color: #4a5568;
-            color: white;
-            padding: 8px 16px;
-            border-radius: 5px;
-            text-decoration: none;
-            display: inline-block;
-            margin: 20px 0;
-        }
-
-        .back-btn:hover {
-            background-color: #2d3748;
-        }
-    </style>
 </head>
-
 <body>
-    <a href="dashboard.php" class="back-btn">← Back to Dashboard</a>
+    <div class="container">
+        <div class="header-section">
+            <a href="dashboard.php" class="back-btn">
+                <i class="fas fa-arrow-left"></i> Back to Dashboard
+            </a>
+            <h2>Manage Gym Members</h2>
+        </div>
 
-    <h2>Manage Gym Members</h2>
-
-    <table border="1">
-        <tr>
-            <th>ID</th>
-            <th>Username</th>
-            <th>Email</th>
-            <th>Plan Name</th>
-            <th>Start Date</th>
-            <th>End Date</th>
-            <th>Actions</th>
-        </tr>
-        <?php while ($row = $result->fetch_assoc()) { ?>
-            <tr>
-                <td><?php echo htmlspecialchars($row['id']); ?></td>
-                <td><?php echo htmlspecialchars($row['username']); ?></td>
-                <td><?php echo htmlspecialchars($row['email']); ?></td>
-                <td><?php echo htmlspecialchars($row['plan_name']); ?></td>
-                <td><?php echo htmlspecialchars($row['start_date']); ?></td>
-                <td><?php echo htmlspecialchars($row['end_date']); ?></td>
-                <td>
-                    <a href="edit_member.php?id=<?php echo $row['id']; ?>" class="edit-btn">Edit</a>
-                    <form action="../actions/remove_member.php" method="POST" style="display: inline;" 
-                          onsubmit="return confirm('Are you sure you want to remove this member?');">
-                        <input type="hidden" name="member_id" value="<?php echo $row['id']; ?>">
-                        <button type="submit" class="delete-btn">Remove</button>
-                    </form>
-                </td>
-            </tr>
-        <?php } ?>
-    </table>
-
+        <div class="table-container">
+            <table class="members-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Username</th>
+                        <th>Email</th>
+                        <th>Plan Name</th>
+                        <th>Start Date</th>
+                        <th>End Date</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php if ($result->num_rows > 0): ?>
+                        <?php while ($row = $result->fetch_assoc()): ?>
+                            <tr>
+                                <td><?php echo htmlspecialchars($row['id']); ?></td>
+                                <td><?php echo htmlspecialchars($row['username']); ?></td>
+                                <td><?php echo htmlspecialchars($row['email']); ?></td>
+                                <td><?php echo htmlspecialchars($row['plan_name']); ?></td>
+                                <td><?php echo date('M d, Y', strtotime($row['start_date'])); ?></td>
+                                <td><?php echo date('M d, Y', strtotime($row['end_date'])); ?></td>
+                                <td class="actions">
+                                    <a href="edit_member.php?id=<?php echo $row['id']; ?>" class="edit-btn">
+                                        <i class="fas fa-edit"></i> Edit
+                                    </a>
+                                    <form action="../actions/remove_member.php" method="POST" class="delete-form">
+                                        <input type="hidden" name="member_id" value="<?php echo $row['id']; ?>">
+                                        <button type="submit" class="delete-btn" 
+                                                onclick="return confirm('Are you sure you want to remove this member?');">
+                                            <i class="fas fa-trash-alt"></i> Remove
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                        <?php endwhile; ?>
+                    <?php else: ?>
+                        <tr>
+                            <td colspan="7" class="no-records">No members found</td>
+                        </tr>
+                    <?php endif; ?>
+                </tbody>
+            </table>
+        </div>
+    </div>
 </body>
-
 </html>
