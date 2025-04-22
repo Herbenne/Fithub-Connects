@@ -1,0 +1,37 @@
+# Private configuration files
+/private/config/*
+!/private/config/.htaccess
+
+# Composer dependencies
+/vendor/
+composer.lock
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# AWS credentials and config files
+aws-config.php
+**/aws-credentials.php
+
+# Uploaded files
+/uploads/
+/assets/images/profile_pictures/
+/assets/images/gym_thumbnails/
+/assets/images/equipment_images/
+
+# Cache and logs
+/logs/
+/cache/
+*.log
+
+# IDE specific files
+.idea/
+.vscode/
+*.sublime-project
+*.sublime-workspace
+
+# OS specific files
+.DS_Store
+Thumbs.db
