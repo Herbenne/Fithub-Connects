@@ -90,39 +90,66 @@ $plans = $stmt->get_result();
     </style>
 </head>
 <body>
-    <h2>Edit Member Membership</h2>
-    <form action="../actions/update_member.php" method="POST">
-        <input type="hidden" name="member_id" value="<?php echo $member_id; ?>">
-        
-        <div>
-            <label>Username:</label>
-            <input type="text" value="<?php echo htmlspecialchars($member['username']); ?>" readonly>
-        </div>
+    <div class="form-container">
+        <h2>Edit Member Membership</h2>
+        <form action="../actions/update_member.php" method="POST">
+            <input type="hidden" name="member_id" value="<?php echo $member_id; ?>">
+            
+            <div class="form-group">
+                <label>Username:</label>
+                <input type="text" value="<?php echo htmlspecialchars($member['username']); ?>" readonly>
+            </div>
 
-        <div>
-            <label>Email:</label>
-            <input type="email" value="<?php echo htmlspecialchars($member['email']); ?>" readonly>
-        </div>
+            <div class="form-group">
+                <label>Email:</label>
+                <input type="email" value="<?php echo htmlspecialchars($member['email']); ?>" readonly>
+            </div>
 
-        <div>
-            <label>Membership Plan:</label>
-            <select name="plan_id" required>
-                <?php while ($plan = $plans->fetch_assoc()) { ?>
-                    <option value="<?php echo $plan['plan_id']; ?>" 
-                            <?php echo ($plan['plan_id'] == $member['plan_id']) ? 'selected' : ''; ?>>
-                        <?php echo htmlspecialchars($plan['plan_name']); ?>
+                <div class="form-group">
+                    <label>Membership Plan:</label>
+                    <select name="plan_id" required class="form-control">
+                        <?php while ($plan = $plans->fetch_assoc()): ?>
+                            <option value="<?php echo $plan['plan_id']; ?>" 
+                                    <?php echo ($plan['plan_id'] == $member['plan_id']) ? 'selected' : ''; ?>>
+                                <?php echo htmlspecialchars($plan['plan_name']); ?>
+                            </option>
+                        <?php endwhile; ?>
+                    </select>
+                </div>
+            <div class="form-group">
+                <label>Membership Status:</label>
+                <select name="status" required>
+                    <option value="active" <?php echo ($member['status'] == 'active') ? 'selected' : ''; ?>>
+                        Active
                     </option>
-                <?php } ?>
-            </select>
-        </div>
+                    <option value="inactive" <?php echo ($member['status'] == 'inactive') ? 'selected' : ''; ?>>
+                        Inactive
+                    </option>
+                </select>
+            </div>
 
-        <div>
-            <label>End Date:</label>
-            <input type="date" name="end_date" value="<?php echo $member['end_date']; ?>" required>
-        </div>
+            <div class="form-group">
+                <label>Membership Plan:</label>
+                <select name="plan_id" required>
+                    <?php while ($plan = $plans->fetch_assoc()) { ?>
+                        <option value="<?php echo $plan['plan_id']; ?>" 
+                                <?php echo ($plan['plan_id'] == $member['plan_id']) ? 'selected' : ''; ?>>
+                            <?php echo htmlspecialchars($plan['plan_name']); ?>
+                        </option>
+                    <?php } ?>
+                </select>
+            </div>
 
-        <button type="submit">Update Membership</button>
-        <a href="manage_members.php">Cancel</a>
-    </form>
+            <div class="form-group">
+                <label>End Date:</label>
+                <input type="date" name="end_date" value="<?php echo $member['end_date']; ?>" required>
+            </div>
+
+            <div class="button-group">
+                <button type="submit" class="btn btn-primary">Update Membership</button>
+                <a href="manage_members.php" class="btn btn-secondary">Cancel</a>
+            </div>
+        </form>
+    </div>
 </body>
 </html>
