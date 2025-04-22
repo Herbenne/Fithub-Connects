@@ -1,0 +1,14 @@
+{
+    "name": "fithub/fithub-connects",
+    "description": "FitHub Connect: A Comprehensive Platform for Gym Owners and Fitness Enthusiast",
+    "type": "project",
+    "require": {
+        "php": ">=7.4",
+        "aws/aws-sdk-php": "^3.250"
+    },
+    "autoload": {
+        "psr-4": {
+            "FitHub\\": "src/"
+        }
+    }
+}
