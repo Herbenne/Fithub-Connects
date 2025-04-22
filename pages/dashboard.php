@@ -56,13 +56,24 @@ if ($role === 'admin') {
     }
 }
 
-// Fetch user's active memberships
+// Update the membership query section
 if ($role === 'member') {
-    $membership_query = "SELECT m.*, g.gym_name, g.gym_thumbnail, p.plan_name, p.duration 
+    $membership_query = "SELECT 
+                            m.*, 
+                            g.gym_name, 
+                            g.gym_thumbnail, 
+                            p.plan_name, 
+                            p.duration,
+                            CASE 
+                                WHEN m.status = 'inactive' THEN 'Inactive'
+                                WHEN m.end_date < CURDATE() THEN 'Expired'
+                                ELSE 'Active'
+                            END as membership_status
                         FROM gym_members m 
                         JOIN gyms g ON m.gym_id = g.gym_id 
                         JOIN membership_plans p ON m.plan_id = p.plan_id 
-                        WHERE m.user_id = ?";
+                        WHERE m.user_id = ?
+                        ORDER BY m.start_date DESC";
     
     $stmt = $db_connection->prepare($membership_query);
     
@@ -429,15 +440,60 @@ if ($result === false) {
 .bi-chevron-left, .bi-chevron-right {
     font-size: 20px;
 }
+
+/* Add to your existing CSS */
+.membership-card {
+    position: relative;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    overflow: hidden;
+    transition: transform 0.2s;
+}
+
+.membership-card.inactive {
+    opacity: 0.8;
+    border-color: #f44336;
+}
+
+.membership-card.expired {
+    opacity: 0.8;
+    border-color: #ff9800;
+}
+
+.status-badge {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    padding: 5px 10px;
+    border-radius: 4px;
+    color: white;
+    font-weight: bold;
+    z-index: 1;
+}
+
+.status-badge.active {
+    background-color: #4CAF50;
+}
+
+.status-badge.inactive {
+    background-color: #f44336;
+}
+
+.status-badge.expired {
+    background-color: #ff9800;
+}
 </style>
 
             <!-- User's active memberships section -->
             <?php if ($role === 'member' && $memberships && $memberships->num_rows > 0): ?>
                 <section class="my-memberships">
-                    <h2>My Active Memberships</h2>
+                    <h2>My Memberships</h2>
                     <div class="membership-grid">
                         <?php while ($membership = $memberships->fetch_assoc()): ?>
-                            <div class="membership-card">
+                            <div class="membership-card <?php echo strtolower($membership['membership_status']); ?>">
+                                <div class="status-badge <?php echo strtolower($membership['membership_status']); ?>">
+                                    <?php echo htmlspecialchars($membership['membership_status']); ?>
+                                </div>
                                 <img src="<?php echo !empty($membership['gym_thumbnail']) ? 
                                     htmlspecialchars($membership['gym_thumbnail']) : 
                                     '../assets/images/default-gym.jpg'; ?>" 
