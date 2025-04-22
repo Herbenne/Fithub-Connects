@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1:3307
--- Generation Time: Apr 03, 2025 at 04:46 AM
+-- Generation Time: Apr 22, 2025 at 06:43 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -38,19 +38,19 @@ CREATE TABLE `gyms` (
   `owner_id` int(11) DEFAULT NULL,
   `gym_thumbnail` varchar(255) DEFAULT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
-  `status` enum('pending','approved','rejected') NOT NULL DEFAULT 'pending',
-  `rating` decimal(3,2) DEFAULT 0.00
+  `status` enum('pending','approved','rejected') NOT NULL DEFAULT 'pending'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `gyms`
 --
 
-INSERT INTO `gyms` (`gym_id`, `gym_name`, `gym_location`, `gym_phone_number`, `gym_description`, `gym_amenities`, `equipment_images`, `owner_id`, `gym_thumbnail`, `created_at`, `status`, `rating`) VALUES
-(7, 'Admin', '123 Munoz', '09090909090', 'Munoz', 'Cardio Machine', '[\"..\\/assets\\/images\\/Screenshot (1964).png\",\"..\\/assets\\/images\\/Screenshot (1963).png\",\"..\\/assets\\/images\\/Screenshot (1962).png\"]', 18, '../assets/images/Screenshot (2014).png', '2025-03-09 02:27:43', 'approved', 3.00),
-(8, 'Admin 1', '456 Caloocan City', '+09999999999', 'Caloocan', 'Wifi', '[\"..\\/assets\\/images\\/Screenshot (2037).png\",\"..\\/assets\\/images\\/Screenshot (1627).png\",\"..\\/assets\\/images\\/Screenshot (1843).png\"]', 19, '../assets/images/Screenshot (1844).png', '2025-03-09 02:28:22', 'approved', 4.50),
-(9, 'Admin 2', '789 Valenzuela', '09789456126', 'Valenzuela', 'Water', '[\"..\\/assets\\/images\\/Screenshot (1168).png\",\"..\\/assets\\/images\\/Screenshot (931).png\"]', 20, '../assets/images/Screenshot (1212).png', '2025-03-09 02:28:47', 'approved', 4.00),
-(10, 'Admin 3', 'Quezon', '09456123789', 'Quezon', 'Gloves', '[\"..\\/assets\\/images\\/Screenshot (968).png\",\"..\\/assets\\/images\\/Screenshot (973).png\"]', 21, '../assets/images/Screenshot (970).png', '2025-03-09 02:29:20', 'approved', 2.00);
+INSERT INTO `gyms` (`gym_id`, `gym_name`, `gym_location`, `gym_phone_number`, `gym_description`, `gym_amenities`, `equipment_images`, `owner_id`, `gym_thumbnail`, `created_at`, `status`) VALUES
+(16, 'Gym', 'Munoz', '09789456123', 'Near Waltermart', 'Free Water', '[]', 35, NULL, '2025-04-22 02:03:27', 'rejected'),
+(17, 'Gym1', 'Caloocan', '0978456123', 'Near Dali Store', 'Free WIFI', '[]', 36, NULL, '2025-04-22 02:04:05', 'approved'),
+(18, 'Gym2', 'Valenzuela', '09852369741', 'Near SM Valenzuela', 'Free Water', '[]', 37, NULL, '2025-04-22 02:04:46', 'approved'),
+(19, 'Gym3', 'Makati', '09852365148', 'Near BGC', 'Free For All', '[]', 38, NULL, '2025-04-22 02:05:21', 'approved'),
+(20, 'Gym', 'Munoz', '09856658451', 'Near Waltermart', 'Free Locker with money hehe', '[\"..\\/assets\\/images\\/Screenshot (6806fcc990b47).jpg\",\"..\\/assets\\/images\\/Screenshot (6806fde377556).jpeg\"]', 35, '../assets/images/Screenshot (6806fcc9903fc).jpeg', '2025-04-22 02:13:04', 'approved');
 
 -- --------------------------------------------------------
 
@@ -74,8 +74,7 @@ CREATE TABLE `gym_members` (
 --
 
 INSERT INTO `gym_members` (`id`, `user_id`, `gym_id`, `plan_id`, `joined_at`, `start_date`, `end_date`, `status`) VALUES
-(12, 23, 8, 5, '2025-04-03 01:35:31', '2025-04-03', '2025-05-03', 'active'),
-(13, 24, 10, 6, '2025-04-03 02:23:51', '2025-04-03', '2025-10-03', 'active');
+(17, 34, 20, 18, '2025-04-22 03:11:01', '2025-04-22', '2025-07-22', 'active');
 
 -- --------------------------------------------------------
 
@@ -97,8 +96,7 @@ CREATE TABLE `gym_reviews` (
 --
 
 INSERT INTO `gym_reviews` (`review_id`, `gym_id`, `user_id`, `rating`, `comment`, `created_at`) VALUES
-(18, 8, 18, 5, 'WOAH', '2025-03-09 03:27:30'),
-(19, 10, 18, 2, 'ANo yan?', '2025-03-09 03:27:54');
+(26, 20, 30, 3, 'Nice Shrek', '2025-04-22 02:25:00');
 
 -- --------------------------------------------------------
 
@@ -121,11 +119,8 @@ CREATE TABLE `membership_plans` (
 --
 
 INSERT INTO `membership_plans` (`plan_id`, `gym_id`, `plan_name`, `price`, `duration`, `description`, `created_at`) VALUES
-(5, 7, 'Monthly', 1000.00, '1 month', '30 Days', '2025-03-09 02:31:45'),
-(6, 8, 'Barilan Session', 5000.00, '1 month', 'Bang Bang', '2025-03-09 02:33:53'),
-(7, 9, 'Axie Scholarship', 5000.00, '3 months', 'Turuan ka mag Axie', '2025-03-09 02:36:46'),
-(8, 10, 'Minecraft', 12000.00, '6 months', 'Road to Elder', '2025-03-09 02:39:35'),
-(9, 9, 'Pegaxy', 2500.00, '1 Month', 'Kabayo', '2025-03-09 03:47:31');
+(16, 20, 'ML', 500.00, '1 month', 'EMEL LEGENDS', '2025-04-22 02:39:06'),
+(18, 20, 'COD', 1000.00, '3 months', 'COD OF DUTY', '2025-04-22 02:40:23');
 
 -- --------------------------------------------------------
 
@@ -140,6 +135,13 @@ CREATE TABLE `review_comments` (
   `comment` text NOT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `review_comments`
+--
+
+INSERT INTO `review_comments` (`comment_id`, `review_id`, `user_id`, `comment`, `created_at`) VALUES
+(34, 26, 34, 'Me too, I love Shreeek', '2025-04-22 02:42:20');
 
 -- --------------------------------------------------------
 
@@ -170,14 +172,15 @@ CREATE TABLE `users` (
 
 INSERT INTO `users` (`id`, `unique_id`, `username`, `email`, `first_name`, `last_name`, `password`, `age`, `contact_number`, `profile_picture`, `reg_date`, `created_at`, `role`, `gym_id`) VALUES
 (4, 'SADM001', 'superadmin', 'superadmin@admin.com', 'Super', 'Admin', '$2y$10$OoZZUHZMS0DkmWmLbkba3OJpztFmuH6j.IKH.vRXpx7f9m3ELk2RO', NULL, '', 'assets/images/profile_pictures/profile_4_1743646283.jpg', '2025-04-03 02:11:23', '2025-03-08 07:38:23', 'superadmin', NULL),
-(18, 'USR67ccfc4', 'admin', 'admin@gmail.com', 'admin', 'admin', '$2y$10$59FhhkoJHET8xxs5GgQQROEw26I/NpMtRuvATQnbXnek8lAiFsqc2', NULL, NULL, NULL, '2025-03-09 02:29:36', '2025-03-09 02:26:11', 'admin', NULL),
-(19, 'USR67ccfc6', 'admin1', 'admin1@gmail.com', 'admin', 'admin', '$2y$10$jIVt5ydoGncD2K8n9zWfgeUYZ34tOetfk4Nsodhn19CFVjzAU4Hdq', NULL, NULL, NULL, '2025-03-09 02:30:01', '2025-03-09 02:26:47', 'admin', NULL),
-(20, 'USR67ccfc7', 'admin2', 'admin2@gmail.com', 'admin', 'admin', '$2y$10$rEKZPrZawt5jOkq2/J5KsuiyKN43wZkK8bB1KJxHjGotgOcSdKoHy', NULL, NULL, NULL, '2025-03-09 02:29:57', '2025-03-09 02:27:01', 'admin', NULL),
-(21, 'USR67ccfc8', 'Admin3', 'admin3@gmail.com', 'admin', 'admin', '$2y$10$j/6amBrbizsf8lnL5rIckei5hhsdF6lvlKx4KIh/Nyw6jNJPtCrl.', NULL, NULL, NULL, '2025-03-09 02:29:54', '2025-03-09 02:27:13', 'admin', NULL),
-(22, 'USR67cd2f6', 'user1', 'user1@gmail.com', 'User', 'Second', '$2y$10$pVDrYZToBbTgifHU5sRwW.bmwW7R5ZjbCuxbQLUW5QSpONoSmJWAK', NULL, NULL, NULL, '2025-03-09 06:04:26', '2025-03-09 06:04:26', 'user', NULL),
-(23, 'USR67ce42f', 'user', 'hi@gmail.com', 'user', 'user', '$2y$10$VJWFbISi6qrB79rhmhp5.ejGVVL9b5UMGLt//gbL1cOePqZBdI6xy', NULL, NULL, NULL, '2025-04-03 01:35:31', '2025-03-10 01:40:05', 'member', NULL),
-(24, 'USR9b41e3', 'rey', 'rey@gmail.com', 'Rey', 'Rey', '$2y$10$wrY.PLjSGYCZ/lKsCSjOjunBAbc.7/Se3SWJuUp2EcrrxF41lKuAG', NULL, NULL, NULL, '2025-04-03 02:23:51', '2025-04-03 01:00:23', 'member', NULL),
-(25, 'USR957207', 'gabayuban', 'gabayuban@gmail.com', 'Gab', 'Ayuban', '$2y$10$hLrphZp3KI0DzlxD6WPMAugl/vFPXzvV/ce967HSro8DKGbNb4p36', NULL, NULL, NULL, '2025-04-03 02:45:36', '2025-04-03 02:45:36', 'user', NULL);
+(30, 'USRc980d6', 'Gabby', 'gab@gmail.com', 'Gabriel', 'Ayuban', '$2y$10$fsf8WSjcb3yHLvNXaYuDe.QXDed8XLuv3WMHU/4TiBm.QlbEWSJNq', NULL, NULL, NULL, '2025-04-22 01:59:47', '2025-04-22 01:59:47', 'user', NULL),
+(31, 'USR53fe13', 'Raffyroad', 'raffyroad@gmail.com', 'Rafael', 'Fernandez', '$2y$10$bFyDtV3fqAwUslMPIObU3uHn12mcqB.KGIAbP6lR3/wRdZxB9Ph.q', NULL, NULL, NULL, '2025-04-22 02:00:09', '2025-04-22 02:00:09', 'user', NULL),
+(32, 'USR80062e', 'Jallen', 'jallen@gmail.com', 'Jallen', 'Portugal', '$2y$10$6ZFQcf36THJMAwCb7tCK..HtOXWTSSfX3MLNG7kkuhZyz2hpbE8p6', NULL, NULL, NULL, '2025-04-22 02:00:29', '2025-04-22 02:00:29', 'user', NULL),
+(33, 'USR75f974', 'Nyl', 'nyl@gmail.com', 'Nyl', 'Oreas', '$2y$10$YOeTWLe5CW3Nrgqx4YglMOf/acLEOCLkaz5UYzyTm59ezdQOCGYKy', NULL, NULL, NULL, '2025-04-22 02:00:53', '2025-04-22 02:00:53', 'user', NULL),
+(34, 'USR86bc7f', 'Imman', 'imman@gmail.com', 'Immanuel', 'Dichosa', '$2y$10$E9yPuuCiLVyApmS6zJqBF..5Ok6t5R4J.Axw6N7lbbCvI84YFUjzi', NULL, NULL, NULL, '2025-04-22 03:11:01', '2025-04-22 02:01:12', 'member', NULL),
+(35, 'USR49fd5c', 'Gym', 'gym@gmail.com', 'Munoz', 'Gym', '$2y$10$HDxS91w5fUTVE5P4YqzSWOzJo.6DGSM7uwlQRr1obKi15oyTL.JAG', NULL, NULL, NULL, '2025-04-22 02:13:29', '2025-04-22 02:01:39', 'admin', NULL),
+(36, 'USR4313ea', 'Gym1', 'gym1@gmail.com', 'Caloocan', 'Gym', '$2y$10$fi0kbl0U6K4y/78b2ijtMORate6Fuc.XwpIQAuMO4FOuf0srwL/Li', NULL, NULL, NULL, '2025-04-22 02:12:08', '2025-04-22 02:02:01', 'admin', NULL),
+(37, 'USR3fe2eb', 'Gym2', 'gym2@gmail.com', 'Valenzuela', 'Gym', '$2y$10$Y9aDbK46iM08Qma3ngwhUun19xKf6ly8HZw0L..wPNZIFtVnH/2X2', NULL, NULL, NULL, '2025-04-22 02:12:03', '2025-04-22 02:02:24', 'admin', NULL),
+(38, 'USRf6285a', 'Gym3', 'gym3@gmail.com', 'Makati', 'Gym', '$2y$10$U6zuMBO4RjbQQ5nAHqV/6.uoAYor0JGTkHbHDWHygY2KORAsYNkFW', NULL, NULL, NULL, '2025-04-22 02:11:56', '2025-04-22 02:02:47', 'admin', NULL);
 
 --
 -- Indexes for dumped tables
@@ -241,37 +244,37 @@ ALTER TABLE `users`
 -- AUTO_INCREMENT for table `gyms`
 --
 ALTER TABLE `gyms`
-  MODIFY `gym_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
+  MODIFY `gym_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=21;
 
 --
 -- AUTO_INCREMENT for table `gym_members`
 --
 ALTER TABLE `gym_members`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=18;
 
 --
 -- AUTO_INCREMENT for table `gym_reviews`
 --
 ALTER TABLE `gym_reviews`
-  MODIFY `review_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=24;
+  MODIFY `review_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=27;
 
 --
 -- AUTO_INCREMENT for table `membership_plans`
 --
 ALTER TABLE `membership_plans`
-  MODIFY `plan_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
+  MODIFY `plan_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=19;
 
 --
 -- AUTO_INCREMENT for table `review_comments`
 --
 ALTER TABLE `review_comments`
-  MODIFY `comment_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=33;
+  MODIFY `comment_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=35;
 
 --
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=26;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=39;
 
 --
 -- Constraints for dumped tables
