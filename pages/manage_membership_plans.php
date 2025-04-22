@@ -55,7 +55,7 @@ if ($result === false) {
 <head>
     <title>Manage Membership Plans</title>
     <link rel="stylesheet" href="../assets/css/mains.css">
-    <link rel="stylesheet" href="../assets/css/manage_common.css">
+    <link rel="stylesheet" href="../assets/css/manage_plan.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
     <script src="../assets/js/manage_plans.js" defer></script>
 </head>

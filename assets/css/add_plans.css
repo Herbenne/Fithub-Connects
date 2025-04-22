@@ -24,6 +24,7 @@
 .back-btn:hover {
   background: #FFB22C;
   transform: translateX(-5px);
+  color: black;
 }
 
 h2 {

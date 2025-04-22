@@ -21,8 +21,7 @@ $gyms = $db_connection->query($gyms_query);
 <head>
     <title>Add New Membership Plan</title>
     <link rel="stylesheet" href="../assets/css/mains.css">
-    <link rel="stylesheet" href="../assets/css/manage_plans.css">
-    <link rel="stylesheet" href="../assets/css/add_plan.css">
+    <link rel="stylesheet" href="../assets/css/add_plans.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
 </head>
 <body>

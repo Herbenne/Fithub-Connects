@@ -53,14 +53,20 @@
 .back-btn {
   display: inline-flex;
   align-items: center;
-  color: #333;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  color: #000000;
   text-decoration: none;
+  border: 2px solid #FFB22C;
+  border-radius: 6px;
+  font-weight: 500;
+  transition: all 0.3s ease;
   margin-bottom: 2rem;
-  transition: color 0.3s;
 }
 
 .back-btn:hover {
-  color: #ffb22c;
+  background: #FFB22C;
+  transform: translateX(-5px);
 }
 
 h2 {
