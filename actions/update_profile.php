@@ -1,6 +1,7 @@
 <?php
 session_start();
 include '../config/database.php';
+require_once '../includes/AWSFileManager.php';
 
 if (!isset($_SESSION['user_id'])) {
     header("Location: ../pages/login.php");
@@ -8,6 +9,12 @@ if (!isset($_SESSION['user_id'])) {
 }
 
 $user_id = $_SESSION['user_id'];
+
+// Initialize AWS file manager if using AWS
+$awsManager = null;
+if (USE_AWS) {
+    $awsManager = new AWSFileManager();
+}
 
 // Handle profile picture upload
 if (isset($_FILES['profile_picture']) && $_FILES['profile_picture']['error'] === UPLOAD_ERR_OK) {
@@ -27,28 +34,47 @@ if (isset($_FILES['profile_picture']) && $_FILES['profile_picture']['error'] ===
         exit();
     }
     
-    // Create upload directory if it doesn't exist
-    $upload_dir = '../assets/images/profile_pictures/';
-    if (!is_dir($upload_dir)) {
-        mkdir($upload_dir, 0755, true);
+    // Handle file upload based on storage mode (AWS or local)
+    $relative_path = "";
+    
+    if (USE_AWS) {
+        // AWS S3 upload
+        $tmp_path = $file['tmp_name'];
+        $filename = $file['name'];
+        
+        $relative_path = $awsManager->uploadProfilePicture($tmp_path, $user_id, $filename);
+        
+        if (!$relative_path) {
+            header("Location: ../pages/profile.php?error=upload_failed");
+            exit();
+        }
+    } else {
+        // Local filesystem upload
+        $upload_dir = '../assets/images/profile_pictures/';
+        if (!is_dir($upload_dir)) {
+            mkdir($upload_dir, 0755, true);
+        }
+        
+        // Generate unique filename
+        $extension = pathinfo($file['name'], PATHINFO_EXTENSION);
+        $filename = 'profile_' . $user_id . '_' . time() . '.' . $extension;
+        $filepath = $upload_dir . $filename;
+        
+        // Move uploaded file
+        if (move_uploaded_file($file['tmp_name'], $filepath)) {
+            $relative_path = 'assets/images/profile_pictures/' . $filename;
+        } else {
+            header("Location: ../pages/profile.php?error=upload_failed");
+            exit();
+        }
     }
     
-    // Generate unique filename
-    $extension = pathinfo($file['name'], PATHINFO_EXTENSION);
-    $filename = 'profile_' . $user_id . '_' . time() . '.' . $extension;
-    $filepath = $upload_dir . $filename;
-    
-    // Move uploaded file
-    if (move_uploaded_file($file['tmp_name'], $filepath)) {
-        // Update database with new profile picture path
-        $relative_path = 'assets/images/profile_pictures/' . $filename;
+    // Update database with new profile picture path
+    if (!empty($relative_path)) {
         $update_query = "UPDATE users SET profile_picture = ? WHERE id = ?";
         $stmt = $db_connection->prepare($update_query);
         $stmt->bind_param("si", $relative_path, $user_id);
         $stmt->execute();
-    } else {
-        header("Location: ../pages/profile.php?error=upload_failed");
-        exit();
     }
 }
 
