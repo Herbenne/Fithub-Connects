@@ -16,28 +16,44 @@ $stmt->bind_param("i", $user_id);
 $stmt->execute();
 $user = $stmt->get_result()->fetch_assoc();
 
-// Update the default image path handling
+// Set default image path
 $default_image = '../assets/images/default-profile.png';
-$fallback_image = 'data:image/svg+xml,' . urlencode('<svg xmlns="http://www.w3.org/2000/svg" width="150" height="150" viewBox="0 0 150 150"><rect width="150" height="150" fill="#f5f5f5"/><text x="50%" y="50%" font-family="Arial" font-size="14" fill="#999" text-anchor="middle" dy=".3em">No Image</text></svg>');
-
-// Profile picture path handling
 $profile_pic = $default_image; // Default image path
 
+// Profile picture path handling - improved error handling
 if (!empty($user['profile_picture'])) {
-    // Clean and normalize the path
-    $image_path = str_replace('\\', '/', $user['profile_picture']);
-    $image_path = trim($image_path, '/');
-    $image_path = '../' . $image_path;
-    
-    // Verify file exists and is readable
-    if (file_exists($image_path) && is_readable($image_path)) {
-        $profile_pic = $image_path;
+    // For AWS storage
+    if (USE_AWS && strpos($user['profile_picture'], 'http') === 0) {
+        // Direct URL from AWS
+        $profile_pic = $user['profile_picture'];
+        error_log("Using AWS profile picture URL: " . $profile_pic);
+    } else {
+        // For local storage or AWS path that needs prefixing
+        // Remove any leading slashes
+        $image_path = ltrim($user['profile_picture'], '/');
+        
+        // Check if we need to add '../' prefix
+        if (strpos($image_path, '../') !== 0 && strpos($image_path, 'assets/') === 0) {
+            $image_path = '../' . $image_path;
+        }
+        
+        // Log for debugging
+        error_log("Profile image path: " . $image_path);
+        
+        // Verify file exists and is readable for local storage
+        if (file_exists($image_path) && is_readable($image_path)) {
+            $profile_pic = $image_path;
+            error_log("Found local profile picture: " . $profile_pic);
+        } else {
+            error_log("Profile picture not found or not readable: " . $image_path);
+        }
     }
 }
 
 // Cache control headers
-header('Cache-Control: public, max-age=31536000');
-header('Expires: ' . gmdate('D, d M Y H:i:s', time() + 31536000) . ' GMT');
+header('Cache-Control: no-cache, no-store, must-revalidate');
+header('Pragma: no-cache');
+header('Expires: 0');
 ?>
 
 <!DOCTYPE html>
@@ -56,7 +72,47 @@ header('Expires: ' . gmdate('D, d M Y H:i:s', time() + 31536000) . ' GMT');
         <?php endif; ?>
 
         <?php if (isset($_GET['error'])): ?>
-            <div class="alert alert-danger">Error updating profile. Please try again.</div>
+            <div class="alert alert-danger">
+                <?php 
+                $error = $_GET['error'];
+                switch($error) {
+                    case 'invalid_file_type':
+                        echo "Error: Invalid file type. Please upload JPG, PNG, or GIF.";
+                        break;
+                    case 'file_too_large':
+                        echo "Error: File too large. Maximum size is 5MB.";
+                        break;
+                    case 'upload_failed':
+                        echo "Error: Failed to upload profile picture. Please try again.";
+                        break;
+                    case 'upload_dir_not_writable':
+                        echo "Error: Upload directory is not writable. Please contact administrator.";
+                        break;
+                    case 'move_upload_failed':
+                        echo "Error: Failed to move uploaded file. Please try again.";
+                        break;
+                    case 'aws_upload_error':
+                    case 'local_upload_error':
+                        echo "Error: Failed to upload image. Please try again.";
+                        break;
+                    case 'empty_fields':
+                        echo "Error: Please fill in all required fields.";
+                        break;
+                    case 'duplicate':
+                        echo "Error: Username or email already exists.";
+                        break;
+                    case 'password_mismatch':
+                        echo "Error: Passwords do not match.";
+                        break;
+                    case 'db_prepare_error':
+                    case 'db_execute_error':
+                        echo "Error: Database error. Please try again later.";
+                        break;
+                    default:
+                        echo "Error updating profile. Please try again.";
+                }
+                ?>
+            </div>
         <?php endif; ?>
 
         <div class="profile-header">
@@ -64,18 +120,11 @@ header('Expires: ' . gmdate('D, d M Y H:i:s', time() + 31536000) . ' GMT');
                 <img src="<?php echo htmlspecialchars($profile_pic); ?>" 
                      alt="Profile Picture" 
                      class="profile-picture"
-                     onerror="handleImageError(this);"
-                     onload="handleImageLoad(this);"
-                     loading="eager">
+                     onerror="this.src='<?php echo htmlspecialchars($default_image); ?>'">
             </div>
+            <h2><?php echo htmlspecialchars($user['first_name'] . ' ' . $user['last_name']); ?></h2>
+            <p class="username">@<?php echo htmlspecialchars($user['username']); ?></p>
         </div>
-
-        <?php if (isset($_SESSION['debug'])): ?>
-            <div class="debug-info">
-                <p>Profile Picture Path: <?php echo htmlspecialchars($profile_pic); ?></p>
-                <p>Database Path: <?php echo htmlspecialchars($user['profile_picture'] ?? 'Not set'); ?></p>
-            </div>
-        <?php endif; ?>
 
         <form action="../actions/update_profile.php" method="POST" enctype="multipart/form-data">
             <div class="form-group">
@@ -83,8 +132,7 @@ header('Expires: ' . gmdate('D, d M Y H:i:s', time() + 31536000) . ' GMT');
                 <input type="file" 
                        id="profile_picture" 
                        name="profile_picture" 
-                       accept="image/jpeg,image/png,image/gif"
-                       onchange="previewImage(this);">
+                       accept="image/jpeg,image/png,image/gif">
                 <small class="form-text text-muted">
                     Supported formats: JPG, PNG, GIF. Max size: 5MB
                 </small>
@@ -135,45 +183,17 @@ header('Expires: ' . gmdate('D, d M Y H:i:s', time() + 31536000) . ' GMT');
     </div>
 
     <script>
-        // Improved image handling functions
-        function handleImageError(img) {
-            const fallbackImage = 'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="150" height="150" viewBox="0 0 150 150"><rect width="150" height="150" fill="#f5f5f5"/><text x="50%" y="50%" font-family="Arial" font-size="14" fill="#999" text-anchor="middle" dy=".3em">No Image</text></svg>');
-            
-            img.onerror = null; // Prevent infinite error loop
-            img.src = fallbackImage;
-            img.classList.remove('image-loading');
-        }
-
-        function handleImageLoad(img) {
-            img.classList.remove('image-loading');
-            img.classList.add('loaded');
-        }
-
-        function previewImage(input) {
-            const profilePic = document.querySelector('.profile-picture');
-            if (input.files && input.files[0]) {
+        // Image preview functionality
+        document.getElementById('profile_picture').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
                 const reader = new FileReader();
-                
-                // Add loading state
-                profilePic.classList.add('image-loading');
-                profilePic.classList.remove('loaded');
-                
                 reader.onload = function(e) {
-                    profilePic.src = e.target.result;
-                    // Remove loading state after a short delay
-                    setTimeout(() => {
-                        profilePic.classList.remove('image-loading');
-                        profilePic.classList.add('loaded');
-                    }, 100);
+                    document.querySelector('.profile-picture').src = e.target.result;
                 }
-                
-                reader.readAsDataURL(input.files[0]);
+                reader.readAsDataURL(file);
             }
-        }
-
-        // Preload default image
-        const defaultImage = new Image();
-        defaultImage.src = '../assets/images/default-profile.png';
+        });
     </script>
 </body>
 </html>

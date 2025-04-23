@@ -16,12 +16,30 @@ if (USE_AWS) {
     $awsManager = new AWSFileManager();
 }
 
+// Create upload directory if it doesn't exist (for local storage)
+if (!USE_AWS) {
+    $upload_dir = '../assets/images/profile_pictures/';
+    if (!is_dir($upload_dir)) {
+        mkdir($upload_dir, 0755, true);
+    }
+    
+    // Check if directory is writable
+    if (!is_writable($upload_dir)) {
+        error_log("Upload directory is not writable: " . $upload_dir);
+        header("Location: ../pages/profile.php?error=upload_dir_not_writable");
+        exit();
+    }
+}
+
 // Handle profile picture upload
 if (isset($_FILES['profile_picture']) && $_FILES['profile_picture']['error'] === UPLOAD_ERR_OK) {
     $allowed_types = ['image/jpeg', 'image/png', 'image/gif'];
     $max_size = 5 * 1024 * 1024; // 5MB
     
     $file = $_FILES['profile_picture'];
+    
+    // Log file information for debugging
+    error_log("Processing profile picture upload: " . print_r($file, true));
     
     // Validate file type and size
     if (!in_array($file['type'], $allowed_types)) {
@@ -39,32 +57,50 @@ if (isset($_FILES['profile_picture']) && $_FILES['profile_picture']['error'] ===
     
     if (USE_AWS) {
         // AWS S3 upload
-        $tmp_path = $file['tmp_name'];
-        $filename = $file['name'];
-        
-        $relative_path = $awsManager->uploadProfilePicture($tmp_path, $user_id, $filename);
-        
-        if (!$relative_path) {
-            header("Location: ../pages/profile.php?error=upload_failed");
+        try {
+            $tmp_path = $file['tmp_name'];
+            $filename = $file['name'];
+            
+            $relative_path = $awsManager->uploadProfilePicture($tmp_path, $user_id, $filename);
+            
+            if (!$relative_path) {
+                error_log("AWS upload failed for profile picture");
+                header("Location: ../pages/profile.php?error=upload_failed");
+                exit();
+            }
+            
+            error_log("AWS upload successful, path: " . $relative_path);
+        } catch (Exception $e) {
+            error_log("AWS upload error: " . $e->getMessage());
+            header("Location: ../pages/profile.php?error=aws_upload_error");
             exit();
         }
     } else {
         // Local filesystem upload
-        $upload_dir = '../assets/images/profile_pictures/';
-        if (!is_dir($upload_dir)) {
-            mkdir($upload_dir, 0755, true);
-        }
-        
-        // Generate unique filename
-        $extension = pathinfo($file['name'], PATHINFO_EXTENSION);
-        $filename = 'profile_' . $user_id . '_' . time() . '.' . $extension;
-        $filepath = $upload_dir . $filename;
-        
-        // Move uploaded file
-        if (move_uploaded_file($file['tmp_name'], $filepath)) {
-            $relative_path = 'assets/images/profile_pictures/' . $filename;
-        } else {
-            header("Location: ../pages/profile.php?error=upload_failed");
+        try {
+            $upload_dir = '../assets/images/profile_pictures/';
+            if (!is_dir($upload_dir)) {
+                mkdir($upload_dir, 0755, true);
+            }
+            
+            // Generate unique filename
+            $extension = pathinfo($file['name'], PATHINFO_EXTENSION);
+            $filename = 'profile_' . $user_id . '_' . time() . '.' . $extension;
+            $filepath = $upload_dir . $filename;
+            
+            // Move uploaded file
+            if (move_uploaded_file($file['tmp_name'], $filepath)) {
+                $relative_path = 'assets/images/profile_pictures/' . $filename;
+                error_log("Local upload successful, path: " . $relative_path);
+            } else {
+                $upload_error = error_get_last();
+                error_log("Failed to move uploaded file: " . ($upload_error ? $upload_error['message'] : 'Unknown error'));
+                header("Location: ../pages/profile.php?error=move_upload_failed");
+                exit();
+            }
+        } catch (Exception $e) {
+            error_log("Local upload error: " . $e->getMessage());
+            header("Location: ../pages/profile.php?error=local_upload_error");
             exit();
         }
     }
@@ -73,8 +109,22 @@ if (isset($_FILES['profile_picture']) && $_FILES['profile_picture']['error'] ===
     if (!empty($relative_path)) {
         $update_query = "UPDATE users SET profile_picture = ? WHERE id = ?";
         $stmt = $db_connection->prepare($update_query);
+        
+        if (!$stmt) {
+            error_log("Database prepare error: " . $db_connection->error);
+            header("Location: ../pages/profile.php?error=db_prepare_error");
+            exit();
+        }
+        
         $stmt->bind_param("si", $relative_path, $user_id);
-        $stmt->execute();
+        
+        if (!$stmt->execute()) {
+            error_log("Database execute error: " . $stmt->error);
+            header("Location: ../pages/profile.php?error=db_execute_error");
+            exit();
+        }
+        
+        error_log("Profile picture updated in database for user " . $user_id . " with path " . $relative_path);
     }
 }
 
@@ -128,6 +178,13 @@ $params[] = $user_id;
 $types .= "i";
 
 $stmt = $db_connection->prepare($query);
+
+if (!$stmt) {
+    error_log("Database prepare error for user update: " . $db_connection->error);
+    header("Location: ../pages/profile.php?error=db_prepare_error");
+    exit();
+}
+
 $stmt->bind_param($types, ...$params);
 
 if ($stmt->execute()) {
@@ -135,6 +192,7 @@ if ($stmt->execute()) {
     $_SESSION['username'] = $username;
     header("Location: ../pages/profile.php?success=1");
 } else {
+    error_log("Database execute error for user update: " . $stmt->error);
     header("Location: ../pages/profile.php?error=update_failed");
 }
 exit();
