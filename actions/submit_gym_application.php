@@ -1,5 +1,4 @@
 <?php
-// File: actions/submit_gym_application.php (Updated with AWS Integration)
 session_start();
 include '../config/database.php';
 require_once '../includes/AWSFileManager.php';
