@@ -1,210 +1,207 @@
 <?php
-session_start();
-include '../config/database.php';
+require_once __DIR__ . '/../vendor/autoload.php';
 
-if (!isset($_SESSION['user_id'])) {
-    header("Location: ../pages/login.php");
-    exit();
-}
+use Aws\S3\S3Client;
+use Aws\Exception\AwsException;
 
-$user_id = $_SESSION['user_id'];
-
-// Initialize upload directory paths
-$upload_dir = '../assets/images/profile_pictures/';
-$success = false;
-$error_message = "";
-
-// Handle profile picture upload
-if (isset($_FILES['profile_picture']) && $_FILES['profile_picture']['error'] === UPLOAD_ERR_OK) {
-    $allowed_types = ['image/jpeg', 'image/png', 'image/gif'];
-    $max_size = 5 * 1024 * 1024; // 5MB
-
-    $file = $_FILES['profile_picture'];
-
-    // Log file information for debugging
-    error_log("Processing profile picture upload: " . print_r($file, true));
-
-    // Validate file type and size
-    if (!in_array($file['type'], $allowed_types)) {
-        header("Location: ../pages/profile.php?error=invalid_file_type");
-        exit();
+class AWSFileManager {
+    private $s3Client;
+    private $bucketName = 'fithubconnect-bucket';
+    private $region = 'ap-southeast-1';
+    
+    public function __construct() {
+        // Initialize AWS S3 client with credentials from config
+        $this->s3Client = new S3Client([
+            'version' => 'latest',
+            'region' => $this->region,
+            'credentials' => [
+                'key' => AWS_ACCESS_KEY_ID,
+                'secret' => AWS_SECRET_ACCESS_KEY,
+            ]
+        ]);
     }
-
-    if ($file['size'] > $max_size) {
-        header("Location: ../pages/profile.php?error=file_too_large");
-        exit();
-    }
-
-    if (USE_AWS) {
+    
+    /**
+     * Upload a profile picture (public)
+     */
+    public function uploadProfilePicture($tmp_path, $user_id, $filename) {
+        $destination = "profile_pictures/user_{$user_id}";
+        
         try {
-            require_once '../includes/AWSFileManager.php';
-            $awsManager = new AWSFileManager();
+            $key = $destination . '/' . $this->generateUniqueFilename($filename);
             
-            // Get current profile picture path
-            $get_current = "SELECT profile_picture FROM users WHERE id = ?";
-            $stmt = $db_connection->prepare($get_current);
-            $stmt->bind_param("i", $user_id);
-            $stmt->execute();
-            $current_pic = $stmt->get_result()->fetch_assoc()['profile_picture'];
+            // Actually upload the file to S3
+            $result = $this->s3Client->putObject([
+                'Bucket' => $this->bucketName,
+                'Key' => $key,
+                'SourceFile' => $tmp_path,
+                'ACL' => 'public-read',
+                'ContentType' => $this->getContentType($filename)
+            ]);
             
-            // Upload new picture
-            $tmp_path = $file['tmp_name'];
-            $filename = $file['name'];
-            $relative_path = $awsManager->uploadProfilePicture($tmp_path, $user_id, $filename);
+            error_log("Successfully uploaded to S3: " . $key);
+            return $key;
             
-            if (!$relative_path) {
-                error_log("AWS upload failed for profile picture");
-                header("Location: ../pages/profile.php?error=upload_failed");
-                exit();
-            }
-            
-            // Update database with new path
-            $update_query = "UPDATE users SET profile_picture = ? WHERE id = ?";
-            $stmt = $db_connection->prepare($update_query);
-            $stmt->bind_param("si", $relative_path, $user_id);
-            
-            if (!$stmt->execute()) {
-                error_log("Database update error: " . $stmt->error);
-                header("Location: ../pages/profile.php?error=db_execute_error");
-                exit();
-            }
-    
-        } catch (Exception $e) {
+        } catch (AwsException $e) {
             error_log("AWS upload error: " . $e->getMessage());
-            header("Location: ../pages/profile.php?error=aws_upload_error");
-            exit();
+            return false;
         }
-    } else {
-        // Local storage logic
-        $upload_dir = $_SERVER['DOCUMENT_ROOT'] . '/Fithub-Connects/assets/images/profile_pictures/';
-    
-        if (!is_dir($upload_dir)) {
-            if (!mkdir($upload_dir, 0777, true)) {
-                error_log("Failed to create upload directory: " . $upload_dir);
-                header("Location: ../pages/profile.php?error=upload_dir_creation_failed");
-                exit();
-            }
-            chmod($upload_dir, 0777);
-        }
-    
-        if (!is_writable($upload_dir)) {
-            chmod($upload_dir, 0777);
-            if (!is_writable($upload_dir)) {
-                header("Location: ../pages/profile.php?error=upload_dir_not_writable");
-                exit();
-            }
-        }
-    
-        // Generate unique filename
-        $extension = pathinfo($file['name'], PATHINFO_EXTENSION);
-        $filename = 'profile_' . $user_id . '_' . time() . '.' . $extension;
-        $filepath = $upload_dir . $filename;
-    
-        // Move uploaded file
-        if (move_uploaded_file($file['tmp_name'], $filepath)) {
-            $relative_path = 'assets/images/profile_pictures/' . $filename;
-            error_log("Local upload successful, path: " . $relative_path);
-    
-            $update_query = "UPDATE users SET profile_picture = ? WHERE id = ?";
-            $stmt = $db_connection->prepare($update_query);
-    
-            if (!$stmt) {
-                error_log("Database prepare error: " . $db_connection->error);
-                header("Location: ../pages/profile.php?error=db_prepare_error");
-                exit();
-            }
-    
-            $stmt->bind_param("si", $relative_path, $user_id);
-    
-            if (!$stmt->execute()) {
-                error_log("Database execute error: " . $stmt->error);
-                header("Location: ../pages/profile.php?error=db_execute_error");
-                exit();
-            }
-    
-        } else {
-            $upload_error = error_get_last();
-            error_log("Failed to move uploaded file: " . ($upload_error ? $upload_error['message'] : 'Unknown error'));
-            header("Location: ../pages/profile.php?error=move_upload_failed");
-            exit();
-        }
-    } 
-}
-// Update other user information
-$first_name = $_POST['first_name'] ?? '';
-$last_name = $_POST['last_name'] ?? '';
-$email = $_POST['email'] ?? '';
-$username = $_POST['username'] ?? '';
-$phone = $_POST['phone'] ?? '';
-$new_password = $_POST['new_password'] ?? '';
-
-// Basic validation
-if (empty($first_name) || empty($last_name) || empty($email) || empty($username)) {
-    header("Location: ../pages/profile.php?error=empty_fields");
-    exit();
-}
-
-// Check if username or email already exists
-$check_query = "SELECT id FROM users WHERE (username = ? OR email = ?) AND id != ?";
-$stmt = $db_connection->prepare($check_query);
-if (!$stmt) {
-    error_log("Check query preparation error: " . $db_connection->error);
-    header("Location: ../pages/profile.php?error=db_error");
-    exit();
-}
-
-$stmt->bind_param("ssi", $username, $email, $user_id);
-$stmt->execute();
-$result = $stmt->get_result();
-if ($result->num_rows > 0) {
-    header("Location: ../pages/profile.php?error=duplicate");
-    exit();
-}
-
-// Update query
-$query = "UPDATE users SET 
-          first_name = ?, 
-          last_name = ?, 
-          email = ?, 
-          username = ?, 
-          contact_number = ?";
-$params = [$first_name, $last_name, $email, $username, $phone];
-$types = "sssss";
-
-// Add password update if provided
-if (!empty($new_password)) {
-    if ($new_password !== $_POST['confirm_password']) {
-        header("Location: ../pages/profile.php?error=password_mismatch");
-        exit();
     }
-    $query .= ", password = ?";
-    $params[] = password_hash($new_password, PASSWORD_DEFAULT);
-    $types .= "s";
-}
-
-$query .= " WHERE id = ?";
-$params[] = $user_id;
-$types .= "i";
-
-$stmt = $db_connection->prepare($query);
-
-if (!$stmt) {
-    error_log("Database prepare error for user update: " . $db_connection->error);
-    header("Location: ../pages/profile.php?error=db_prepare_error");
-    exit();
-}
-
-$stmt->bind_param($types, ...$params);
-
-if ($stmt->execute()) {
-    // Update session variables
-    $_SESSION['username'] = $username;
     
-    // Redirect with success message
-    header("Location: ../pages/profile.php?success=1");
-    exit();
-} else {
-    error_log("Database execute error for user update: " . $stmt->error);
-    header("Location: ../pages/profile.php?error=update_failed");
-    exit();
+    /**
+     * Upload legal document (private)
+     */
+    public function uploadPendingLegalDocument($tmp_path, $user_id, $filename, $doc_type) {
+        $destination = "legal_documents/pending/user_{$user_id}";
+        
+        try {
+            $key = $destination . '/' . $doc_type . '_' . $this->generateUniqueFilename($filename);
+            
+            // Actually upload the file to S3
+            $result = $this->s3Client->putObject([
+                'Bucket' => $this->bucketName,
+                'Key' => $key,
+                'SourceFile' => $tmp_path,
+                'ACL' => 'public-read', // Now using public-read since bucket is public
+                'ContentType' => $this->getContentType($filename)
+            ]);
+            
+            error_log("Successfully uploaded legal document to S3: " . $key);
+            return $key;
+            
+        } catch (AwsException $e) {
+            error_log("AWS upload error for legal document: " . $e->getMessage());
+            return false;
+        }
+    }
+    
+    /**
+     * Upload gym thumbnail or image (public)
+     */
+    public function uploadGymImage($tmp_path, $gym_id, $filename, $type = 'thumbnail') {
+        $destination = "gyms/{$gym_id}/{$type}";
+        
+        try {
+            $key = $destination . '/' . $this->generateUniqueFilename($filename);
+            
+            // Actually upload the file to S3
+            $result = $this->s3Client->putObject([
+                'Bucket' => $this->bucketName,
+                'Key' => $key,
+                'SourceFile' => $tmp_path,
+                'ACL' => 'public-read',
+                'ContentType' => $this->getContentType($filename)
+            ]);
+            
+            error_log("Successfully uploaded gym image to S3: " . $key);
+            return $key;
+            
+        } catch (AwsException $e) {
+            error_log("AWS upload error for gym image: " . $e->getMessage());
+            return false;
+        }
+    }
+    
+    /**
+     * Upload equipment images (public)
+     */
+    public function uploadEquipmentImage($tmp_path, $gym_id, $filename) {
+        $destination = "gyms/{$gym_id}/equipment";
+        
+        try {
+            $key = $destination . '/' . $this->generateUniqueFilename($filename);
+            
+            // Actually upload the file to S3
+            $result = $this->s3Client->putObject([
+                'Bucket' => $this->bucketName,
+                'Key' => $key,
+                'SourceFile' => $tmp_path,
+                'ACL' => 'public-read',
+                'ContentType' => $this->getContentType($filename)
+            ]);
+            
+            error_log("Successfully uploaded equipment image to S3: " . $key);
+            return $key;
+            
+        } catch (AwsException $e) {
+            error_log("AWS upload error for equipment image: " . $e->getMessage());
+            return false;
+        }
+    }
+    
+    /**
+     * Upload approved legal document (now public)
+     */
+    public function uploadApprovedLegalDocument($tmp_path, $gym_id, $filename, $doc_type) {
+        $destination = "legal_documents/approved/gym_{$gym_id}";
+        
+        try {
+            $key = $destination . '/' . $doc_type . '_' . $this->generateUniqueFilename($filename);
+            
+            // Actually upload the file to S3
+            $result = $this->s3Client->putObject([
+                'Bucket' => $this->bucketName,
+                'Key' => $key,
+                'SourceFile' => $tmp_path,
+                'ACL' => 'public-read', // Now using public-read since bucket is public
+                'ContentType' => $this->getContentType($filename)
+            ]);
+            
+            error_log("Successfully uploaded approved legal document to S3: " . $key);
+            return $key;
+            
+        } catch (AwsException $e) {
+            error_log("AWS upload error for approved legal document: " . $e->getMessage());
+            return false;
+        }
+    }
+    
+    /**
+     * Get a public URL for files
+     */
+    public function getPublicUrl($key) {
+        if (empty($key)) return false;
+        
+        // If it's already a full URL, return it
+        if (strpos($key, 'http') === 0) {
+            return $key;
+        }
+        
+        // Otherwise, construct the correct URL with region
+        return "https://{$this->bucketName}.s3.{$this->region}.amazonaws.com/" . ltrim($key, '/');
+    }
+    
+    /**
+     * Get a secure URL (same as public now since bucket is public)
+     */
+    public function getSecureUrl($key) {
+        return $this->getPublicUrl($key);
+    }
+    
+    /**
+     * Helper: Generate a unique filename to prevent overwriting
+     */
+    private function generateUniqueFilename($filename) {
+        $ext = pathinfo($filename, PATHINFO_EXTENSION);
+        return time() . '_' . uniqid() . '.' . $ext;
+    }
+    
+    /**
+     * Helper: Get the appropriate content type for a file
+     */
+    private function getContentType($filename) {
+        $ext = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
+        $types = [
+            'jpg' => 'image/jpeg',
+            'jpeg' => 'image/jpeg',
+            'png' => 'image/png',
+            'gif' => 'image/gif',
+            'pdf' => 'application/pdf',
+            'doc' => 'application/msword',
+            'docx' => 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+            'xls' => 'application/vnd.ms-excel',
+            'xlsx' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        ];
+        return $types[$ext] ?? 'application/octet-stream';
+    }
 }
