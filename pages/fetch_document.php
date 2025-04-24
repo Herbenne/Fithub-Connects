@@ -3,6 +3,10 @@ session_start();
 include '../config/database.php';
 require_once '../includes/AWSFileManager.php';
 
+ini_set('display_errors', 1);
+error_log("Starting fetch, REQUEST_URI: " . $_SERVER['REQUEST_URI']);
+error_log("GET parameters: " . print_r($_GET, true));
+
 // Add extensive logging
 error_log("Attempting to fetch document. Gym ID: " . ($_GET['gym_id'] ?? 'none') . 
           ", Doc type: " . ($_GET['doc_type'] ?? 'none'));

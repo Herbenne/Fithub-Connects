@@ -119,4 +119,13 @@ class AWSFileManager {
         ];
         return $types[$ext] ?? 'application/octet-stream';
     }
+
+    public function uploadFileWithDebug($tmp_path, $destination_key, $acl = 'public-read') {
+        // Just log information to verify the upload would happen
+        error_log("AWS DEBUG: Would upload from $tmp_path to $destination_key");
+        error_log("AWS DEBUG: URL would be: " . $this->getPublicUrl($destination_key));
+        
+        // Return the key as if upload was successful
+        return $destination_key;
+    }
 }
