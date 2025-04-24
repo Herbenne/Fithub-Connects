@@ -38,12 +38,6 @@ if (!$application) {
     exit();
 }
 
-// Extract equipment images
-$equipment_images = [];
-if (!empty($application['equipment_images'])) {
-    $equipment_images = json_decode($application['equipment_images'], true);
-}
-
 // Extract legal documents
 $legal_documents = [];
 if (!empty($application['legal_documents'])) {
@@ -52,6 +46,9 @@ if (!empty($application['legal_documents'])) {
     // Log the documents for debugging
     error_log("Legal documents: " . print_r($legal_documents, true));
 }
+
+// Bucket base URL for direct access (since your bucket is public)
+$s3_base_url = "https://fithubconnect-bucket.s3.ap-southeast-1.amazonaws.com/";
 ?>
 
 <!DOCTYPE html>
@@ -275,6 +272,16 @@ if (!empty($application['legal_documents'])) {
                 <div class="documents-grid">
                     <?php foreach ($legal_documents as $doc_type => $doc_path): 
                         $doc_name = ucwords(str_replace('_', ' ', $doc_type));
+                        
+                        // Get direct S3 URL for the document
+                        $doc_url = $doc_path;
+                        
+                        // If it's not a full URL already, make it one
+                        if (strpos($doc_path, 'http') !== 0) {
+                            // Remove any leading slashes
+                            $doc_path = ltrim($doc_path, '/');
+                            $doc_url = $s3_base_url . $doc_path;
+                        }
                     ?>
                         <div class="document-card">
                             <h4><?php echo htmlspecialchars($doc_name); ?></h4>
@@ -287,10 +294,10 @@ if (!empty($application['legal_documents'])) {
                             
                             if ($is_image): 
                             ?>
-                                <img src="view_file.php?path=<?php echo urlencode($doc_path); ?>" 
+                                <img src="<?php echo htmlspecialchars($doc_url); ?>" 
                                      alt="<?php echo htmlspecialchars($doc_name); ?>"
                                      class="document-preview"
-                                     onerror="this.src='../assets/images/image-error.png'">
+                                     onerror="this.onerror=null; this.src='../assets/images/image-error.png'">
                             <?php else: ?>
                                 <div class="document-preview" style="text-align: center; padding-top: 60px;">
                                     <i class="fas fa-file-<?php echo $file_extension === 'pdf' ? 'pdf' : 'alt'; ?>" 
@@ -300,7 +307,7 @@ if (!empty($application['legal_documents'])) {
                             <?php endif; ?>
                             
                             <div class="document-actions">
-                                <a href="view_file.php?path=<?php echo urlencode($doc_path); ?>" 
+                                <a href="<?php echo htmlspecialchars($doc_url); ?>" 
                                    target="_blank">View Document</a>
                             </div>
                         </div>
