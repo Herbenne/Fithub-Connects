@@ -126,6 +126,29 @@ if ($result === false) {
 </head>
 
 <body>
+    <script>
+    // Remove any leftover "Submitting Application..." header
+    document.addEventListener('DOMContentLoaded', function() {
+        // Check if we're on the dashboard page
+        if (window.location.href.indexOf('dashboard.php') > -1) {
+            // Check if there's a submitting application message
+            const submittingHeader = document.querySelector('h1, h2, h3, h4, h5, h6');
+            if (submittingHeader && submittingHeader.textContent.includes('Submitting Application')) {
+                submittingHeader.style.display = 'none';
+                const paragraph = document.querySelector('p');
+                if (paragraph && paragraph.textContent.includes('Please wait')) {
+                    paragraph.style.display = 'none';
+                }
+            }
+        }
+    });
+    </script>
+    <!-- Loading overlay -->
+    <div id="loadingOverlay" class="loading-overlay">
+        <div class="spinner"></div>
+        <h3>Submitting Application...</h3>
+        <p>Please wait while we upload your files and process your application.</p>
+    </div>
     <nav class="navbar">
         <div class="nav-brand"> <img src="<?php echo dirname($_SERVER['PHP_SELF']) ?>/../assets/logo/FITHUB LOGO.png" 
                  alt="Fithub Logo" 
@@ -138,7 +161,79 @@ if ($result === false) {
         </div>
     </nav>
 
-    <div class="dashboard-container">
+    <div class="dashboard-container">     
+    <?php
+    // Display success and error messages based on URL parameters
+    if (isset($_GET['success']) || isset($_GET['error'])) {
+        $messageHtml = '';
+        
+        // Success messages
+        if (isset($_GET['success'])) {
+            $success = $_GET['success'];
+            if ($success === 'application_submitted') {
+                $messageHtml = '<div class="success-message"><i class="fas fa-check-circle"></i> Your gym application has been submitted successfully! We will review your application shortly.</div>';
+            } else if ($success === '1') {
+                $messageHtml = '<div class="success-message"><i class="fas fa-check-circle"></i> Operation completed successfully!</div>';
+            }
+        }
+        
+        // Error messages
+        if (isset($_GET['error'])) {
+            $error = $_GET['error'];
+            $errorMsg = isset($_GET['message']) ? urldecode($_GET['message']) : '';
+            
+            switch($error) {
+                case 'missing_fields':
+                    $messageHtml = '<div class="error-message"><i class="fas fa-exclamation-circle"></i> Please fill in all required fields.</div>';
+                    break;
+                case 'missing_documents':
+                    $messageHtml = '<div class="error-message"><i class="fas fa-exclamation-circle"></i> ' . ($errorMsg ?: 'Please upload all required documents.') . '</div>';
+                    break;
+                case 'application_failed':
+                    $messageHtml = '<div class="error-message"><i class="fas fa-exclamation-circle"></i> ' . ($errorMsg ?: 'Failed to submit application. Please try again.') . '</div>';
+                    break;
+                case 'existing_application':
+                    $messageHtml = '<div class="error-message"><i class="fas fa-exclamation-circle"></i> You already have a pending gym application. Please wait for approval.</div>';
+                    break;
+                case 'existing_approved_gym':
+                    $messageHtml = '<div class="error-message"><i class="fas fa-exclamation-circle"></i> You already have an approved gym. You cannot submit another application.</div>';
+                    break;
+                default:
+                    $messageHtml = '<div class="error-message"><i class="fas fa-exclamation-circle"></i> An error occurred: ' . htmlspecialchars($error) . '</div>';
+            }
+        }
+        
+        // Output the message if we have one
+        if (!empty($messageHtml)) {
+            echo $messageHtml;
+            
+            // Clean URL after showing message (using JavaScript)
+            echo '<script>
+                // Wait until page is loaded
+                window.addEventListener("DOMContentLoaded", function() {
+                    // Remove query parameters from URL without reloading the page
+                    if (window.history && window.history.pushState) {
+                        const newUrl = window.location.pathname;
+                        window.history.pushState({}, document.title, newUrl);
+                    }
+                    
+                    // Auto-hide messages after 10 seconds
+                    setTimeout(function() {
+                        const messages = document.querySelectorAll(".success-message, .error-message");
+                        messages.forEach(function(message) {
+                            message.style.opacity = "0";
+                            message.style.transition = "opacity 1s";
+                            setTimeout(function() {
+                                message.remove();
+                            }, 1000);
+                        });
+                    }, 10000);
+                });
+            </script>';
+        }
+    }
+?>       
+
         <div class="welcome-section">
             <h1>Welcome, <?php echo htmlspecialchars($username); ?>!</h1>
             <p class="role-badge"><?php echo ucfirst($role); ?></p>
@@ -320,36 +415,56 @@ if ($result === false) {
                         <h3>Gym Owner Application</h3>
                         <form action="../actions/submit_gym_application.php" method="POST" enctype="multipart/form-data">
                             <div class="form-group">
-                                <label for="gym_name">Gym Name *</label>
-                                <input type="text" id="gym_name" name="gym_name" required>
-                            </div>
-
-                            <div class="form-group">
-                                <label for="gym_location">Location *</label>
-                                <input type="text" id="gym_location" name="gym_location" required>
-                            </div>
-
-                            <div class="form-group">
-                                <label for="gym_phone">Phone Number *</label>
-                                <input type="tel" id="gym_phone" name="gym_phone_number" required 
-                                       pattern="[0-9]{10,}" title="Please enter a valid phone number">
-                            </div>
-
-                            <div class="form-group">
-                                <label for="gym_description">Description *</label>
-                                <textarea id="gym_description" name="gym_description" rows="4" required 
-                                          placeholder="Describe your gym, its focus, and what makes it unique..."></textarea>
-                            </div>
-
-                            <div class="form-group">
-                                <label for="gym_amenities">Amenities *</label>
-                                <textarea id="gym_amenities" name="gym_amenities" rows="4" required 
-                                          placeholder="List your gym's amenities..."></textarea>
-                            </div>
-
-                            <button type="submit" class="submit-btn">Submit Application</button>
-                        </form>
+                            <label for="gym_name">Gym Name *</label>
+                            <input type="text" id="gym_name" name="gym_name" required>
                     </div>
+
+                    <div class="form-group">
+                         <label for="gym_location">Location *</label>
+                        <input type="text" id="gym_location" name="gym_location" required>
+                     </div>
+
+                    <div class="form-group">
+                        <label for="gym_phone">Phone Number *</label>
+                        <input type="tel" id="gym_phone" name="gym_phone_number" required 
+                            pattern="[0-9]{10,}" title="Please enter a valid phone number">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="gym_description">Description *</label>
+                        <textarea id="gym_description" name="gym_description" rows="4" required 
+                            placeholder="Describe your gym, its focus, and what makes it unique..."></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="gym_amenities">Amenities *</label>
+                        <textarea id="gym_amenities" name="gym_amenities" rows="4" required 
+                            placeholder="List your gym's amenities..."></textarea>
+                    </div>
+
+                    <h4>Legal Documents</h4>
+                    <div class="form-group">
+                        <label for="business_permit">Business/Mayor's Permit *</label>
+                        <input type="file" id="business_permit" name="business_permit" required accept=".pdf,.jpg,.jpeg,.png">
+                        <small>Upload your valid business permit (PDF, JPG, PNG formats)</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="valid_id">Valid ID of Gym Owner *</label>
+                        <input type="file" id="valid_id" name="valid_id" required accept=".pdf,.jpg,.jpeg,.png">
+                        <small>Upload a government-issued ID (PDF, JPG, PNG formats)</small>
+                     </div>
+
+                    <div class="form-group">
+                        <label for="tax_certificate">Tax Certificate *</label>
+                        <input type="file" id="tax_certificate" name="tax_certificate" required accept=".pdf,.jpg,.jpeg,.png">
+                        <small>Upload your tax certificate (PDF, JPG, PNG formats)</small>
+                    </div>
+
+                    <button type="submit" class="submit-btn">Submit Application</button>
+                </form>
+            </div>
+                    
                 <?php endif; ?>
             </div>
             <!-- Regular member section -->
@@ -482,6 +597,50 @@ if ($result === false) {
 .status-badge.expired {
     background-color: #ff9800;
 }
+
+.loading-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.7);
+        z-index: 9999;
+        justify-content: center;
+        align-items: center;
+        flex-direction: column;
+        color: white;
+}
+.spinner {
+        border: 5px solid #f3f3f3;
+        border-top: 5px solid #3498db;
+        border-radius: 50%;
+        width: 50px;
+        height: 50px;
+        animation: spin 2s linear infinite;
+        margin-bottom: 20px;
+}
+@keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+}
+
+/* Style for success messages */
+.success-message {
+        background-color: #4CAF50;
+        color: white;
+        padding: 15px;
+        margin-bottom: 20px;
+        border-radius: 4px;
+        display: flex;
+        align-items: center;
+}
+.success-message i {
+        margin-right: 10px;
+        font-size: 24px;
+}
+
 </style>
 
             <!-- User's active memberships section -->
@@ -552,6 +711,96 @@ if ($result === false) {
     <script src="../assets/js/main.js"></script>
     <script src="../assets/js/dashboard.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+    // Show loading overlay when the gym application form is submitted
+    document.addEventListener("DOMContentLoaded", function() {
+        const applicationForm = document.querySelector("#applicationForm form");
+        
+        if (applicationForm) {
+            applicationForm.addEventListener("submit", function(e) {
+                // Check if all required fields are filled
+                const requiredFields = this.querySelectorAll("[required]");
+                let allFilled = true;
+                
+                requiredFields.forEach(field => {
+                    if (!field.value) {
+                        allFilled = false;
+                    }
+                });
+                
+                // Check if all required file uploads are selected
+                const requiredFileInputs = ['gym_thumbnail', 'business_permit', 'valid_id', 'tax_certificate'];
+                requiredFileInputs.forEach(inputName => {
+                    const input = this.querySelector(`input[name="${inputName}"]`);
+                    if (input && input.hasAttribute('required') && !input.files.length) {
+                        allFilled = false;
+                    }
+                });
+                
+                if (allFilled) {
+                    // Show loading overlay
+                    document.getElementById("loadingOverlay").style.display = "flex";
+                    return true;
+                } else {
+                    // Don't submit yet - browser will show validation messages
+                    return false;
+                }
+            });
+        }
+        
+        // Check if there's a success message in the URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const successParam = urlParams.get('success');
+        
+        if (successParam === 'application_submitted') {
+            // Create a success message element
+            const successMessage = document.createElement('div');
+            successMessage.className = 'success-message';
+            successMessage.innerHTML = '<i class="fas fa-check-circle"></i> Your gym application has been submitted successfully! We will review your application shortly.';
+            
+            // Insert at the top of the dashboard container
+            const dashboardContainer = document.querySelector('.dashboard-container');
+            if (dashboardContainer) {
+                dashboardContainer.insertBefore(successMessage, dashboardContainer.firstChild);
+                
+                // Scroll to the success message
+                successMessage.scrollIntoView({ behavior: 'smooth' });
+                
+                // Remove success parameter from URL without refreshing
+                const newUrl = window.location.pathname;
+                history.pushState({}, '', newUrl);
+                
+                // Remove message after 10 seconds
+                setTimeout(() => {
+                    successMessage.style.opacity = '0';
+                    successMessage.style.transition = 'opacity 1s';
+                    setTimeout(() => successMessage.remove(), 1000);
+                }, 10000);
+            }
+        }
+        
+        // Also check for error message
+        const errorParam = urlParams.get('error');
+        const errorMessage = urlParams.get('message');
+        
+        if (errorParam === 'application_failed') {
+            // Create an error message element
+            const errorElement = document.createElement('div');
+            errorElement.className = 'alert alert-error';
+            errorElement.innerHTML = '<i class="fas fa-exclamation-circle"></i> ' + 
+                (errorMessage ? decodeURIComponent(errorMessage) : 'Failed to submit gym application. Please try again.');
+            
+            // Insert at the top of the dashboard container
+            const dashboardContainer = document.querySelector('.dashboard-container');
+            if (dashboardContainer) {
+                dashboardContainer.insertBefore(errorElement, dashboardContainer.firstChild);
+                
+                // Scroll to the error message
+                errorElement.scrollIntoView({ behavior: 'smooth' });
+            }
+        }
+    });
 </body>
 
 </html>
