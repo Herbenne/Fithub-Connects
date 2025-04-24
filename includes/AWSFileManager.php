@@ -1,5 +1,4 @@
 <?php
-
 require_once __DIR__ . '/../vendor/autoload.php'; // Requires AWS SDK for PHP
 
 use Aws\S3\S3Client;
@@ -484,4 +483,108 @@ class AWSFileManager {
             
             return $sanitized;
         }
+
+    /**
+    * Copies a file from one location to another in S3
+    * 
+    * @param string $sourcePath Source path of the file
+    * @param string $destinationPath Destination path for the file
+    * @param boolean $isPrivate Whether the destination file should be private
+    * @param boolean $encrypt Whether to encrypt the destination file
+    * @return boolean Success or failure
+    */
+    public function copyObject($sourcePath, $destinationPath, $isPrivate = true, $encrypt = true) {
+        try {
+            // Log paths for debugging
+            error_log("Copying file from: {$sourcePath} to: {$destinationPath}");
+            
+            // Clean up the paths
+            $sourcePath = ltrim($sourcePath, '/');
+            $sourcePath = str_replace('../', '', $sourcePath);
+            $destinationPath = ltrim($destinationPath, '/');
+            $destinationPath = str_replace('../', '', $destinationPath);
+            
+            // Make sure source folder exists - it will be checked internally by S3
+            
+            // Ensure destination folder exists
+            $destFolder = dirname($destinationPath) . '/';
+            $this->createFolderIfNotExists($destFolder);
+            
+            // Prepare copy parameters
+            $params = [
+                'Bucket' => $this->bucketName,
+                'CopySource' => $this->bucketName . '/' . $sourcePath,
+                'Key' => $destinationPath,
+                'ACL' => $isPrivate ? 'private' : 'public-read'
+            ];
+            
+            // Add encryption if requested
+            if ($encrypt) {
+                $params['ServerSideEncryption'] = 'AES256';
+            }
+            
+            // Perform the copy operation
+            $this->s3Client->copyObject($params);
+            
+            error_log("Successfully copied file to: {$destinationPath}");
+            return true;
+        } catch (S3Exception $e) {
+            error_log("Error copying file: " . $e->getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * Deletes a folder and all its contents from S3
+     * 
+     * @param string $folderPath Folder path to delete
+     * @return boolean Success or failure
+     */
+    public function deleteFolder($folderPath) {
+        try {
+            // Ensure folder path ends with a slash
+            if (substr($folderPath, -1) !== '/') {
+                $folderPath .= '/';
+            }
+            
+            // Clean up the path
+            $folderPath = ltrim($folderPath, '/');
+            $folderPath = str_replace('../', '', $folderPath);
+            
+            error_log("Attempting to delete folder: {$folderPath}");
+            
+            // First list all objects in the folder
+            $objects = $this->s3Client->listObjectsV2([
+                'Bucket' => $this->bucketName,
+                'Prefix' => $folderPath
+            ]);
+            
+            if (!isset($objects['Contents']) || count($objects['Contents']) === 0) {
+                error_log("No objects found in folder: {$folderPath}");
+                return true; // Folder doesn't exist or is already empty
+            }
+            
+            // Create a delete request for all objects
+            $objectsToDelete = [];
+            foreach ($objects['Contents'] as $object) {
+                $objectsToDelete[] = ['Key' => $object['Key']];
+            }
+            
+            // Delete all objects in the folder
+            $this->s3Client->deleteObjects([
+                'Bucket' => $this->bucketName,
+                'Delete' => [
+                    'Objects' => $objectsToDelete,
+                    'Quiet' => false
+                ]
+            ]);
+            
+            error_log("Successfully deleted folder and its contents: {$folderPath}");
+            return true;
+        } catch (S3Exception $e) {
+            error_log("Error deleting folder: " . $e->getMessage());
+            return false;
+        }
+    }
+
     }
