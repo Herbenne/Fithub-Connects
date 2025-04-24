@@ -389,7 +389,6 @@ class AWSFileManager {
     
     /**
      * Gets a presigned URL that allows temporary access to private files
-     * Used for superadmin to view legal documents
      * 
      * @param string $filePath Path to the file in S3
      * @param string $expiryTime Expiry time string (e.g. '+30 minutes')
@@ -397,12 +396,10 @@ class AWSFileManager {
      */
     public function getPresignedUrl($filePath, $expiryTime = '+30 minutes') {
         try {
-            // Log path for debugging
-            error_log("Generating presigned URL for path: " . $filePath);
+            error_log("Getting presigned URL for: " . $filePath);
             
             // If it's already a full URL, just return it
             if (strpos($filePath, 'http') === 0) {
-                error_log("Path is already a URL, returning as is");
                 return $filePath;
             }
             
@@ -410,49 +407,7 @@ class AWSFileManager {
             $filePath = ltrim($filePath, '/');
             $filePath = str_replace('../', '', $filePath);
             
-            // If the path doesn't exist in S3, try to find alternative paths
-            $exists = false;
-            
-            try {
-                // Check if the file exists first
-                $this->s3Client->headObject([
-                    'Bucket' => $this->bucketName,
-                    'Key'    => $filePath
-                ]);
-                $exists = true;
-            } catch (S3Exception $e) {
-                error_log("File not found in S3 at path: " . $filePath);
-                
-                // Try alternative paths
-                $alternative_paths = [
-                    "uploads/" . basename($filePath),
-                    "uploads/legal_documents/" . basename($filePath),
-                    "uploads/legal_documents/pending/user_" . basename($filePath)
-                ];
-                
-                foreach ($alternative_paths as $alt_path) {
-                    error_log("Trying alternative path: " . $alt_path);
-                    try {
-                        $this->s3Client->headObject([
-                            'Bucket' => $this->bucketName,
-                            'Key'    => $alt_path
-                        ]);
-                        $filePath = $alt_path;
-                        $exists = true;
-                        error_log("Found file at alternative path: " . $alt_path);
-                        break;
-                    } catch (S3Exception $e) {
-                        // Continue to next path
-                    }
-                }
-            }
-            
-            if (!$exists) {
-                error_log("File not found in S3, all alternatives exhausted");
-                return false;
-            }
-            
-            // Create a presigned URL with expiration
+            // Try to create a presigned URL
             $cmd = $this->s3Client->getCommand('GetObject', [
                 'Bucket' => $this->bucketName,
                 'Key'    => $filePath
@@ -465,7 +420,17 @@ class AWSFileManager {
             return $presignedUrl;
         } catch (Exception $e) {
             error_log("Error generating presigned URL: " . $e->getMessage());
-            return false;
+            
+            // If the request fails, try a public URL as fallback
+            try {
+                // Try direct S3 URL
+                $directUrl = "https://{$this->bucketName}.s3.{$this->region}.amazonaws.com/{$filePath}";
+                error_log("Falling back to direct S3 URL: " . $directUrl);
+                return $directUrl;
+            } catch (Exception $innerException) {
+                error_log("Fallback also failed: " . $innerException->getMessage());
+                return false;
+            }
         }
     }
 

@@ -113,6 +113,57 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $gym_id = $db_connection->insert_id;
         error_log("Created initial gym record with ID: " . $gym_id);
         
+        // Upload the thumbnail if provided
+        $gym_thumbnail = null;
+        if (isset($_FILES['gym_thumbnail']) && $_FILES['gym_thumbnail']['error'] === 0) {
+            $tmp_path = $_FILES['gym_thumbnail']['tmp_name'];
+            $filename = $_FILES['gym_thumbnail']['name'];
+            
+            // Using AWS
+            if (USE_AWS) {
+                // Upload thumbnail
+                $gym_thumbnail = $awsManager->uploadGymThumbnail($tmp_path, $gym_id, $filename);
+                
+                if (!$gym_thumbnail) {
+                    throw new Exception("Failed to upload gym thumbnail");
+                }
+                
+                // Update the record with the thumbnail path
+                $update_query = "UPDATE gyms SET gym_thumbnail = ? WHERE gym_id = ?";
+                $stmt = $db_connection->prepare($update_query);
+                $stmt->bind_param("si", $gym_thumbnail, $gym_id);
+                
+                if (!$stmt->execute()) {
+                    throw new Exception("Failed to update gym with thumbnail");
+                }
+                
+                error_log("Updated gym record with thumbnail: " . $gym_thumbnail);
+            } else {
+                // Legacy file upload to local filesystem
+                $upload_dir = '../uploads/gym_thumbnails/';
+                if (!file_exists($upload_dir)) {
+                    mkdir($upload_dir, 0777, true);
+                }
+
+                $file_extension = pathinfo($_FILES['gym_thumbnail']['name'], PATHINFO_EXTENSION);
+                $filename = 'gym_' . time() . '_' . uniqid() . '.' . $file_extension;
+                $target_path = $upload_dir . $filename;
+
+                if (move_uploaded_file($_FILES['gym_thumbnail']['tmp_name'], $target_path)) {
+                    $gym_thumbnail = 'uploads/gym_thumbnails/' . $filename;
+                    
+                    // Update the record with the thumbnail path
+                    $update_query = "UPDATE gyms SET gym_thumbnail = ? WHERE gym_id = ?";
+                    $stmt = $db_connection->prepare($update_query);
+                    $stmt->bind_param("si", $gym_thumbnail, $gym_id);
+                    
+                    if (!$stmt->execute()) {
+                        throw new Exception("Failed to update gym with thumbnail");
+                    }
+                }
+            }
+        }
+
         // Handle legal document uploads - business permit, valid ID, tax certificate
         $legal_documents = [];
         
@@ -214,7 +265,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         error_log("Successfully submitted gym application with ID: " . $gym_id);
         header("Location: ../pages/dashboard.php?success=application_submitted");
         exit();
-        
     } catch (Exception $e) {
         $db_connection->rollback();
         error_log("ERROR in gym application: " . $e->getMessage());
