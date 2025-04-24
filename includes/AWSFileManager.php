@@ -111,6 +111,7 @@ class AWSFileManager {
             $this->createFolderIfNotExists($folderPath . 'amenities/');
             $this->createFolderIfNotExists($folderPath . 'equipment/');
             $this->createFolderIfNotExists($folderPath . 'thumbnail/');
+            $this->createFolderIfNotExists($folderPath . 'legal_documents/'); // Add legal_documents subfolder
             
             return $folderPath;
         }
@@ -254,19 +255,136 @@ class AWSFileManager {
     }
     
     /**
-     * Uploads legal documents - these will be encrypted and private
+     * Uploads pending legal documents - these will be encrypted and private
      */
-    public function uploadLegalDocument($tempFilePath, $gymId, $fileName, $documentType) {
+    public function uploadPendingLegalDocument($tempFilePath, $userId, $fileName, $documentType) {
         $ext = pathinfo($fileName, PATHINFO_EXTENSION);
-        $folderPath = "uploads/legal_documents/gym_{$gymId}/";
+        $folderPath = "uploads/legal_documents/pending/user_{$userId}/";
         
-        // Create legal documents folder for gym if doesn't exist
+        // Create pending documents folder for user if doesn't exist
         $this->createFolderIfNotExists($folderPath);
         
         $newFileName = "{$documentType}_" . time() . "." . $ext;
         $targetPath = $folderPath . $newFileName;
         
-        return $this->uploadFile($tempFilePath, $targetPath, true, true); // Private AND encrypted
+        $result = $this->uploadFile($tempFilePath, $targetPath, true, true); // Private AND encrypted
+        error_log("Pending legal document uploaded to: {$targetPath}, result: " . ($result ? $result : 'false'));
+        return $result;
+    }
+    
+    /**
+     * Uploads approved legal documents - these will be encrypted and private
+     */
+    public function uploadLegalDocument($tempFilePath, $gymId, $fileName, $documentType) {
+        $ext = pathinfo($fileName, PATHINFO_EXTENSION);
+        
+        // Get gym folder path
+        global $db_connection;
+        $stmt = $db_connection->prepare("SELECT gym_name FROM gyms WHERE gym_id = ?");
+        $stmt->bind_param("i", $gymId);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        
+        if ($row = $result->fetch_assoc()) {
+            $sanitizedName = $this->sanitizeFileName($row['gym_name']);
+            $folderPath = "uploads/gyms/gym{$gymId}_{$sanitizedName}/legal_documents/";
+            
+            // Create legal documents folder if doesn't exist
+            $this->createFolderIfNotExists($folderPath);
+            
+            $newFileName = "{$documentType}_" . time() . "." . $ext;
+            $targetPath = $folderPath . $newFileName;
+            
+            $result = $this->uploadFile($tempFilePath, $targetPath, true, true); // Private AND encrypted
+            error_log("Approved legal document uploaded to: {$targetPath}, result: " . ($result ? $result : 'false'));
+            return $result;
+        }
+        
+        error_log("Failed to find gym data for uploading legal document. Gym ID: {$gymId}");
+        return false;
+    }
+
+    /**
+     * Moves documents from pending to approved status
+     * 
+     * @param int $userId User ID of the gym applicant
+     * @param int $gymId Gym ID that was approved
+     * @return bool Success or failure
+     */
+    public function moveDocumentsToApprovedGym($userId, $gymId) {
+        try {
+            // Get gym data
+            global $db_connection;
+            $stmt = $db_connection->prepare("SELECT gym_name FROM gyms WHERE gym_id = ?");
+            $stmt->bind_param("i", $gymId);
+            $stmt->execute();
+            $result = $stmt->get_result();
+            
+            if (!$result->num_rows) {
+                error_log("Failed to find gym data for moving documents. Gym ID: {$gymId}");
+                return false;
+            }
+            
+            $gym = $result->fetch_assoc();
+            $sanitizedName = $this->sanitizeFileName($gym['gym_name']);
+            
+            // Source and destination paths
+            $sourcePath = "uploads/legal_documents/pending/user_{$userId}/";
+            $destPath = "uploads/gyms/gym{$gymId}_{$sanitizedName}/legal_documents/";
+            
+            // Ensure destination folder exists
+            $this->createFolderIfNotExists($destPath);
+            
+            // List all files in source directory
+            $objects = $this->s3Client->listObjectsV2([
+                'Bucket' => $this->bucketName,
+                'Prefix' => $sourcePath
+            ]);
+            
+            if (!isset($objects['Contents'])) {
+                error_log("No files found in pending documents folder: {$sourcePath}");
+                return false;
+            }
+            
+            // Copy each file to the new location
+            foreach ($objects['Contents'] as $object) {
+                // Skip the directory object itself
+                if (substr($object['Key'], -1) === '/') {
+                    continue;
+                }
+                
+                $fileName = basename($object['Key']);
+                $destinationKey = $destPath . $fileName;
+                
+                // Copy object
+                $this->s3Client->copyObject([
+                    'Bucket' => $this->bucketName,
+                    'CopySource' => $this->bucketName . '/' . $object['Key'],
+                    'Key' => $destinationKey,
+                    'ACL' => 'private',
+                    'ServerSideEncryption' => 'AES256'
+                ]);
+                
+                error_log("Moved document from {$object['Key']} to {$destinationKey}");
+                
+                // Delete original
+                $this->s3Client->deleteObject([
+                    'Bucket' => $this->bucketName,
+                    'Key' => $object['Key']
+                ]);
+            }
+            
+            // Finally, delete the empty source directory
+            $this->s3Client->deleteObject([
+                'Bucket' => $this->bucketName,
+                'Key' => $sourcePath
+            ]);
+            
+            return true;
+        } catch (Exception $e) {
+            error_log("Error moving documents: " . $e->getMessage());
+            return false;
+        }
     }
     
     /**
