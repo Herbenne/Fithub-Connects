@@ -1,4 +1,22 @@
-<FilesMatch ".*">
+# Redirect all requests to the public folder
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteRule ^$ public/index.php [L]
+    RewriteRule ^((?!public/).*)$ public/$1 [L,NC]
+</IfModule>
+
+# Prevent direct access to sensitive files
+<FilesMatch "^\.env|composer\.json|composer\.lock|vendor/|private/|config/(.*)\.php$">
     Order Allow,Deny
     Deny from all
 </FilesMatch>
+
+# Prevent directory listing
+Options -Indexes
+
+# PHP error handling for production
+php_flag display_startup_errors off
+php_flag display_errors off
+php_flag html_errors off
+php_value docref_root 0
+php_value docref_ext 0
