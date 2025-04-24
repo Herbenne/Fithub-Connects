@@ -1,6 +1,7 @@
 <?php
 session_start();
 include '../config/database.php';
+require_once '../includes/AWSFileManager.php';
 
 // Log every request for debugging
 error_log("Fetching image for user: " . ($_GET['user_id'] ?? $_SESSION['user_id']));
@@ -23,6 +24,9 @@ if (!$user || empty($user['profile_picture'])) {
     exit();
 }
 
+// Initialize AWS file manager
+$awsManager = new AWSFileManager();
+
 // If it's an AWS URL (starts with http)
 if (strpos($user['profile_picture'], 'http') === 0) {
     error_log("Redirecting to AWS URL: " . $user['profile_picture']);
@@ -31,19 +35,20 @@ if (strpos($user['profile_picture'], 'http') === 0) {
 }
 
 // If it's a path to AWS without http
-if (strpos($user['profile_picture'], 's3.') !== false || 
-    strpos($user['profile_picture'], 'amazonaws.com') !== false) {
-    
-    require_once '../includes/AWSFileManager.php';
-    $awsManager = new AWSFileManager();
+if (USE_AWS) {
+    // Get the public URL from AWS
     $url = $awsManager->getPublicUrl($user['profile_picture']);
     
-    error_log("Constructed AWS URL: " . $url);
-    header("Location: " . $url);
-    exit();
+    if ($url) {
+        error_log("Constructed AWS URL: " . $url);
+        header("Location: " . $url);
+        exit();
+    } else {
+        error_log("Failed to get AWS URL for: " . $user['profile_picture']);
+    }
 }
 
-// If it's a relative path
+// If AWS fails or not using AWS, try local file as fallback
 $local_path = "../" . ltrim($user['profile_picture'], '/');
 error_log("Local path: " . $local_path);
 

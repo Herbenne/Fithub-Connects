@@ -1,6 +1,7 @@
 <?php
 session_start();
 include '../config/database.php';
+require_once '../includes/AWSFileManager.php';
 
 // Add extensive logging
 error_log("Attempting to fetch document. Gym ID: " . ($_GET['gym_id'] ?? 'none') . 
@@ -60,6 +61,9 @@ if (!isset($legal_docs[$doc_type])) {
 $doc_path = $legal_docs[$doc_type];
 error_log("Document path: " . $doc_path);
 
+// Initialize AWS file manager
+$awsManager = new AWSFileManager();
+
 // If it's an AWS URL (starts with http)
 if (strpos($doc_path, 'http') === 0) {
     error_log("Redirecting to AWS URL: " . $doc_path);
@@ -68,19 +72,20 @@ if (strpos($doc_path, 'http') === 0) {
 }
 
 // If it's a path to AWS without http
-if (strpos($doc_path, 's3.') !== false || 
-    strpos($doc_path, 'amazonaws.com') !== false) {
-    
-    require_once '../includes/AWSFileManager.php';
-    $awsManager = new AWSFileManager();
+if (USE_AWS) {
+    // Get the public URL from AWS
     $url = $awsManager->getPublicUrl($doc_path);
     
-    error_log("Constructed AWS URL: " . $url);
-    header("Location: " . $url);
-    exit();
+    if ($url) {
+        error_log("Constructed AWS URL: " . $url);
+        header("Location: " . $url);
+        exit();
+    } else {
+        error_log("Failed to get AWS URL for: " . $doc_path);
+    }
 }
 
-// If it's a relative path
+// If AWS fails or not using AWS, try local file as fallback
 $local_path = "../" . ltrim($doc_path, '/');
 error_log("Local path: " . $local_path);
 

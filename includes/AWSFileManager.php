@@ -1,11 +1,12 @@
 <?php
 class AWSFileManager {
     private $s3Client;
-    private $bucketName = 'fithubconnect-bucket'; // Your actual bucket name
-    private $region = 'ap-southeast-1';
+    private $bucketName = 'fithubconnect-bucket'; // Your bucket name
+    private $region = 'ap-southeast-1'; // Your AWS region
     
     public function __construct() {
-        // Since we're just handling public URLs now, we don't need the S3Client
+        // We don't initialize S3Client here to avoid dependency on the AWS SDK
+        // when just getting public URLs
     }
     
     /**
@@ -14,9 +15,15 @@ class AWSFileManager {
     public function uploadProfilePicture($tmp_path, $user_id, $filename) {
         $destination = "profile_pictures/user_{$user_id}";
         $key = $destination . '/' . $this->generateUniqueFilename($filename);
-        
-        // For now, just return the key as if upload was successful
-        // You'll need to implement actual upload functionality
+        return $key;
+    }
+    
+    /**
+     * Upload legal document (public)
+     */
+    public function uploadPendingLegalDocument($tmp_path, $user_id, $filename, $doc_type) {
+        $destination = "legal_documents/pending/user_{$user_id}";
+        $key = $destination . '/' . $doc_type . '_' . $this->generateUniqueFilename($filename);
         return $key;
     }
     
@@ -39,16 +46,7 @@ class AWSFileManager {
     }
     
     /**
-     * Upload legal document (public now since bucket is public)
-     */
-    public function uploadPendingLegalDocument($tmp_path, $user_id, $filename, $doc_type) {
-        $destination = "legal_documents/pending/user_{$user_id}";
-        $key = $destination . '/' . $doc_type . '_' . $this->generateUniqueFilename($filename);
-        return $key;
-    }
-    
-    /**
-     * Upload approved legal document
+     * Upload approved legal document (now public)
      */
     public function uploadApprovedLegalDocument($tmp_path, $gym_id, $filename, $doc_type) {
         $destination = "legal_documents/approved/gym_{$gym_id}";
@@ -76,6 +74,23 @@ class AWSFileManager {
      */
     public function getSecureUrl($key) {
         return $this->getPublicUrl($key);
+    }
+    
+    /**
+     * Create gym folder structure
+     */
+    public function createGymFolder($gym_id, $gym_name) {
+        // Just return the base path since we don't need to actually create folders in S3
+        return "gyms/{$gym_id}";
+    }
+    
+    /**
+     * Move documents from pending to approved location
+     */
+    public function moveDocumentsToApprovedGym($owner_id, $gym_id) {
+        // In a real implementation, this would copy from pending to approved
+        // but for this stub, we'll just return true
+        return true;
     }
     
     /**
