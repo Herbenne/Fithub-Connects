@@ -1,6 +1,4 @@
 <?php
-// File: config/database.php
-
 // Load environment variables from .env file
 $env_path = __DIR__ . '/../.env';
 if (file_exists($env_path)) {
