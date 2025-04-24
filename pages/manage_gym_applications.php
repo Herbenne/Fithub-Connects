@@ -8,12 +8,6 @@ if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'superadmin') {
     exit();
 }
 
-// Add debugging to check for pending applications
-$check_query = "SELECT COUNT(*) as count FROM gyms WHERE status = 'pending'";
-$check_result = $db_connection->query($check_query);
-$pending_count = $check_result->fetch_assoc()['count'];
-error_log("Found {$pending_count} pending gym applications");
-
 // Fetch pending gym applications
 $query = "SELECT g.*, u.username, u.first_name, u.last_name, u.email, u.contact_number
           FROM gyms g 
@@ -277,6 +271,31 @@ if (!$result) {
     </div>
 
     <script>
+    // Add this at the end of your script to check for a session storage flag
+    document.addEventListener('DOMContentLoaded', function() {
+        // Check if we're coming back from view_application.php
+        if (sessionStorage.getItem('comingBackFromViewApplication') === 'true') {
+            // Clear the flag
+            sessionStorage.removeItem('comingBackFromViewApplication');
+            // No need to do anything else - just don't show the loading overlay
+        }
+        
+        // Auto-hide alerts after 5 seconds
+        const alerts = document.querySelectorAll('.alert');
+        if (alerts.length) {
+            setTimeout(function() {
+                alerts.forEach(alert => {
+                    alert.style.opacity = '0';
+                    alert.style.transition = 'opacity 0.5s';
+                    
+                    setTimeout(function() {
+                        alert.style.display = 'none';
+                    }, 500);
+                });
+            }, 5000);
+        }
+    });
+    
     function showLoading() {
         document.getElementById('loadingOverlay').style.display = 'flex';
         return true;
@@ -298,23 +317,6 @@ if (!$result) {
         
         return false;
     }
-    
-    // Auto-hide alerts after 5 seconds
-    document.addEventListener('DOMContentLoaded', function() {
-        const alerts = document.querySelectorAll('.alert');
-        if (alerts.length) {
-            setTimeout(function() {
-                alerts.forEach(alert => {
-                    alert.style.opacity = '0';
-                    alert.style.transition = 'opacity 0.5s';
-                    
-                    setTimeout(function() {
-                        alert.style.display = 'none';
-                    }, 500);
-                });
-            }, 5000);
-        }
-    });
     </script>
 </body>
 </html>

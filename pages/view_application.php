@@ -1,7 +1,11 @@
 <?php
 session_start();
 include '../config/database.php';
-require_once '../includes/AWSFileManager.php';
+
+// Add debugging to help troubleshoot
+ini_set('display_errors', 1);
+error_reporting(E_ALL);
+error_log("Starting view_application.php execution");
 
 // Ensure user is superadmin
 if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'superadmin') {
@@ -36,6 +40,12 @@ $application = $stmt->get_result()->fetch_assoc();
 if (!$application) {
     header("Location: manage_gym_applications.php?error=application_not_found");
     exit();
+}
+
+// Extract equipment images
+$equipment_images = [];
+if (!empty($application['equipment_images'])) {
+    $equipment_images = json_decode($application['equipment_images'], true);
 }
 
 // Extract legal documents
@@ -179,47 +189,9 @@ $s3_base_url = "https://fithubconnect-bucket.s3.ap-southeast-1.amazonaws.com/";
         border: 1px solid #ddd;
         border-radius: 4px;
     }
-
-    /* Loading overlay */
-    .loading-overlay {
-        display: none;
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background-color: rgba(0, 0, 0, 0.7);
-        z-index: 9999;
-        justify-content: center;
-        align-items: center;
-        flex-direction: column;
-        color: white;
-    }
-    
-    .spinner {
-        border: 5px solid #f3f3f3;
-        border-top: 5px solid #3498db;
-        border-radius: 50%;
-        width: 50px;
-        height: 50px;
-        animation: spin 2s linear infinite;
-        margin-bottom: 20px;
-    }
-    
-    @keyframes spin {
-        0% { transform: rotate(0deg); }
-        100% { transform: rotate(360deg); }
-    }
     </style>
 </head>
 <body>
-    <!-- Loading overlay -->
-    <div id="loadingOverlay" class="loading-overlay">
-        <div class="spinner"></div>
-        <h3>Processing Request...</h3>
-        <p>Please wait while we process your request.</p>
-    </div>
-
     <div class="application-container">
         <a href="manage_gym_applications.php" class="back-btn">
             <i class="fas fa-arrow-left"></i> Back to Applications
@@ -317,30 +289,20 @@ $s3_base_url = "https://fithubconnect-bucket.s3.ap-southeast-1.amazonaws.com/";
         </div>
         
         <div class="approval-actions">
-            <form action="../actions/approve_gym.php" method="POST" onsubmit="return showLoading();">
+            <form action="../actions/approve_gym.php" method="POST">
                 <input type="hidden" name="gym_id" value="<?php echo $application['gym_id']; ?>">
-                <button type="submit" class="approve-btn">
+                <button type="submit" class="approve-btn" onclick="return confirm('Are you sure you want to approve this gym?');">
                     <i class="fas fa-check"></i> Approve Application
                 </button>
             </form>
             
-            <form action="../actions/reject_gym.php" method="POST" onsubmit="return showLoading();">
+            <form action="../actions/reject_gym.php" method="POST">
                 <input type="hidden" name="gym_id" value="<?php echo $application['gym_id']; ?>">
-                <button type="submit" class="reject-btn">
+                <button type="submit" class="reject-btn" onclick="return confirm('Are you sure you want to reject this gym?');">
                     <i class="fas fa-times"></i> Reject Application
                 </button>
             </form>
         </div>
     </div>
-
-    <script>
-    function showLoading() {
-        if (confirm('Are you sure you want to proceed with this action?')) {
-            document.getElementById('loadingOverlay').style.display = 'flex';
-            return true;
-        }
-        return false;
-    }
-    </script>
 </body>
 </html>
