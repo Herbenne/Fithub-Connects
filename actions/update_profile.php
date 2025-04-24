@@ -36,67 +36,93 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         exit();
     }
 
-    // Handle profile picture upload
+    // Handle profile picture upload with overwrite
     $profile_picture = null;
     if (!empty($_FILES['profile_picture']['name'])) {
-        $file_tmp = $_FILES['profile_picture']['tmp_name'];
-        $file_name = $_FILES['profile_picture']['name'];
-        $file_size = $_FILES['profile_picture']['size'];
-        $file_type = $_FILES['profile_picture']['type'];
-        $allowed_types = ['image/jpeg', 'image/png', 'image/gif'];
+    $file_tmp = $_FILES['profile_picture']['tmp_name'];
+    $file_name = $_FILES['profile_picture']['name'];
+    $file_size = $_FILES['profile_picture']['size'];
+    $file_type = $_FILES['profile_picture']['type'];
+    $allowed_types = ['image/jpeg', 'image/png', 'image/gif'];
 
-        // Validate file type
-        if (!in_array($file_type, $allowed_types)) {
-            header("Location: ../pages/profile.php?error=invalid_file_type");
-            exit();
-        }
+    // Validate file type
+    if (!in_array($file_type, $allowed_types)) {
+        header("Location: ../pages/profile.php?error=invalid_file_type");
+        exit();
+    }
 
-        // Validate file size (5MB max)
-        if ($file_size > 5 * 1024 * 1024) {
-            header("Location: ../pages/profile.php?error=file_too_large");
-            exit();
-        }
+    // Validate file size (5MB max)
+    if ($file_size > 5 * 1024 * 1024) {
+        header("Location: ../pages/profile.php?error=file_too_large");
+        exit();
+    }
 
-        // Process file upload (AWS vs local)
-        if (USE_AWS) {
-            try {
-                $awsManager = new AWSFileManager();
-                $profile_picture = $awsManager->uploadProfilePicture($file_tmp, $user_id, $file_name);
-                
-                if (!$profile_picture) {
-                    header("Location: ../pages/profile.php?error=aws_upload_error");
-                    exit();
-                }
-                
-                // Log the profile picture path
-                error_log("AWS Profile picture path: " . $profile_picture);
-            } catch (Exception $e) {
-                error_log("AWS upload error: " . $e->getMessage());
+    // Get current profile picture if exists
+    $query = "SELECT profile_picture FROM users WHERE id = ?";
+    $stmt = $db_connection->prepare($query);
+    $stmt->bind_param("i", $user_id);
+    $stmt->execute();
+    $old_picture_result = $stmt->get_result();
+    $old_picture_data = $old_picture_result->fetch_assoc();
+    $old_picture_path = $old_picture_data['profile_picture'] ?? null;
+
+    // Process file upload (AWS vs local)
+    if (USE_AWS) {
+        try {
+            $awsManager = new AWSFileManager();
+            
+            // Delete old picture if exists
+            if (!empty($old_picture_path)) {
+                $awsManager->deleteFile($old_picture_path);
+                error_log("Deleted old profile picture: " . $old_picture_path);
+            }
+            
+            // Upload new picture
+            $profile_picture = $awsManager->uploadProfilePicture($file_tmp, $user_id, $file_name);
+            
+            if (!$profile_picture) {
                 header("Location: ../pages/profile.php?error=aws_upload_error");
                 exit();
             }
-        } else {
-            // Local file storage
-            $upload_dir = "../uploads/profile_pictures/user_{$user_id}/";
             
-            // Create directory if it doesn't exist
-            if (!file_exists($upload_dir)) {
-                if (!mkdir($upload_dir, 0777, true)) {
-                    header("Location: ../pages/profile.php?error=upload_dir_not_writable");
-                    exit();
-                }
-            }
-            
-            $file_ext = pathinfo($file_name, PATHINFO_EXTENSION);
-            $new_file_name = "profile_" . time() . "." . $file_ext;
-            $upload_path = $upload_dir . $new_file_name;
-            
-            if (move_uploaded_file($file_tmp, $upload_path)) {
-                $profile_picture = "uploads/profile_pictures/user_{$user_id}/" . $new_file_name;
-                error_log("Local profile picture path: " . $profile_picture);
-            } else {
-                header("Location: ../pages/profile.php?error=move_upload_failed");
+            // Log the profile picture path
+            error_log("AWS Profile picture path: " . $profile_picture);
+        } catch (Exception $e) {
+            error_log("AWS upload error: " . $e->getMessage());
+            header("Location: ../pages/profile.php?error=aws_upload_error");
+            exit();
+        }
+    } else {
+        // Local file storage
+        $upload_dir = "../uploads/profile_pictures/user_{$user_id}/";
+        
+        // Create directory if it doesn't exist
+        if (!file_exists($upload_dir)) {
+            if (!mkdir($upload_dir, 0777, true)) {
+                header("Location: ../pages/profile.php?error=upload_dir_not_writable");
                 exit();
+            }
+        }
+        
+        // Delete old profile picture if exists
+        if (!empty($old_picture_path)) {
+            $old_local_path = "../" . ltrim($old_picture_path, '/');
+            if (file_exists($old_local_path)) {
+                unlink($old_local_path);
+                error_log("Deleted old local profile picture: " . $old_local_path);
+            }
+        }
+        
+        $file_ext = pathinfo($file_name, PATHINFO_EXTENSION);
+        $new_file_name = "profile_" . time() . "." . $file_ext;
+        $upload_path = $upload_dir . $new_file_name;
+        
+        if (move_uploaded_file($file_tmp, $upload_path)) {
+            $profile_picture = "uploads/profile_pictures/user_{$user_id}/" . $new_file_name;
+            error_log("Local profile picture path: " . $profile_picture);
+        } else {
+            header("Location: ../pages/profile.php?error=move_upload_failed");
+            exit();
             }
         }
     }

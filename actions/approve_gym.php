@@ -12,7 +12,7 @@ if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'superadmin') {
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['gym_id'])) {
     $gym_id = $_POST['gym_id'];
 
-    // Initialize AWS file manager if using AWS
+    // Initialize AWS file manager
     $awsManager = null;
     if (USE_AWS) {
         $awsManager = new AWSFileManager();
@@ -38,8 +38,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['gym_id'])) {
         $owner_id = $gym_data['owner_id'];
         $legal_documents = json_decode($gym_data['legal_documents'] ?? '{}', true);
 
-        // Create gym folder structure if using AWS
+        // Create gym folder structure
         if (USE_AWS && $awsManager) {
+            // Create gym folder structure
             $folderPath = $awsManager->createGymFolder($gym_id, $gym_name);
             
             if (!$folderPath) {
@@ -48,10 +49,39 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['gym_id'])) {
             
             // Move legal documents from pending to approved location
             if (!empty($legal_documents)) {
-                $result = $awsManager->moveDocumentsToApprovedGym($owner_id, $gym_id);
-                if (!$result) {
-                    error_log("Warning: Could not move all legal documents. Continuing anyway.");
+                // First, create a copy of the documents in the new location
+                $approved_documents = [];
+                
+                foreach ($legal_documents as $doc_type => $doc_path) {
+                    // Create the destination path in the approved gym folder
+                    $destination_path = "uploads/gyms/gym{$gym_id}_{$gym_name}/legal_documents/" . basename($doc_path);
+                    
+                    // Copy the document to the new location
+                    $result = $awsManager->copyObject($doc_path, $destination_path);
+                    
+                    if ($result) {
+                        // Add the new path to approved documents
+                        $approved_documents[$doc_type] = $destination_path;
+                        
+                        // Delete the original document from pending location
+                        $awsManager->deleteFile($doc_path);
+                    } else {
+                        // Log warning but continue
+                        error_log("Warning: Could not move legal document {$doc_type}. Original path: {$doc_path}");
+                    }
                 }
+                
+                // Update the gym record with the new document paths
+                if (!empty($approved_documents)) {
+                    $approved_docs_json = json_encode($approved_documents);
+                    $update_docs = "UPDATE gyms SET legal_documents = ? WHERE gym_id = ?";
+                    $stmt = $db_connection->prepare($update_docs);
+                    $stmt->bind_param("si", $approved_docs_json, $gym_id);
+                    $stmt->execute();
+                }
+                
+                // Remove the pending folder for this user
+                $awsManager->deleteFolder("uploads/legal_documents/pending/user_{$owner_id}/");
             }
             
             // Log success
