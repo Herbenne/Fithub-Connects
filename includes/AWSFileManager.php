@@ -5,8 +5,19 @@ class AWSFileManager {
     private $region = 'ap-southeast-1'; // Your AWS region
     
     public function __construct() {
-        // We don't initialize S3Client here to avoid dependency on the AWS SDK
-        // when just getting public URLs
+        // Only initialize if we need to use AWS operations
+        if (defined('USE_AWS') && USE_AWS) {
+            require_once __DIR__ . '/../vendor/autoload.php';
+            
+            $this->s3Client = new \Aws\S3\S3Client([
+                'version' => 'latest',
+                'region'  => $this->region,
+                'credentials' => [
+                    'key'    => getenv('AWS_ACCESS_KEY_ID'),
+                    'secret' => getenv('AWS_SECRET_ACCESS_KEY'),
+                ],
+            ]);
+        }
     }
     
     /**
