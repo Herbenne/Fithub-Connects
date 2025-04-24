@@ -38,24 +38,13 @@ if (!$application) {
     exit();
 }
 
-// If we're using AWS, get URLs for legal documents
-$documentUrls = [];
-if (USE_AWS) {
-    $awsManager = new AWSFileManager();
-    $documentUrls = $awsManager->getPendingLegalDocumentUrls($application['owner_user_id']);
-}
-
-// Get document paths from gym record if not using AWS
-if (!USE_AWS && !empty($application['legal_documents'])) {
-    $legal_docs = json_decode($application['legal_documents'], true);
-    foreach ($legal_docs as $type => $path) {
-        $docType = ucwords(str_replace('_', ' ', $type));
-        $documentUrls[$docType] = [
-            'url' => '../' . $path,
-            'filename' => basename($path),
-            'path' => $path
-        ];
-    }
+// Parse legal documents and extract paths
+$legal_documents = [];
+if (!empty($application['legal_documents'])) {
+    $legal_documents = json_decode($application['legal_documents'], true);
+    
+    // Log the parsed legal documents for debugging
+    error_log("Legal Documents: " . print_r($legal_documents, true));
 }
 
 // Extract equipment images
@@ -64,7 +53,62 @@ if (!empty($application['equipment_images'])) {
     $equipment_images = json_decode($application['equipment_images'], true);
 }
 
+// Initialize document URLs
+$documentUrls = [];
+
+// Try to get presigned URLs if using AWS
+if (USE_AWS && !empty($legal_documents)) {
+    $awsManager = new AWSFileManager();
+    
+    // Process each document to create a proper URL
+    foreach ($legal_documents as $doc_type => $doc_path) {
+        $doc_name = ucwords(str_replace('_', ' ', $doc_type));
+        $file_ext = strtolower(pathinfo($doc_path, PATHINFO_EXTENSION));
+        $is_image = in_array($file_ext, ['jpg', 'jpeg', 'png', 'gif']);
+        $is_pdf = $file_ext === 'pdf';
+        
+        // Generate presigned URL with AWS
+        $url = $awsManager->getPresignedUrl($doc_path, '+30 minutes');
+        
+        if ($url) {
+            $documentUrls[$doc_type] = [
+                'url' => $url,
+                'filename' => basename($doc_path),
+                'path' => $doc_path,
+                'type' => $is_image ? 'image' : ($is_pdf ? 'pdf' : 'other')
+            ];
+        } else {
+            // Fallback if URL generation fails
+            $documentUrls[$doc_type] = [
+                'url' => '#',
+                'filename' => basename($doc_path),
+                'path' => $doc_path,
+                'type' => 'error',
+                'error' => 'Failed to generate URL'
+            ];
+        }
+    }
+} else if (!empty($legal_documents)) {
+    // Local file handling
+    foreach ($legal_documents as $doc_type => $doc_path) {
+        $doc_name = ucwords(str_replace('_', ' ', $doc_type));
+        $file_ext = strtolower(pathinfo($doc_path, PATHINFO_EXTENSION));
+        $is_image = in_array($file_ext, ['jpg', 'jpeg', 'png', 'gif']);
+        $is_pdf = $file_ext === 'pdf';
+        
+        // For local files, ensure path is correct
+        $local_path = '../' . ltrim($doc_path, '/');
+        
+        $documentUrls[$doc_type] = [
+            'url' => $doc_path, // Will be accessed via fetch_document.php
+            'filename' => basename($doc_path),
+            'path' => $doc_path,
+            'type' => $is_image ? 'image' : ($is_pdf ? 'pdf' : 'other')
+        ];
+    }
+}
 ?>
+
 <!DOCTYPE html>
 <html>
 <head>
@@ -194,9 +238,47 @@ if (!empty($application['equipment_images'])) {
         border: 1px solid #ddd;
         border-radius: 4px;
     }
+
+    /* Loading overlay */
+    .loading-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.7);
+        z-index: 9999;
+        justify-content: center;
+        align-items: center;
+        flex-direction: column;
+        color: white;
+    }
+    
+    .spinner {
+        border: 5px solid #f3f3f3;
+        border-top: 5px solid #3498db;
+        border-radius: 50%;
+        width: 50px;
+        height: 50px;
+        animation: spin 2s linear infinite;
+        margin-bottom: 20px;
+    }
+    
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
     </style>
 </head>
 <body>
+    <!-- Loading overlay -->
+    <div id="loadingOverlay" class="loading-overlay">
+        <div class="spinner"></div>
+        <h3>Processing Request...</h3>
+        <p>Please wait while we process your request.</p>
+    </div>
+
     <div class="application-container">
         <a href="manage_gym_applications.php" class="back-btn">
             <i class="fas fa-arrow-left"></i> Back to Applications
@@ -215,7 +297,9 @@ if (!empty($application['equipment_images'])) {
             <?php if (!empty($application['gym_thumbnail'])): ?>
                 <h3>Gym Thumbnail</h3>
                 <img src="<?php echo htmlspecialchars($application['gym_thumbnail']); ?>" 
-                     alt="Gym Thumbnail" style="max-width: 300px; border-radius: 5px;">
+                     alt="Gym Thumbnail" 
+                     style="max-width: 300px; border-radius: 5px;"
+                     onerror="this.onerror=null; this.src='../assets/images/placeholder.png';">
             <?php endif; ?>
             
             <?php if (!empty($equipment_images)): ?>
@@ -223,7 +307,8 @@ if (!empty($application['equipment_images'])) {
                 <div class="equipment-images">
                     <?php foreach ($equipment_images as $image): ?>
                         <img src="<?php echo htmlspecialchars($image); ?>" 
-                             alt="Equipment" class="equipment-image">
+                             alt="Equipment" class="equipment-image"
+                             onerror="this.onerror=null; this.src='../assets/images/placeholder.png';">
                     <?php endforeach; ?>
                 </div>
             <?php endif; ?>
@@ -244,21 +329,28 @@ if (!empty($application['equipment_images'])) {
                 <p>No legal documents found for this application.</p>
             <?php else: ?>
                 <div class="documents-grid">
-                    <?php foreach ($documentUrls as $docType => $docInfo): ?>
+                    <?php foreach ($documentUrls as $doc_type => $docInfo): 
+                        $doc_name = ucwords(str_replace('_', ' ', $doc_type));
+                    ?>
                         <div class="document-card">
-                            <h4><?php echo htmlspecialchars($docType); ?></h4>
+                            <h4><?php echo htmlspecialchars($doc_name); ?></h4>
                             <p><?php echo htmlspecialchars($docInfo['filename']); ?></p>
                             
-                            <?php 
-                            // Check if document is an image that can be previewed
-                            $ext = pathinfo($docInfo['filename'], PATHINFO_EXTENSION);
-                            $is_image = in_array(strtolower($ext), ['jpg', 'jpeg', 'png', 'gif']);
-                            
-                            if ($is_image): 
-                            ?>
+                            <?php if ($docInfo['type'] === 'image'): ?>
                                 <img src="<?php echo htmlspecialchars($docInfo['url']); ?>" 
-                                     alt="<?php echo htmlspecialchars($docType); ?>"
-                                     class="document-preview">
+                                     alt="<?php echo htmlspecialchars($doc_name); ?>"
+                                     class="document-preview"
+                                     onerror="this.src='../assets/images/image-error.png'">
+                            <?php elseif ($docInfo['type'] === 'pdf'): ?>
+                                <div class="document-preview" style="display: flex; flex-direction: column; align-items: center; justify-content: center;">
+                                    <i class="fas fa-file-pdf" style="font-size: 48px; color: #f44336;"></i>
+                                    <p>PDF Document</p>
+                                </div>
+                            <?php else: ?>
+                                <div class="document-preview" style="display: flex; flex-direction: column; align-items: center; justify-content: center;">
+                                    <i class="fas fa-file" style="font-size: 48px; color: #607d8b;"></i>
+                                    <p>Document File</p>
+                                </div>
                             <?php endif; ?>
                             
                             <div class="document-actions">
@@ -272,16 +364,14 @@ if (!empty($application['equipment_images'])) {
         </div>
         
         <div class="approval-actions">
-            <form action="../actions/approve_gym.php" method="POST" 
-                  onsubmit="return confirm('Are you sure you want to approve this gym?');">
+            <form action="../actions/approve_gym.php" method="POST" onsubmit="return showLoading();">
                 <input type="hidden" name="gym_id" value="<?php echo $application['gym_id']; ?>">
                 <button type="submit" class="approve-btn">
                     <i class="fas fa-check"></i> Approve Application
                 </button>
             </form>
             
-            <form action="../actions/reject_gym.php" method="POST"
-                  onsubmit="return confirm('Are you sure you want to reject this gym application?');">
+            <form action="../actions/reject_gym.php" method="POST" onsubmit="return showLoading();">
                 <input type="hidden" name="gym_id" value="<?php echo $application['gym_id']; ?>">
                 <button type="submit" class="reject-btn">
                     <i class="fas fa-times"></i> Reject Application
@@ -289,5 +379,15 @@ if (!empty($application['equipment_images'])) {
             </form>
         </div>
     </div>
+
+    <script>
+    function showLoading() {
+        if (confirm('Are you sure you want to proceed with this action?')) {
+            document.getElementById('loadingOverlay').style.display = 'flex';
+            return true;
+        }
+        return false;
+    }
+    </script>
 </body>
 </html>

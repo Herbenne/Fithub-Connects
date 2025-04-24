@@ -390,50 +390,133 @@ class AWSFileManager {
     /**
      * Gets a presigned URL that allows temporary access to private files
      * Used for superadmin to view legal documents
+     * 
+     * @param string $filePath Path to the file in S3
+     * @param string $expiryTime Expiry time string (e.g. '+30 minutes')
+     * @return string|false The presigned URL or false on failure
      */
     public function getPresignedUrl($filePath, $expiryTime = '+30 minutes') {
         try {
+            // Log path for debugging
+            error_log("Generating presigned URL for path: " . $filePath);
+            
+            // If it's already a full URL, just return it
+            if (strpos($filePath, 'http') === 0) {
+                error_log("Path is already a URL, returning as is");
+                return $filePath;
+            }
+            
+            // Clean up the path - remove any leading slashes or "../"
+            $filePath = ltrim($filePath, '/');
+            $filePath = str_replace('../', '', $filePath);
+            
+            // If the path doesn't exist in S3, try to find alternative paths
+            $exists = false;
+            
+            try {
+                // Check if the file exists first
+                $this->s3Client->headObject([
+                    'Bucket' => $this->bucketName,
+                    'Key'    => $filePath
+                ]);
+                $exists = true;
+            } catch (S3Exception $e) {
+                error_log("File not found in S3 at path: " . $filePath);
+                
+                // Try alternative paths
+                $alternative_paths = [
+                    "uploads/" . basename($filePath),
+                    "uploads/legal_documents/" . basename($filePath),
+                    "uploads/legal_documents/pending/user_" . basename($filePath)
+                ];
+                
+                foreach ($alternative_paths as $alt_path) {
+                    error_log("Trying alternative path: " . $alt_path);
+                    try {
+                        $this->s3Client->headObject([
+                            'Bucket' => $this->bucketName,
+                            'Key'    => $alt_path
+                        ]);
+                        $filePath = $alt_path;
+                        $exists = true;
+                        error_log("Found file at alternative path: " . $alt_path);
+                        break;
+                    } catch (S3Exception $e) {
+                        // Continue to next path
+                    }
+                }
+            }
+            
+            if (!$exists) {
+                error_log("File not found in S3, all alternatives exhausted");
+                return false;
+            }
+            
+            // Create a presigned URL with expiration
             $cmd = $this->s3Client->getCommand('GetObject', [
                 'Bucket' => $this->bucketName,
                 'Key'    => $filePath
             ]);
             
             $request = $this->s3Client->createPresignedRequest($cmd, $expiryTime);
-            return (string)$request->getUri();
+            $presignedUrl = (string)$request->getUri();
             
-        } catch (S3Exception $e) {
+            error_log("Generated presigned URL: " . $presignedUrl);
+            return $presignedUrl;
+        } catch (Exception $e) {
             error_log("Error generating presigned URL: " . $e->getMessage());
             return false;
         }
     }
-    
+
     /**
-     * Deletes a file from S3
+     * Gets public URL for a file (for non-private files)
+     * 
+     * @param string $filePath Path to the file in S3
+     * @return string|false The public URL or false on failure
      */
-    public function deleteFile($filePath) {
+    public function getPublicUrl($filePath) {
         try {
-            $this->s3Client->deleteObject([
-                'Bucket' => $this->bucketName,
-                'Key'    => $filePath
-            ]);
-            return true;
-        } catch (S3Exception $e) {
-            error_log("Error deleting file {$filePath}: " . $e->getMessage());
+            // Clean up the path
+            $filePath = ltrim($filePath, '/');
+            $filePath = str_replace('../', '', $filePath);
+            
+            // Generate the standard S3 URL
+            $url = "https://{$this->bucketName}.s3.{$this->region}.amazonaws.com/{$filePath}";
+            return $url;
+        } catch (Exception $e) {
+            error_log("Error generating public URL: " . $e->getMessage());
             return false;
         }
     }
-    
-    /**
-     * Sanitizes a filename to be safe for storage
-     */
-    private function sanitizeFileName($fileName) {
-        // Replace special characters with underscore
-        $sanitized = preg_replace('/[^a-zA-Z0-9_-]/', '_', $fileName);
-        // Convert to lowercase
-        $sanitized = strtolower($sanitized);
-        // Limit length
-        $sanitized = substr($sanitized, 0, 50);
         
-        return $sanitized;
+        /**
+         * Deletes a file from S3
+         */
+        public function deleteFile($filePath) {
+            try {
+                $this->s3Client->deleteObject([
+                    'Bucket' => $this->bucketName,
+                    'Key'    => $filePath
+                ]);
+                return true;
+            } catch (S3Exception $e) {
+                error_log("Error deleting file {$filePath}: " . $e->getMessage());
+                return false;
+            }
+        }
+        
+        /**
+         * Sanitizes a filename to be safe for storage
+         */
+        private function sanitizeFileName($fileName) {
+            // Replace special characters with underscore
+            $sanitized = preg_replace('/[^a-zA-Z0-9_-]/', '_', $fileName);
+            // Convert to lowercase
+            $sanitized = strtolower($sanitized);
+            // Limit length
+            $sanitized = substr($sanitized, 0, 50);
+            
+            return $sanitized;
+        }
     }
-}

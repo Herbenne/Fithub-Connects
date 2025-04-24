@@ -82,6 +82,100 @@ if (!$result) {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
+        
+        /* Improved action buttons styling */
+        .actions {
+            display: flex;
+            gap: 8px;
+            justify-content: flex-end;
+        }
+        
+        .view-btn, .approve-btn, .reject-btn {
+            padding: 8px 12px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            transition: all 0.2s ease;
+            text-decoration: none;
+            font-size: 14px;
+        }
+        
+        .view-btn {
+            background-color: #2196F3;
+            color: white;
+        }
+        
+        .approve-btn {
+            background-color: #4CAF50;
+            color: white;
+        }
+        
+        .reject-btn {
+            background-color: #f44336;
+            color: white;
+        }
+        
+        .view-btn:hover, .approve-btn:hover, .reject-btn:hover {
+            opacity: 0.9;
+            transform: translateY(-2px);
+        }
+        
+        /* Style for no applications message */
+        .no-applications {
+            text-align: center;
+            padding: 40px 20px;
+            background-color: #f9f9f9;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+        
+        .no-applications i {
+            font-size: 48px;
+            color: #ccc;
+            margin-bottom: 15px;
+        }
+        
+        .no-applications p {
+            font-size: 18px;
+            color: #666;
+        }
+        
+        /* Success and error alerts */
+        .alert {
+            padding: 12px 15px;
+            margin-bottom: 20px;
+            border-radius: 4px;
+            position: relative;
+            animation: fadeIn 0.3s ease-in;
+            display: flex;
+            align-items: center;
+        }
+        
+        .alert i {
+            margin-right: 10px;
+            font-size: 18px;
+        }
+        
+        .alert-success {
+            background-color: #e8f5e9;
+            border-left: 4px solid #4CAF50;
+            color: #2e7d32;
+        }
+        
+        .alert-error {
+            background-color: #ffebee;
+            border-left: 4px solid #f44336;
+            color: #c62828;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
     </style>
 </head>
 <body>
@@ -98,6 +192,7 @@ if (!$result) {
 
         <?php if (isset($_GET['success'])): ?>
             <div class="alert alert-success">
+                <i class="fas fa-check-circle"></i>
                 <?php 
                 $message = 'Application was successfully ';
                 $message .= $_GET['success'] === 'rejected' ? 'rejected.' : 'approved.';
@@ -108,6 +203,7 @@ if (!$result) {
 
         <?php if (isset($_GET['error'])): ?>
             <div class="alert alert-error">
+                <i class="fas fa-exclamation-circle"></i>
                 <?php echo htmlspecialchars($_GET['error']); ?>
             </div>
         <?php endif; ?>
@@ -121,7 +217,7 @@ if (!$result) {
                         <th>Owner</th>
                         <th>Documents</th>
                         <th>Submission Date</th>
-                        <th>Actions</th>
+                        <th style="width: 220px;">Actions</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -152,20 +248,18 @@ if (!$result) {
                             </td>
                             <td><?php echo date('M d, Y', strtotime($application['created_at'])); ?></td>
                             <td class="actions">
-                                <a href="view_application.php?gym_id=<?php echo $application['gym_id']; ?>" class="view-btn">
+                                <a href="view_application.php?gym_id=<?php echo $application['gym_id']; ?>" class="view-btn" onclick="showLoading()">
                                     <i class="fas fa-eye"></i> View Details
                                 </a>
-                                <form action="../actions/approve_gym.php" method="POST" style="display: inline;" onsubmit="showLoading()">
+                                <form action="../actions/approve_gym.php" method="POST" style="display: inline;" onsubmit="return confirmAction('approve');">
                                     <input type="hidden" name="gym_id" value="<?php echo $application['gym_id']; ?>">
-                                    <button type="submit" class="approve-btn" 
-                                            onclick="return confirm('Are you sure you want to approve this application?')">
+                                    <button type="submit" class="approve-btn">
                                         <i class="fas fa-check"></i> Approve
                                     </button>
                                 </form>
-                                <form action="../actions/reject_gym.php" method="POST" style="display: inline;" onsubmit="showLoading()">
+                                <form action="../actions/reject_gym.php" method="POST" style="display: inline;" onsubmit="return confirmAction('reject');">
                                     <input type="hidden" name="gym_id" value="<?php echo $application['gym_id']; ?>">
-                                    <button type="submit" class="reject-btn" 
-                                            onclick="return confirm('Are you sure you want to reject this application?')">
+                                    <button type="submit" class="reject-btn">
                                         <i class="fas fa-times"></i> Reject
                                     </button>
                                 </form>
@@ -188,11 +282,38 @@ if (!$result) {
         return true;
     }
     
-    // Also show loading screen when View Details is clicked
-    document.querySelectorAll('.view-btn').forEach(btn => {
-        btn.addEventListener('click', function() {
+    function confirmAction(action) {
+        let message = '';
+        
+        if (action === 'approve') {
+            message = 'Are you sure you want to approve this gym application?';
+        } else if (action === 'reject') {
+            message = 'Are you sure you want to reject this gym application?';
+        }
+        
+        if (confirm(message)) {
             showLoading();
-        });
+            return true;
+        }
+        
+        return false;
+    }
+    
+    // Auto-hide alerts after 5 seconds
+    document.addEventListener('DOMContentLoaded', function() {
+        const alerts = document.querySelectorAll('.alert');
+        if (alerts.length) {
+            setTimeout(function() {
+                alerts.forEach(alert => {
+                    alert.style.opacity = '0';
+                    alert.style.transition = 'opacity 0.5s';
+                    
+                    setTimeout(function() {
+                        alert.style.display = 'none';
+                    }, 500);
+                });
+            }, 5000);
+        }
     });
     </script>
 </body>

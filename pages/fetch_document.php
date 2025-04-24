@@ -3,13 +3,10 @@ session_start();
 include '../config/database.php';
 require_once '../includes/AWSFileManager.php';
 
-ini_set('display_errors', 1);
+// Enhanced error logging
+ini_set('display_errors', 0); // Don't display errors to users
 error_log("Starting fetch, REQUEST_URI: " . $_SERVER['REQUEST_URI']);
 error_log("GET parameters: " . print_r($_GET, true));
-
-// Add extensive logging
-error_log("Attempting to fetch document. Gym ID: " . ($_GET['gym_id'] ?? 'none') . 
-          ", Doc type: " . ($_GET['doc_type'] ?? 'none'));
 
 // Security check - must be superadmin
 if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'superadmin') {
@@ -65,38 +62,93 @@ if (!isset($legal_docs[$doc_type])) {
 $doc_path = $legal_docs[$doc_type];
 error_log("Document path: " . $doc_path);
 
-// Initialize AWS file manager
-$awsManager = new AWSFileManager();
-
-// If it's an AWS URL (starts with http)
-if (strpos($doc_path, 'http') === 0) {
-    error_log("Redirecting to AWS URL: " . $doc_path);
-    header("Location: " . $doc_path);
-    exit();
-}
-
-// If it's a path to AWS without http
+// Initialize AWS file manager if using AWS
 if (USE_AWS) {
-    // Get the public URL from AWS
-    $url = $awsManager->getPublicUrl($doc_path);
+    $awsManager = new AWSFileManager();
+    
+    // Get presigned URL with expiration time
+    $url = $awsManager->getPresignedUrl($doc_path, '+15 minutes');
     
     if ($url) {
-        error_log("Constructed AWS URL: " . $url);
+        error_log("Redirecting to presigned URL: " . $url);
         header("Location: " . $url);
         exit();
     } else {
-        error_log("Failed to get AWS URL for: " . $doc_path);
+        error_log("Failed to generate presigned URL for: " . $doc_path);
     }
 }
 
-// If AWS fails or not using AWS, try local file as fallback
+// Fallback to local file path if AWS fails or not using AWS
 $local_path = "../" . ltrim($doc_path, '/');
-error_log("Local path: " . $local_path);
+error_log("Trying local path: " . $local_path);
 
 if (file_exists($local_path)) {
-    header("Location: " . $local_path);
+    // Get file MIME type
+    $file_info = pathinfo($local_path);
+    $extension = strtolower($file_info['extension']);
+    
+    // Set appropriate content type
+    $content_type = 'application/octet-stream'; // Default
+    
+    if ($extension == 'pdf') {
+        $content_type = 'application/pdf';
+    } elseif (in_array($extension, ['jpg', 'jpeg'])) {
+        $content_type = 'image/jpeg';
+    } elseif ($extension == 'png') {
+        $content_type = 'image/png';
+    } elseif ($extension == 'gif') {
+        $content_type = 'image/gif';
+    }
+    
+    // Output file with proper headers
+    header('Content-Type: ' . $content_type);
+    header('Content-Disposition: inline; filename="' . basename($local_path) . '"');
+    header('Content-Length: ' . filesize($local_path));
+    
+    readfile($local_path);
+    exit();
 } else {
     error_log("File not found at: " . $local_path);
-    header("Location: ../assets/images/document-not-found.jpg");
+    
+    // Try alternate path formats
+    $alt_paths = [
+        '../' . $doc_path,
+        $doc_path,
+        '../uploads/' . basename($doc_path)
+    ];
+    
+    foreach ($alt_paths as $path) {
+        error_log("Trying alternate path: " . $path);
+        if (file_exists($path)) {
+            // Get file MIME type
+            $file_info = pathinfo($path);
+            $extension = strtolower($file_info['extension']);
+            
+            // Set appropriate content type
+            $content_type = 'application/octet-stream'; // Default
+            
+            if ($extension == 'pdf') {
+                $content_type = 'application/pdf';
+            } elseif (in_array($extension, ['jpg', 'jpeg'])) {
+                $content_type = 'image/jpeg';
+            } elseif ($extension == 'png') {
+                $content_type = 'image/png';
+            } elseif ($extension == 'gif') {
+                $content_type = 'image/gif';
+            }
+            
+            // Output file with proper headers
+            header('Content-Type: ' . $content_type);
+            header('Content-Disposition: inline; filename="' . basename($path) . '"');
+            header('Content-Length: ' . filesize($path));
+            
+            readfile($path);
+            exit();
+        }
+    }
+    
+    // If we get here, the file was not found
+    header('HTTP/1.0 404 Not Found');
+    echo "File not found";
+    exit();
 }
-exit();
