@@ -2,6 +2,10 @@
 session_start();
 include '../config/database.php';
 
+// Add error reporting for debugging
+ini_set('display_errors', 0); // Don't show errors to users
+error_reporting(E_ALL); // Log all errors
+
 if (!isset($_SESSION['user_id'])) {
     header("Location: login.php");
     exit();
@@ -17,37 +21,14 @@ $stmt->execute();
 $user = $stmt->get_result()->fetch_assoc();
 
 // Set default image path
-$default_image = '../assets/images/default-profile.png';
+$default_image = '../assets/images/default-profile.jpg';
 $profile_pic = $default_image; // Default image path
 
-// Profile picture path handling - improved error handling
+// Profile picture handling - using the file handler approach
 if (!empty($user['profile_picture'])) {
-    // For AWS storage
-    if (USE_AWS && strpos($user['profile_picture'], 'http') === 0) {
-        // Direct URL from AWS
-        $profile_pic = $user['profile_picture'];
-        error_log("Using AWS profile picture URL: " . $profile_pic);
-    } else {
-        // For local storage or AWS path that needs prefixing
-        // Remove any leading slashes
-        $image_path = ltrim($user['profile_picture'], '/');
-        
-        // Check if we need to add '../' prefix
-        if (strpos($image_path, '../') !== 0 && strpos($image_path, 'assets/') === 0) {
-            $image_path = '../' . $image_path;
-        }
-        
-        // Log for debugging
-        error_log("Profile image path: " . $image_path);
-        
-        // Verify file exists and is readable for local storage
-        if (file_exists($image_path) && is_readable($image_path)) {
-            $profile_pic = $image_path;
-            error_log("Found local profile picture: " . $profile_pic);
-        } else {
-            error_log("Profile picture not found or not readable: " . $image_path);
-        }
-    }
+    // Use the file handler to generate the appropriate URL
+    $profile_pic = "view_file.php?path=" . urlencode($user['profile_picture']) . "&direct=1";
+    error_log("Profile picture URL: " . $profile_pic);
 }
 
 // Cache control headers
@@ -117,10 +98,10 @@ header('Expires: 0');
 
         <div class="profile-header">
             <div class="profile-picture-container">
-                <img src="<?php echo htmlspecialchars($profile_pic); ?>" 
-                     alt="Profile Picture" 
-                     class="profile-picture"
-                     onerror="this.src='<?php echo htmlspecialchars($default_image); ?>'">
+                <img src="fetch_image.php?user_id=<?php echo $user_id; ?>" 
+                alt="Profile Picture" 
+                class="profile-picture"
+                onerror="this.src='../assets/images/default-profile.jpg'">
             </div>
             <h2><?php echo htmlspecialchars($user['first_name'] . ' ' . $user['last_name']); ?></h2>
             <p class="username">@<?php echo htmlspecialchars($user['username']); ?></p>
