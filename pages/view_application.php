@@ -45,19 +45,6 @@ if (USE_AWS) {
     $documentUrls = $awsManager->getPendingLegalDocumentUrls($application['owner_user_id']);
 }
 
-// Get document paths from gym record if not using AWS
-if (!USE_AWS && !empty($application['legal_documents'])) {
-    $legal_docs = json_decode($application['legal_documents'], true);
-    foreach ($legal_docs as $type => $path) {
-        $docType = ucwords(str_replace('_', ' ', $type));
-        $documentUrls[$docType] = [
-            'url' => '../' . $path,
-            'filename' => basename($path),
-            'path' => $path
-        ];
-    }
-}
-
 // Extract equipment images
 $equipment_images = [];
 if (!empty($application['equipment_images'])) {
