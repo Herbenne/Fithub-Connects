@@ -1,7 +1,8 @@
 <?php
-// AWSFileManager.php
-require_once __DIR__ . '/../includes/aws-sdk/aws-autoloader.php';
+defined('AWS_ACCESS_KEY_ID') or define('AWS_ACCESS_KEY_ID', 'AKIA3IGE32DHK4JDED4H');
+defined('AWS_SECRET_ACCESS_KEY') or define('AWS_SECRET_ACCESS_KEY', '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');
 
+require 'vendor/autoload.php';
 use Aws\S3\S3Client;
 use Aws\Exception\AwsException;
 
