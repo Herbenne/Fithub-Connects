@@ -1,7 +1,10 @@
 <?php
-// In fetch_document.php - For legal documents (private)
 session_start();
 include '../config/database.php';
+
+// Add extensive logging
+error_log("Attempting to fetch document. Gym ID: " . ($_GET['gym_id'] ?? 'none') . 
+          ", Doc type: " . ($_GET['doc_type'] ?? 'none'));
 
 // Security check - must be superadmin
 if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'superadmin') {
@@ -29,7 +32,14 @@ $stmt->bind_param("i", $gym_id);
 $stmt->execute();
 $gym = $stmt->get_result()->fetch_assoc();
 
-if (!$gym || empty($gym['legal_documents'])) {
+if (!$gym) {
+    error_log("Gym not found: " . $gym_id);
+    header('HTTP/1.0 404 Not Found');
+    echo "Gym not found";
+    exit();
+}
+
+if (empty($gym['legal_documents'])) {
     error_log("No legal documents found for gym: " . $gym_id);
     header('HTTP/1.0 404 Not Found');
     echo "No documents found";
@@ -38,6 +48,8 @@ if (!$gym || empty($gym['legal_documents'])) {
 
 // Parse legal documents JSON
 $legal_docs = json_decode($gym['legal_documents'], true);
+error_log("Legal documents: " . print_r($legal_docs, true));
+
 if (!isset($legal_docs[$doc_type])) {
     error_log("Document type not found: " . $doc_type);
     header('HTTP/1.0 404 Not Found');
@@ -46,27 +58,36 @@ if (!isset($legal_docs[$doc_type])) {
 }
 
 $doc_path = $legal_docs[$doc_type];
+error_log("Document path: " . $doc_path);
 
-// Handle S3 paths - generate temporary access
+// If it's an AWS URL (starts with http)
+if (strpos($doc_path, 'http') === 0) {
+    error_log("Redirecting to AWS URL: " . $doc_path);
+    header("Location: " . $doc_path);
+    exit();
+}
+
+// If it's a path to AWS without http
 if (strpos($doc_path, 's3.') !== false || 
     strpos($doc_path, 'amazonaws.com') !== false) {
     
     require_once '../includes/AWSFileManager.php';
     $awsManager = new AWSFileManager();
+    $url = $awsManager->getPublicUrl($doc_path);
     
-    // Generate secure URL for legal documents
-    $url = $awsManager->getSecureUrl($doc_path);
-    if ($url) {
-        header("Location: " . $url);
-        exit();
-    }
+    error_log("Constructed AWS URL: " . $url);
+    header("Location: " . $url);
+    exit();
 }
 
-// If we get here, use local file or default
+// If it's a relative path
 $local_path = "../" . ltrim($doc_path, '/');
+error_log("Local path: " . $local_path);
+
 if (file_exists($local_path)) {
     header("Location: " . $local_path);
 } else {
+    error_log("File not found at: " . $local_path);
     header("Location: ../assets/images/document-not-found.jpg");
 }
 exit();

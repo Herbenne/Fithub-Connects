@@ -36,28 +36,33 @@ if (isset($_FILES['profile_picture']) && $_FILES['profile_picture']['error'] ===
     }
 
     if (USE_AWS) {
-        // AWS S3 upload
         try {
             require_once '../includes/AWSFileManager.php';
             $awsManager = new AWSFileManager();
-    
+            
+            // Get current profile picture path
+            $get_current = "SELECT profile_picture FROM users WHERE id = ?";
+            $stmt = $db_connection->prepare($get_current);
+            $stmt->bind_param("i", $user_id);
+            $stmt->execute();
+            $current_pic = $stmt->get_result()->fetch_assoc()['profile_picture'];
+            
+            // Upload new picture
             $tmp_path = $file['tmp_name'];
             $filename = $file['name'];
-    
             $relative_path = $awsManager->uploadProfilePicture($tmp_path, $user_id, $filename);
-    
+            
             if (!$relative_path) {
                 error_log("AWS upload failed for profile picture");
                 header("Location: ../pages/profile.php?error=upload_failed");
                 exit();
             }
-    
-            error_log("AWS upload successful, path: " . $relative_path);
-    
+            
+            // Update database with new path
             $update_query = "UPDATE users SET profile_picture = ? WHERE id = ?";
             $stmt = $db_connection->prepare($update_query);
             $stmt->bind_param("si", $relative_path, $user_id);
-    
+            
             if (!$stmt->execute()) {
                 error_log("Database update error: " . $stmt->error);
                 header("Location: ../pages/profile.php?error=db_execute_error");

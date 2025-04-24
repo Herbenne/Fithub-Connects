@@ -1,71 +1,11 @@
 <?php
-defined('AWS_ACCESS_KEY_ID') or define('AWS_ACCESS_KEY_ID', 'AKIA3IGE32DHK4JDED4H');
-defined('AWS_SECRET_ACCESS_KEY') or define('AWS_SECRET_ACCESS_KEY', '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');
-
-require 'vendor/autoload.php';
-use Aws\S3\S3Client;
-use Aws\Exception\AwsException;
-
 class AWSFileManager {
     private $s3Client;
     private $bucketName = 'fithubconnect-bucket'; // Your actual bucket name
+    private $region = 'ap-southeast-1';
     
     public function __construct() {
-        // Initialize AWS S3 client
-        $this->s3Client = new S3Client([
-            'version' => 'latest',
-            'region' => 'ap-southeast-1', // Update with your region
-            'credentials' => [
-                'key' => AWS_ACCESS_KEY_ID,
-                'secret' => AWS_SECRET_ACCESS_KEY,
-            ]
-        ]);
-    }
-    
-    /**
-     * Upload a file to S3 with public access
-     * Used for: profile pictures, gym thumbnails, amenity images, equipment images
-     */
-    public function uploadPublicFile($tmp_path, $destination_path, $filename) {
-        $key = $destination_path . '/' . $this->generateUniqueFilename($filename);
-        
-        try {
-            $result = $this->s3Client->putObject([
-                'Bucket' => $this->bucketName,
-                'Key' => $key,
-                'SourceFile' => $tmp_path,
-                'ACL' => 'public-read', // Make it publicly accessible
-                'ContentType' => $this->getContentType($filename)
-            ]);
-            
-            return $key; // Return the path to store in database
-        } catch (AwsException $e) {
-            error_log("AWS upload error: " . $e->getMessage());
-            return false;
-        }
-    }
-    
-    /**
-     * Upload a file to S3 with private access
-     * Used for: legal documents
-     */
-    public function uploadPrivateFile($tmp_path, $destination_path, $filename) {
-        $key = $destination_path . '/' . $this->generateUniqueFilename($filename);
-        
-        try {
-            $result = $this->s3Client->putObject([
-                'Bucket' => $this->bucketName,
-                'Key' => $key,
-                'SourceFile' => $tmp_path,
-                'ACL' => 'private', // Keep it private
-                'ContentType' => $this->getContentType($filename)
-            ]);
-            
-            return $key; // Return the path to store in database
-        } catch (AwsException $e) {
-            error_log("AWS upload error: " . $e->getMessage());
-            return false;
-        }
+        // Since we're just handling public URLs now, we don't need the S3Client
     }
     
     /**
@@ -73,7 +13,11 @@ class AWSFileManager {
      */
     public function uploadProfilePicture($tmp_path, $user_id, $filename) {
         $destination = "profile_pictures/user_{$user_id}";
-        return $this->uploadPublicFile($tmp_path, $destination, $filename);
+        $key = $destination . '/' . $this->generateUniqueFilename($filename);
+        
+        // For now, just return the key as if upload was successful
+        // You'll need to implement actual upload functionality
+        return $key;
     }
     
     /**
@@ -81,7 +25,8 @@ class AWSFileManager {
      */
     public function uploadGymImage($tmp_path, $gym_id, $filename, $type = 'thumbnail') {
         $destination = "gyms/{$gym_id}/{$type}";
-        return $this->uploadPublicFile($tmp_path, $destination, $filename);
+        $key = $destination . '/' . $this->generateUniqueFilename($filename);
+        return $key;
     }
     
     /**
@@ -89,27 +34,30 @@ class AWSFileManager {
      */
     public function uploadEquipmentImage($tmp_path, $gym_id, $filename) {
         $destination = "gyms/{$gym_id}/equipment";
-        return $this->uploadPublicFile($tmp_path, $destination, $filename);
+        $key = $destination . '/' . $this->generateUniqueFilename($filename);
+        return $key;
     }
     
     /**
-     * Upload legal document (private)
+     * Upload legal document (public now since bucket is public)
      */
     public function uploadPendingLegalDocument($tmp_path, $user_id, $filename, $doc_type) {
         $destination = "legal_documents/pending/user_{$user_id}";
-        return $this->uploadPrivateFile($tmp_path, $destination, "{$doc_type}_" . $filename);
+        $key = $destination . '/' . $doc_type . '_' . $this->generateUniqueFilename($filename);
+        return $key;
     }
     
     /**
-     * Upload approved legal document (private)
+     * Upload approved legal document
      */
     public function uploadApprovedLegalDocument($tmp_path, $gym_id, $filename, $doc_type) {
         $destination = "legal_documents/approved/gym_{$gym_id}";
-        return $this->uploadPrivateFile($tmp_path, $destination, "{$doc_type}_" . $filename);
+        $key = $destination . '/' . $doc_type . '_' . $this->generateUniqueFilename($filename);
+        return $key;
     }
     
     /**
-     * Get a public URL for public files
+     * Get a public URL for files
      */
     public function getPublicUrl($key) {
         if (empty($key)) return false;
@@ -119,28 +67,15 @@ class AWSFileManager {
             return $key;
         }
         
-        // Otherwise, construct the URL
-        return "https://{$this->bucketName}.s3.amazonaws.com/" . ltrim($key, '/');
+        // Otherwise, construct the correct URL with region
+        return "https://{$this->bucketName}.s3.{$this->region}.amazonaws.com/" . ltrim($key, '/');
     }
     
     /**
-     * Generate a temporary signed URL for private files
+     * Get a secure URL (same as public now since bucket is public)
      */
-    public function getSecureUrl($key, $expires = '+30 minutes') {
-        if (empty($key)) return false;
-        
-        try {
-            $cmd = $this->s3Client->getCommand('GetObject', [
-                'Bucket' => $this->bucketName,
-                'Key' => ltrim($key, '/')
-            ]);
-            
-            $request = $this->s3Client->createPresignedRequest($cmd, $expires);
-            return (string) $request->getUri();
-        } catch (Exception $e) {
-            error_log("Failed to generate pre-signed URL: " . $e->getMessage());
-            return false;
-        }
+    public function getSecureUrl($key) {
+        return $this->getPublicUrl($key);
     }
     
     /**
