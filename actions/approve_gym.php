@@ -23,7 +23,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['gym_id'])) {
 
     try {
         // Get gym details before update
-        $gym_query = "SELECT gym_name, owner_id FROM gyms WHERE gym_id = ? AND status = 'pending'";
+        $gym_query = "SELECT gym_name, owner_id, legal_documents FROM gyms WHERE gym_id = ? AND status = 'pending'";
         $stmt = $db_connection->prepare($gym_query);
         $stmt->bind_param("i", $gym_id);
         $stmt->execute();
@@ -36,6 +36,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['gym_id'])) {
         $gym_data = $gym_result->fetch_assoc();
         $gym_name = $gym_data['gym_name'];
         $owner_id = $gym_data['owner_id'];
+        $legal_documents = json_decode($gym_data['legal_documents'] ?? '{}', true);
 
         // Create gym folder structure if using AWS
         if (USE_AWS && $awsManager) {
@@ -45,8 +46,44 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['gym_id'])) {
                 throw new Exception("Failed to create gym folders in AWS");
             }
             
+            // Move legal documents from pending to approved location
+            if (!empty($legal_documents)) {
+                $result = $awsManager->moveDocumentsToApprovedGym($owner_id, $gym_id);
+                if (!$result) {
+                    error_log("Warning: Could not move all legal documents. Continuing anyway.");
+                }
+            }
+            
             // Log success
             error_log("Created AWS folder structure for gym: $gym_id - $gym_name");
+        } else if (!USE_AWS) {
+            // For local filesystem: Create necessary folders and move documents
+            $base_dir = "../uploads/gyms/gym{$gym_id}_{$gym_name}/";
+            $legal_dir = $base_dir . "legal_documents/";
+            $pending_dir = "../uploads/legal_documents/pending/user_{$owner_id}/";
+            
+            // Create directories if they don't exist
+            if (!file_exists($base_dir)) {
+                mkdir($base_dir, 0777, true);
+            }
+            if (!file_exists($legal_dir)) {
+                mkdir($legal_dir, 0777, true);
+            }
+            
+            // Move legal documents if they exist
+            if (file_exists($pending_dir)) {
+                $files = glob($pending_dir . "*");
+                foreach ($files as $file) {
+                    if (is_file($file)) {
+                        $filename = basename($file);
+                        $new_path = $legal_dir . $filename;
+                        rename($file, $new_path);
+                    }
+                }
+                
+                // Remove empty pending directory
+                rmdir($pending_dir);
+            }
         }
 
         // Update gym status
