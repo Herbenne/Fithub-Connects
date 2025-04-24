@@ -63,6 +63,52 @@ class AWSFileManager {
     }
     
     /**
+     * Create a new gym folder when a gym is approved
+     * 
+     * @param int $gymId The gym ID
+     * @param string $gymName The gym name
+     * @return string|boolean The folder path or false on failure
+     */
+    public function createGymFolder($gymId, $gymName) {
+        try {
+            $sanitizedName = $this->sanitizeFileName($gymName);
+            $folderPath = "uploads/gyms/gym{$gymId}_{$sanitizedName}/";
+            
+            error_log("Creating gym folder structure at: " . $folderPath);
+            
+            // Create main gym folder
+            if (!$this->createFolderIfNotExists($folderPath)) {
+                error_log("Failed to create main gym folder: " . $folderPath);
+                return false;
+            }
+            
+            // Create subfolders 
+            $subfolders = [
+                'amenities/',
+                'equipment/',
+                'thumbnail/',
+                'legal_documents/'
+            ];
+            
+            foreach ($subfolders as $subfolder) {
+                $subfolderPath = $folderPath . $subfolder;
+                error_log("Creating subfolder: " . $subfolderPath);
+                
+                if (!$this->createFolderIfNotExists($subfolderPath)) {
+                    error_log("Failed to create subfolder: " . $subfolderPath);
+                    // Continue anyway to create other folders
+                }
+            }
+            
+            error_log("Successfully created gym folder structure for gym ID: " . $gymId);
+            return $folderPath;
+        } catch (Exception $e) {
+            error_log("Error creating gym folder: " . $e->getMessage());
+            return false;
+        }
+    }
+
+    /**
      * Check if folder exists, create if it doesn't
      */
     public function createFolderIfNotExists($folderPath) {
@@ -72,50 +118,44 @@ class AWSFileManager {
                 $folderPath .= '/';
             }
             
-            // Check if folder exists
-            $result = $this->s3Client->listObjects([
-                'Bucket' => $this->bucketName,
-                'Prefix' => $folderPath,
-                'MaxKeys' => 1
-            ]);
+            error_log("Checking if folder exists: " . $folderPath);
             
-            // If the folder doesn't exist or is empty, create it with an empty object
-            if (!isset($result['Contents']) || count($result['Contents']) === 0) {
+            // Check if folder exists
+            try {
+                $result = $this->s3Client->listObjects([
+                    'Bucket' => $this->bucketName,
+                    'Prefix' => $folderPath,
+                    'MaxKeys' => 1
+                ]);
+                
+                // If the folder exists, we'll receive something in the Contents
+                if (isset($result['Contents']) && count($result['Contents']) > 0) {
+                    error_log("Folder already exists: " . $folderPath);
+                    return true;
+                }
+            } catch (S3Exception $e) {
+                error_log("Error checking if folder exists: " . $e->getMessage());
+            }
+            
+            // If we get here, the folder doesn't exist, so create it
+            try {
                 $this->s3Client->putObject([
                     'Bucket' => $this->bucketName,
                     'Key'    => $folderPath,
                     'Body'   => '',
-                    'ACL'    => 'private'
+                    'ACL'    => 'public-read'
                 ]);
                 
-                error_log("Created folder: {$folderPath}");
+                error_log("Created folder: " . $folderPath);
+                return true;
+            } catch (S3Exception $e) {
+                error_log("Error creating folder: " . $e->getMessage());
+                return false;
             }
-            
-            return true;
-        } catch (S3Exception $e) {
-            error_log("Error creating folder {$folderPath}: " . $e->getMessage());
+        } catch (Exception $e) {
+            error_log("Error in createFolderIfNotExists: " . $e->getMessage());
             return false;
         }
-    }
-    
-    /**
-     * Create a new gym folder when a gym is approved
-     */
-    public function createGymFolder($gymId, $gymName) {
-        $sanitizedName = $this->sanitizeFileName($gymName);
-        $folderPath = "uploads/gyms/gym{$gymId}_{$sanitizedName}/";
-        
-        if ($this->createFolderIfNotExists($folderPath)) {
-            // Create subfolders for gym
-            $this->createFolderIfNotExists($folderPath . 'amenities/');
-            $this->createFolderIfNotExists($folderPath . 'equipment/');
-            $this->createFolderIfNotExists($folderPath . 'thumbnail/');
-            $this->createFolderIfNotExists($folderPath . 'legal_documents/'); // Add legal_documents subfolder
-            
-            return $folderPath;
-        }
-        
-        return false;
     }
     
     /**
@@ -585,6 +625,45 @@ class AWSFileManager {
             error_log("Error deleting folder: " . $e->getMessage());
             return false;
         }
+    }
+
+    /**
+    * Lists all files in a directory in S3
+    * 
+    * @param string $prefix Directory prefix to list
+    * @return array List of file paths
+    */
+    public function listFiles($prefix) {
+        try {
+            error_log("Listing files with prefix: " . $prefix);
+            
+            $result = $this->s3Client->listObjects([
+                'Bucket' => $this->bucketName,
+                'Prefix' => $prefix
+            ]);
+            
+            $files = [];
+            if (isset($result['Contents'])) {
+                foreach ($result['Contents'] as $object) {
+                    $files[] = $object['Key'];
+                    error_log("Found file: " . $object['Key']);
+                }
+            }
+            
+            return $files;
+        } catch (S3Exception $e) {
+            error_log("Error listing files: " . $e->getMessage());
+            return [];
+        }
+    }
+
+    /**
+     * Returns the bucket name
+     * 
+     * @return string The bucket name
+     */
+    public function getBucketName() {
+        return $this->bucketName;
     }
 
     }
