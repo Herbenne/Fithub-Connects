@@ -25,9 +25,8 @@ if (isset($_POST['id'])) {
         }
         $stmt->bind_param("i", $membership_id);
         $stmt->execute();
-        $result = $stmt->get_result();
-        $user_data = $result->fetch_assoc();
-        $stmt->close();
+        $user_data = $stmt->get_result()->fetch_assoc();
+        $user_id = $user_data['user_id'];
         
         if (!$user_data) {
             throw new Exception("Membership not found");
@@ -48,8 +47,8 @@ if (isset($_POST['id'])) {
         }
         $stmt->close();
         
-        // Check if the user has any remaining memberships
-        $check_query = "SELECT COUNT(*) as count FROM gym_members WHERE user_id = ?";
+        // Check if user has any remaining active memberships
+        $check_query = "SELECT COUNT(*) as count FROM gym_members WHERE user_id = ? AND status = 'active'";
         $stmt = $db_connection->prepare($check_query);
         if (!$stmt) {
             throw new Exception("Error preparing count query: " . $db_connection->error);
@@ -57,8 +56,8 @@ if (isset($_POST['id'])) {
         $stmt->bind_param("i", $user_id);
         $stmt->execute();
         $result = $stmt->get_result();
-        $count_data = $result->fetch_assoc();
-        $stmt->close();
+        $count_data = $stmt->get_result()->fetch_assoc();
+
         
         // If no more memberships, change user role back to 'user'
         if ($count_data['count'] == 0) {
@@ -69,7 +68,6 @@ if (isset($_POST['id'])) {
             }
             $stmt->bind_param("i", $user_id);
             $stmt->execute();
-            $stmt->close();
         }
         
         $db_connection->commit();

@@ -8,15 +8,11 @@ if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'superadmin') {
     exit();
 }
 
-// Replace the existing query with:
+// Correct query with status column
 $query = "SELECT gm.id, gm.user_id, gm.gym_id, gm.plan_id, gm.start_date, 
-          gm.end_date, g.gym_name, 
+          gm.end_date, gm.status, g.gym_name, 
           CONCAT(u.first_name, ' ', u.last_name) as member_name,
-          mp.plan_name, mp.price,
-          CASE 
-              WHEN gm.end_date >= CURDATE() AND gm.status = 'active' THEN 'active'
-              ELSE 'expired'
-          END as status
+          mp.plan_name, mp.price
           FROM gym_members gm
           JOIN users u ON gm.user_id = u.id
           JOIN gyms g ON gm.gym_id = g.gym_id
@@ -200,7 +196,14 @@ $result = $db_connection->query($query);
                         </select>
                     </div>
 
-                    <div class="form-actions">
+                    <div class="form-group">
+                        <label for="status">Status:</label>
+                        <select id="status" name="status" required>
+                            <option value="active">Active</option>
+                            <option value="inactive">Inactive</option>
+                        </select>
+                    </div>
+                        <div class="form-actions">
                         <button type="button" class="btn-secondary" onclick="closeModal()">Cancel</button>
                         <button type="submit" class="btn-primary">Update Membership</button>
                     </div>
@@ -224,7 +227,7 @@ $result = $db_connection->query($query);
         document.getElementById('start_date').value = startDate;
         document.getElementById('end_date').value = endDate;
         
-        // Set status directly from the database value
+        // Set status
         document.getElementById('status').value = membership.status;
         
         modal.style.display = "block";

@@ -19,21 +19,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $plan_id = intval($_POST['plan_id']);
     $start_date = $_POST['start_date'];
     $end_date = $_POST['end_date'];
-    $status = $_POST['status'];
+    $status = $_POST['status']; // Get status from the form
     
-    // Begin transaction
-    $db_connection->begin_transaction();
+    // Update query with status column
+    $query = "UPDATE gym_members 
+              SET plan_id = ?, 
+                  start_date = ?, 
+                  end_date = ?,
+                  status = ?
+              WHERE id = ?";
+              
+    $stmt = $db_connection->prepare($query);
+    $stmt->bind_param("isssi", $plan_id, $start_date, $end_date, $status, $membership_id);
     
     try {
-        // Update membership details
-        $query = "UPDATE gym_members 
-                SET plan_id = ?, 
-                    start_date = ?, 
-                    end_date = ?,
-                    status = ?
-                WHERE id = ?";
-                
-        $stmt = $db_connection->prepare($query);
         
         if (!$stmt) {
             throw new Exception("Error preparing statement: " . $db_connection->error);
