@@ -6,7 +6,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $username = $_POST['username'];
     $email = $_POST['email'];
     $contact_number = $_POST['contact_number']; 
-    $password = password_hash($_POST['password'], PASSWORD_DEFAULT); // Hash password
+    $password = $_POST['password']; // Store original password for validation
+    $confirm_password = $_POST['confirm_password'];
+    $hashed_password = password_hash($_POST['password'], PASSWORD_DEFAULT); // Hash password
     $role = 'user'; // Default role
     $unique_id = "USR" . bin2hex(random_bytes(3)); // Generate a unique ID
     // Calculate age from birthdate
@@ -42,25 +44,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $error = "Please enter a valid contact number";
     }
 
-    // Password validation
-    if (strlen($password) < 8) {
-        $errors[] = "Password must be at least 8 characters long";
-    }
-    
-    if (!preg_match("/[A-Z]/", $password)) {
-        $errors[] = "Password must contain at least one uppercase letter";
-    }
-    
-    if (!preg_match("/[a-z]/", $password)) {
-        $errors[] = "Password must contain at least one lowercase letter";
-    }
-    
-    if (!preg_match("/[0-9]/", $password)) {
-        $errors[] = "Password must contain at least one number";
-    }
-    
-    if (!preg_match("/[^A-Za-z0-9]/", $password)) {
-        $errors[] = "Password must contain at least one special character";
+    // Simplified password validation - only length check
+    if (strlen($password) < 6) {
+        $errors[] = "Password must be at least 6 characters long";
     }
     
     // Check if passwords match
@@ -91,7 +77,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $insert_query = "INSERT INTO users (unique_id, username, email, password, first_name, last_name, age, contact_number, role) 
                              VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
             $stmt = $db_connection->prepare($insert_query);
-            $stmt->bind_param("sssssssss", $unique_id, $username, $email, $password, $first_name, $last_name, $age, $contact_number, $role);
+            $stmt->bind_param("sssssssss", $unique_id, $username, $email, $hashed_password, $first_name, $last_name, $age, $contact_number, $role);
 
             if ($stmt->execute()) {
                 // Set a success message in session
@@ -169,6 +155,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     <input type="password" id="password" name="password" required>
                     <i class="fas fa-eye" id="togglePassword"></i>
                 </div>
+                <small class="form-text">Password must be at least 6 characters long</small>
             </div>
 
             <div class="form-group">
@@ -199,6 +186,22 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     const birthdateInput = document.getElementById('birthdate');
     const contactNumberInput = document.getElementById('contact_number');
     
+    // Toggle password visibility
+    const togglePassword = document.getElementById('togglePassword');
+    const toggleConfirmPassword = document.getElementById('toggleConfirmPassword');
+    
+    togglePassword.addEventListener('click', function() {
+        const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+        passwordInput.setAttribute('type', type);
+        this.classList.toggle('fa-eye-slash');
+    });
+    
+    toggleConfirmPassword.addEventListener('click', function() {
+        const type = confirmPasswordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+        confirmPasswordInput.setAttribute('type', type);
+        this.classList.toggle('fa-eye-slash');
+    });
+    
     // Set max date for birthdate (13 years ago)
     const today = new Date();
     const thirteenYearsAgo = new Date(today.getFullYear() - 13, today.getMonth(), today.getDate());
@@ -214,11 +217,24 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     form.addEventListener('submit', function(e) {
         const password = passwordInput.value;
         const confirmPassword = confirmPasswordInput.value;
-        const birthdate = birthdateInput.value;
-        const contactNumber = contactNumberInput.value;
+        
+        // Simplified password validation
+        if(password.length < 6) {
+            e.preventDefault();
+            alert('Password must be at least 6 characters long');
+            passwordInput.focus();
+            return;
+        }
+        
+        if(password !== confirmPassword) {
+            e.preventDefault();
+            alert('Passwords do not match!');
+            confirmPasswordInput.focus();
+            return;
+        }
         
         // Validate birthdate
-        if(birthdate === '') {
+        if(birthdateInput.value === '') {
             e.preventDefault();
             alert('Date of birth is required');
             birthdateInput.focus();
@@ -226,7 +242,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         }
         
         // Calculate age
-        const birthdateObj = new Date(birthdate);
+        const birthdateObj = new Date(birthdateInput.value);
         const ageDifMs = Date.now() - birthdateObj.getTime();
         const ageDate = new Date(ageDifMs);
         const age = Math.abs(ageDate.getUTCFullYear() - 1970);
@@ -239,44 +255,25 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         }
         
         // Validate contact number
-        if(contactNumber.trim() === '') {
+        if(contactNumberInput.value.trim() === '') {
             e.preventDefault();
             alert('Contact number is required');
             contactNumberInput.focus();
             return;
         }
         
-        if(!contactNumber.match(/^[0-9+\-\s()]+$/)) {
+        if(!contactNumberInput.value.match(/^[0-9+\-\s()]+$/)) {
             e.preventDefault();
             alert('Please enter a valid contact number');
             contactNumberInput.focus();
             return;
         }
-        
-        form.addEventListener('submit', function(e) {
-            const password = passwordInput.value;
-            const confirmPassword = confirmPasswordInput.value;
-            
-            if(password !== confirmPassword) {
-                e.preventDefault();
-                alert('Passwords do not match!');
-                return;
-            }
-            
-            // Check password requirements
-            if(
-                password.length < 8 ||
-                !/[A-Z]/.test(password) ||
-                !/[a-z]/.test(password) ||
-                !/[0-9]/.test(password) ||
-                !/[^A-Za-z0-9]/.test(password)
-            ) {
-                e.preventDefault();
-                alert('Password does not meet all requirements!');
-                return;
-            }
-        });
     });
+});
+
+function showTerms() {
+    alert("Terms and Conditions for FITHUB CONNECTS\n\nBy registering, you agree to our terms and privacy policy.");
+}
 </script>
     <script src="../assets/js/auth.js"></script>
 </body>
