@@ -3,6 +3,7 @@ session_start();
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 include '../config/database.php';
+require_once '../includes/AWSFileManager.php';
 
 $upload_dir = "../assets/images/";
 if (!file_exists($upload_dir)) {
@@ -28,6 +29,12 @@ if (!$gym_id) {
     exit();
 }
 
+// Initialize AWS file manager
+$awsManager = null;
+if (USE_AWS) {
+    $awsManager = new AWSFileManager();
+}
+
 // Fetch gym details
 $query = "SELECT g.*, u.username as owner_name 
           FROM gyms g 
@@ -51,6 +58,12 @@ if ($gym['equipment_images']) {
     error_log("Equipment images: " . $gym['equipment_images']);
 }
 
+// Parse equipment images
+$equipment_images = [];
+if (!empty($gym['equipment_images'])) {
+    $equipment_images = json_decode($gym['equipment_images'], true) ?: [];
+}
+
 // Fetch all users who could be owners (role = 'admin')
 $users_query = "SELECT id, username, first_name, last_name FROM users WHERE role = 'admin'";
 $users = $db_connection->query($users_query);
@@ -64,15 +77,56 @@ $users = $db_connection->query($users_query);
     <title>Edit Gym - GymHub</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
     <link rel="stylesheet" href="../assets/css/gym_edit.css">
+    <style>
+        .loading-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.7);
+            z-index: 9999;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+        
+        .loading-spinner {
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid #4CAF50;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 2s linear infinite;
+        }
+        
+        .loading-text {
+            color: white;
+            margin-top: 10px;
+            font-size: 18px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
 </head>
 <body>
+    <!-- Loading overlay -->
+    <div id="loadingOverlay" class="loading-overlay">
+        <div class="loading-spinner"></div>
+        <div class="loading-text">Uploading images and updating gym...</div>
+    </div>
+
     <div class="dashboard-container">
         <div class="header-section">
             <a href="manage_gyms.php" class="back-btn"><i class="fas fa-arrow-left"></i> Back to Gym Management</a>
             <h2>Edit Gym: <?php echo htmlspecialchars($gym['gym_name']); ?></h2>
         </div>
 
-        <form action="../actions/edit_gym.php" method="POST" enctype="multipart/form-data" class="edit-form">
+        <form action="../actions/edit_gym.php" method="POST" enctype="multipart/form-data" class="edit-form" id="gymEditForm">
             <input type="hidden" name="gym_id" value="<?php echo $gym['gym_id']; ?>">
             <?php if ($gym['gym_thumbnail']): ?>
                 <input type="hidden" name="current_thumbnail" value="<?php echo htmlspecialchars($gym['gym_thumbnail']); ?>">
@@ -140,14 +194,13 @@ $users = $db_connection->query($users_query);
                         </label>
                         <span class="file-name">No file chosen</span>
                     </div>
-                    <small>Leave empty to keep current image</small>
+                    <small>Leave empty to keep current image. Recommended size: 1200×800 pixels.</small>
                 </div>
 
                 <div class="form-group">
                     <label>Equipment Images</label>
                     <div class="equipment-gallery">
                         <?php 
-                        $equipment_images = json_decode($gym['equipment_images'] ?? '[]', true);
                         if (!empty($equipment_images)): ?>
                             <div class="current-equipment">
                                 <?php foreach ($equipment_images as $index => $image): ?>
@@ -173,7 +226,7 @@ $users = $db_connection->query($users_query);
                         <i class="fas fa-plus"></i> Add Equipment Images
                     </label>
                     <div class="equipment-preview"></div>
-                    <small>You can select multiple images at once</small>
+                    <small>You can select multiple images at once. Maximum 5 images. Each image should be under 5MB.</small>
                 </div>
             </div>
 
@@ -202,7 +255,7 @@ $users = $db_connection->query($users_query);
         }
     }
 
-    // Single event listener for equipment upload preview
+    // Equipment upload preview
     document.getElementById('equipment_upload').addEventListener('change', function(e) {
         const files = e.target.files;
         const preview = document.querySelector('.equipment-preview');
@@ -212,7 +265,15 @@ $users = $db_connection->query($users_query);
             preview.classList.add('active');
         }
         
-        Array.from(files).forEach((file, i) => {
+        // Limit to max 5 images
+        const maxImages = 5;
+        const filesToProcess = Math.min(files.length, maxImages);
+        
+        if (files.length > maxImages) {
+            alert(`Only the first ${maxImages} images will be uploaded. You selected ${files.length} images.`);
+        }
+        
+        Array.from(files).slice(0, maxImages).forEach((file, i) => {
             const reader = new FileReader();
             reader.onload = function(e) {
                 const div = document.createElement('div');
@@ -239,6 +300,11 @@ $users = $db_connection->query($users_query);
             };
             reader.readAsDataURL(file);
         });
+    });
+
+    // Show loading overlay on form submit
+    document.getElementById('gymEditForm').addEventListener('submit', function() {
+        document.getElementById('loadingOverlay').style.display = 'flex';
     });
 
     // Image loading handling

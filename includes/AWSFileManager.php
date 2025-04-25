@@ -666,4 +666,181 @@ class AWSFileManager {
         return $this->bucketName;
     }
 
+    /**
+     * Enhanced method to upload multiple equipment images in a batch
+     * 
+     * @param array $files Array of temporary file paths
+     * @param int $gymId The gym ID
+     * @param array $filenames Array of original filenames
+     * @return array Uploaded file paths
+     */
+    public function uploadMultipleEquipmentImages($files, $gymId, $filenames) {
+        if (!is_array($files) || !is_array($filenames) || count($files) !== count($filenames)) {
+            error_log("Invalid input for uploadMultipleEquipmentImages");
+            return [];
+        }
+        
+        // Get gym data
+        global $db_connection;
+        $stmt = $db_connection->prepare("SELECT gym_name FROM gyms WHERE gym_id = ?");
+        $stmt->bind_param("i", $gymId);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        
+        if (!$result->num_rows) {
+            error_log("Gym not found for ID: " . $gymId);
+            return [];
+        }
+        
+        $row = $result->fetch_assoc();
+        $sanitizedName = $this->sanitizeFileName($row['gym_name']);
+        $folderPath = "uploads/gyms/gym{$gymId}_{$sanitizedName}/equipment/";
+        
+        // Create folder if it doesn't exist
+        $this->createFolderIfNotExists($folderPath);
+        
+        $uploadedPaths = [];
+        foreach ($files as $index => $tmpPath) {
+            if (!file_exists($tmpPath)) {
+                error_log("Temporary file not found: " . $tmpPath);
+                continue;
+            }
+            
+            $filename = $filenames[$index];
+            $ext = pathinfo($filename, PATHINFO_EXTENSION);
+            $newFileName = "equipment_" . time() . "_" . $index . "_" . uniqid() . "." . $ext;
+            $targetPath = $folderPath . $newFileName;
+            
+            // Upload file - public, not encrypted
+            $result = $this->uploadFile($tmpPath, $targetPath, false); 
+            
+            if ($result) {
+                $uploadedPaths[] = $result;
+            }
+        }
+        
+        return $uploadedPaths;
     }
+
+    /**
+     * Clean up unused files in S3 buckets
+     * 
+     * @param string $prefix The folder prefix to scan
+     * @param array $validPaths Array of paths to keep
+     * @return int Number of files deleted
+     */
+    public function cleanupUnusedFiles($prefix, $validPaths) {
+        try {
+            $files = $this->listFiles($prefix);
+            $deleted = 0;
+            
+            foreach ($files as $file) {
+                // Skip if it's a folder
+                if (substr($file, -1) === '/') {
+                    continue;
+                }
+                
+                // Check if the file is in the valid paths
+                if (!in_array($file, $validPaths)) {
+                    if ($this->deleteFile($file)) {
+                        $deleted++;
+                        error_log("Deleted unused file: " . $file);
+                    }
+                }
+            }
+            
+            return $deleted;
+        } catch (Exception $e) {
+            error_log("Error cleaning up unused files: " . $e->getMessage());
+            return 0;
+        }
+    }
+
+    /**
+     * Batch delete files from S3
+     * 
+     * @param array $filePaths Array of file paths to delete
+     * @return int Number of files successfully deleted
+     */
+    public function batchDeleteFiles($filePaths) {
+        if (empty($filePaths) || !is_array($filePaths)) {
+            return 0;
+        }
+        
+        $deleted = 0;
+        $objects = [];
+        
+        // Prepare objects for batch deletion
+        foreach ($filePaths as $path) {
+            $objects[] = ['Key' => $path];
+        }
+        
+        // Delete in batches of 1000 (AWS limit)
+        $batches = array_chunk($objects, 1000);
+        
+        foreach ($batches as $batch) {
+            try {
+                $result = $this->s3Client->deleteObjects([
+                    'Bucket' => $this->bucketName,
+                    'Delete' => [
+                        'Objects' => $batch,
+                        'Quiet' => true
+                    ]
+                ]);
+                
+                if (isset($result['Deleted'])) {
+                    $deleted += count($result['Deleted']);
+                }
+                
+                if (isset($result['Errors']) && !empty($result['Errors'])) {
+                    foreach ($result['Errors'] as $error) {
+                        error_log("Error deleting object {$error['Key']}: {$error['Code']} - {$error['Message']}");
+                    }
+                }
+            } catch (Exception $e) {
+                error_log("Batch delete error: " . $e->getMessage());
+            }
+        }
+        
+        return $deleted;
+    }
+
+    /**
+     * Get the file size of an object in S3
+     * 
+     * @param string $path Path to the file
+     * @return int|false Size in bytes or false on error
+     */
+    public function getFileSize($path) {
+        try {
+            $result = $this->s3Client->headObject([
+                'Bucket' => $this->bucketName,
+                'Key' => $path
+            ]);
+            
+            return $result['ContentLength'] ?? false;
+        } catch (Exception $e) {
+            error_log("Error getting file size: " . $e->getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * Check if a file exists in S3
+     * 
+     * @param string $path Path to check
+     * @return bool True if the file exists
+     */
+    public function fileExists($path) {
+        try {
+            $this->s3Client->headObject([
+                'Bucket' => $this->bucketName,
+                'Key' => $path
+            ]);
+            
+            return true;
+        } catch (Exception $e) {
+            return false;
+        }
+    }
+}
