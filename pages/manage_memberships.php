@@ -196,13 +196,6 @@ $result = $db_connection->query($query);
                         </select>
                     </div>
 
-                    <div class="form-group">
-                        <label for="status">Status:</label>
-                        <select id="status" name="status" required>
-                            <option value="active">Active</option>
-                            <option value="inactive">Inactive</option>
-                        </select>
-                    </div>
                         <div class="form-actions">
                         <button type="button" class="btn-secondary" onclick="closeModal()">Cancel</button>
                         <button type="submit" class="btn-primary">Update Membership</button>
