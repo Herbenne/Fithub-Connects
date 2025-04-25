@@ -41,14 +41,15 @@ $plans_stmt->execute();
 $plans_result = $plans_stmt->get_result();
 $plans_stmt->close();
 
-// Update the members query to include all necessary details and status
+// Update the members query to include separate first_name and last_name fields
 $query = "
     SELECT 
         gm.id, 
         gm.user_id,
         u.username, 
-        u.email, 
-        CONCAT(u.first_name, ' ', u.last_name) as full_name,
+        u.email,
+        u.first_name,
+        u.last_name, 
         mp.plan_name, 
         mp.plan_id,
         gm.start_date, 
@@ -212,7 +213,8 @@ if (isset($_GET['error'])) {
             <table class="members-table">
                 <thead>
                     <tr>
-                        <th>Name</th>
+                        <th>First Name</th>
+                        <th>Last Name</th>
                         <th>Username</th>
                         <th>Email</th>
                         <th>Plan</th>
@@ -226,7 +228,8 @@ if (isset($_GET['error'])) {
                     <?php if ($members->num_rows > 0): ?>
                         <?php while ($member = $members->fetch_assoc()): ?>
                             <tr>
-                                <td><?php echo htmlspecialchars($member['full_name']); ?></td>
+                                <td><?php echo htmlspecialchars($member['first_name']); ?></td>
+                                <td><?php echo htmlspecialchars($member['last_name']); ?></td>
                                 <td><?php echo htmlspecialchars($member['username']); ?></td>
                                 <td><?php echo htmlspecialchars($member['email']); ?></td>
                                 <td><?php echo htmlspecialchars($member['plan_name']); ?></td>
@@ -250,7 +253,7 @@ if (isset($_GET['error'])) {
                         <?php endwhile; ?>
                     <?php else: ?>
                         <tr>
-                            <td colspan="8" class="no-records">No members found for this gym</td>
+                            <td colspan="9" class="no-records">No members found for this gym</td>
                         </tr>
                     <?php endif; ?>
                 </tbody>
@@ -267,8 +270,13 @@ if (isset($_GET['error'])) {
                 <input type="hidden" id="member_id" name="member_id">
                 
                 <div class="form-group">
-                    <label for="member_name">Member Name:</label>
-                    <input type="text" id="member_name" readonly class="form-control">
+                    <label for="member_first_name">First Name:</label>
+                    <input type="text" id="member_first_name" readonly class="form-control">
+                </div>
+                
+                <div class="form-group">
+                    <label for="member_last_name">Last Name:</label>
+                    <input type="text" id="member_last_name" readonly class="form-control">
                 </div>
                 
                 <div class="form-group">
@@ -310,7 +318,8 @@ if (isset($_GET['error'])) {
         
         function openEditModal(member) {
             document.getElementById('member_id').value = member.id;
-            document.getElementById('member_name').value = member.full_name;
+            document.getElementById('member_first_name').value = member.first_name;
+            document.getElementById('member_last_name').value = member.last_name;
             document.getElementById('plan_id').value = member.plan_id;
             
             // Convert to YYYY-MM-DD format for the date input
@@ -351,3 +360,5 @@ if (isset($_GET['error'])) {
             }, 5000);
         });
     </script>
+</body>
+</html>

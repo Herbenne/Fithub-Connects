@@ -47,7 +47,8 @@ $total_pages = ceil($total / $per_page);
                         <th>ID</th>
                         <th>Username</th>
                         <th>Email</th>
-                        <th>Name</th>
+                        <th>First Name</th>
+                        <th>Last Name</th>
                         <th>Role</th>
                         <th>Registration Date</th>
                         <th>Actions</th>
@@ -59,14 +60,15 @@ $total_pages = ceil($total / $per_page);
                             <td><?php echo htmlspecialchars($user['id']); ?></td>
                             <td><?php echo htmlspecialchars($user['username']); ?></td>
                             <td><?php echo htmlspecialchars($user['email']); ?></td>
-                            <td><?php echo htmlspecialchars($user['first_name'] . ' ' . $user['last_name']); ?></td>
+                            <td><?php echo htmlspecialchars($user['first_name']); ?></td>
+                            <td><?php echo htmlspecialchars($user['last_name']); ?></td>
                             <td><?php echo htmlspecialchars($user['role']); ?></td>
                             <td><?php echo date('M d, Y', strtotime($user['reg_date'])); ?></td>
                             <td>
                                 <div class="action-buttons">
-                                    <button class="action-btn edit-btn" onclick="editUser(<?php echo $user['id']; ?>)">
+                                    <a href="edit_user.php?id=<?php echo $user['id']; ?>" class="action-btn edit-btn">
                                         <i class="fas fa-edit"></i> Edit
-                                    </button>
+                                    </a>
                                     <button class="action-btn delete-btn" onclick="deleteUser(<?php echo $user['id']; ?>)">
                                         <i class="fas fa-trash"></i> Delete
                                     </button>
@@ -90,40 +92,9 @@ $total_pages = ceil($total / $per_page);
     </div>
 
     <script>
-        function editUser(userId) {
-            const newRole = prompt("Enter the new role for the user (superadmin, admin, user, member):");
-            if (newRole) {
-                fetch('user_actions.php', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ action: 'edit', user_id: userId, role: newRole })
-                })
-                .then(response => response.json())
-                .then(data => {
-                    alert(data.message);
-                    if (data.status === 'success') {
-                        location.reload();
-                    }
-                })
-                .catch(error => console.error('Error:', error));
-            }
-        }
-
         function deleteUser(userId) {
-            if (confirm("Are you sure you want to delete this user?")) {
-                fetch('user_actions.php', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ action: 'delete', user_id: userId })
-                })
-                .then(response => response.json())
-                .then(data => {
-                    alert(data.message);
-                    if (data.status === 'success') {
-                        location.reload();
-                    }
-                })
-                .catch(error => console.error('Error:', error));
+            if (confirm("Are you sure you want to delete this user? This action cannot be undone.")) {
+                window.location.href = "../actions/delete_user.php?id=" + userId;
             }
         }
     </script>
