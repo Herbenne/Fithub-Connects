@@ -106,7 +106,7 @@ $result = $db_connection->query($query);
     }
 
     function deleteGym(gymId) {
-        if (confirm('Are you sure you want to delete this gym? This action cannot be undone.')) {
+        if (confirm('Are you sure you want to delete this gym from the system? This action cannot be reversed.')) {
             window.location.href = '../actions/delete_gym.php?gym_id=' + gymId;
         }
     }
