@@ -119,6 +119,7 @@ if ($result === false) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="../assets/css/mains.css">
     <link rel="stylesheet" href="../assets/css/dashboards.css">
+    <link rel="stylesheet" href="../assets/css/unified-theme.css">
     <!-- Add Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Add Bootstrap Icons -->
@@ -482,23 +483,29 @@ if ($result === false) {
                                     <?php foreach($group as $gym): ?>
                                         <div class="col-md-4">
                                             <div class="gym-card">
-                                                <img src="<?php echo !empty($gym['gym_thumbnail']) ? 
-                                                    htmlspecialchars($gym['gym_thumbnail']) : 
-                                                    '../assets/images/default-gym.jpg'; ?>" 
-                                                    alt="<?php echo htmlspecialchars($gym['gym_name']); ?>"
-                                                    class="gym-thumbnail">
+                                                <div class="gym-image">
+                                                    <img src="<?php echo !empty($gym['gym_thumbnail']) ? 
+                                                        htmlspecialchars($gym['gym_thumbnail']) : 
+                                                        '../assets/images/default-gym.jpg'; ?>" 
+                                                        alt="<?php echo htmlspecialchars($gym['gym_name']); ?>"
+                                                        onerror="this.onerror=null; this.src='../assets/images/default-gym.jpg';">
+                                                </div>
                                                 <div class="gym-info">
                                                     <h3><?php echo htmlspecialchars($gym['gym_name']); ?></h3>
                                                     <div class="gym-rating">
-                                                        <?php 
-                                                        $rating = round($gym['avg_rating'], 1);
-                                                        for ($i = 1; $i <= 5; $i++): ?>
-                                                            <i class="bi bi-star-fill <?php echo $i <= $rating ? 'checked' : ''; ?>"></i>
-                                                        <?php endfor; ?>
-                                                        <span>(<?php echo $gym['review_count']; ?> reviews)</span>
+                                                        <div class="stars">
+                                                            <?php 
+                                                            $rating = round($gym['avg_rating'], 1);
+                                                            for ($i = 1; $i <= 5; $i++): ?>
+                                                                <i class="bi bi-star-fill <?php echo $i <= $rating ? 'checked' : ''; ?>"></i>
+                                                            <?php endfor; ?>
+                                                        </div>
+                                                        <span class="rating-text">
+                                                            (<?php echo $gym['review_count']; ?> reviews)
+                                                        </span>
                                                     </div>
                                                     <a href="user_view_gym.php?gym_id=<?php echo $gym['gym_id']; ?>" 
-                                                       class="btn btn-primary view-gym-btn">View Gym</a>
+                                                        class="view-gym-btn">View Gym</a>
                                                 </div>
                                             </div>
                                         </div>

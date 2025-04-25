@@ -1,0 +1,232 @@
+:root {
+    --primary-color: #ffb22c;
+    --primary-hover: #e59f26;
+    --text-color: #000000;
+    --background-color: #f7f7f7;
+    --card-bg: white;
+    --shadow-light: 0 2px 4px rgba(0, 0, 0, 0.1);
+    --shadow-medium: 0 2px 8px rgba(0, 0, 0, 0.1);
+    --shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.15);
+    --border-radius: 12px;
+    --transition-speed: 0.3s;
+  }
+  
+  /* ------- UNIFORM NAVBAR STYLES ------- */
+  .navbar {
+    background: white;
+    padding: 1rem 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: var(--shadow-light);
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    margin-right: calc(100vw - 100%); /* Prevents layout shift from scrollbar */
+  }
+  
+  .nav-brand {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: var(--primary-color);
+    text-decoration: none;
+  }
+  
+  .nav-links {
+    display: flex;
+    gap: 20px;
+    align-items: center;
+  }
+  
+  .nav-links a {
+    color: var(--text-color);
+    text-decoration: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+    transition: all var(--transition-speed) ease;
+  }
+  
+  .nav-links a:hover {
+    background-color: rgba(255, 178, 44, 0.1);
+    color: var(--primary-color);
+  }
+  
+  .nav-links a.active {
+    color: var(--primary-color);
+    font-weight: bold;
+  }
+  
+  /* ------- UNIFORM GYM CARD STYLES ------- */
+  .gym-card {
+    background: var(--card-bg);
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow-medium);
+    overflow: hidden;
+    transition: transform var(--transition-speed) ease, 
+                box-shadow var(--transition-speed) ease;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    margin: 0.5rem;
+  }
+  
+  .gym-card:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--shadow-hover);
+  }
+  
+  /* Image container for consistent aspect ratio */
+  .gym-image {
+    position: relative;
+    padding-top: 60%; /* Aspect ratio of 5:3 */
+    overflow: hidden;
+  }
+  
+  .gym-image img,
+  .gym-thumbnail {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  
+  /* For carousel that doesn't use the position:relative container */
+  .gym-thumbnail {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+    position: relative; /* Not absolute */
+  }
+  
+  .gym-info {
+    padding: 1rem;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .gym-info h3 {
+    margin: 0 0 15px 0;
+    font-size: 1.3em;
+    color: #333;
+  }
+  
+  /* Star Rating */
+  .gym-rating {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 15px;
+  }
+  
+  .stars {
+    display: flex;
+    gap: 2px;
+  }
+  
+  .fa-star,
+  .bi-star-fill {
+    color: #ddd;
+  }
+  
+  .fa-star.checked,
+  .bi-star-fill.checked {
+    color: var(--primary-color);
+  }
+  
+  .rating-text {
+    color: #666;
+    font-size: 0.9em;
+  }
+  
+  /* Button Styles */
+  .view-gym-btn,
+  .btn-view,
+  .join-btn {
+    display: inline-block;
+    padding: 0.5rem 1rem;
+    background: var(--primary-color);
+    color: var(--text-color);
+    text-decoration: none;
+    border-radius: 4px;
+    margin-top: auto;
+    transition: background var(--transition-speed) ease;
+    border: none;
+    text-align: center;
+  }
+  
+  .view-gym-btn:hover,
+  .btn-view:hover,
+  .join-btn:hover {
+    background: var(--primary-hover);
+    color: var(--text-color);
+  }
+  
+  /* Back Button Uniform Style */
+  .back-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    color: var(--text-color);
+    text-decoration: none;
+    border: 2px solid var(--primary-color);
+    border-radius: 6px;
+    font-weight: 500;
+    transition: all var(--transition-speed) ease;
+    margin-bottom: 2rem;
+  }
+  
+  .back-btn:hover {
+    background: var(--primary-color);
+    transform: translateX(-5px);
+  }
+  
+  /* Consistent Section Headers */
+  h2 {
+    color: var(--text-color);
+    font-size: 2rem;
+    margin-bottom: 2rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 3px solid var(--primary-color);
+  }
+  
+  /* Carousel Specific Fixes */
+  .carousel-slide {
+    flex: 0 0 auto;
+    min-width: 0;
+    padding: 0.5rem;
+  }
+  
+  .custom-carousel-control {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 40px;
+    height: 40px;
+    background-color: var(--primary-color) !important;
+    border: none;
+    border-radius: 50%;
+    color: var(--text-color);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 1;
+    transition: all var(--transition-speed) ease;
+    z-index: 10;
+  }
+  
+  .custom-carousel-control:hover {
+    background-color: var(--primary-hover) !important;
+    transform: translateY(-50%) scale(1.1);
+  }
+  
+  .custom-prev {
+    left: -20px;
+  }
+  
+  .custom-next {
+    right: -20px;
+  }
