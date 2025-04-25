@@ -32,6 +32,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         die("Plan not found.");
     }
 
+    // Get the base URL dynamically
+    $base_url = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http") . "://" . $_SERVER['HTTP_HOST'];
+    // If you're using a subdirectory, you might want to add it here
+    $base_path = dirname(dirname($_SERVER['PHP_SELF']));
+    if ($base_path !== '/' && $base_path !== '\\') {
+        $base_url .= $base_path;
+    }
+
     // Prepare PayMongo checkout session
     $amount = $plan['price'] * 100; // Convert PHP to cents
     $checkout_data = [
@@ -47,8 +55,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     ]
                 ],
                 "payment_method_types" => ["gcash", "card"],
-                "success_url" => "http://localhost/FITHUB-CONNECTS/pages/payment_success.php?gym_id=$gym_id&user_id=$user_id&plan_id=$plan_id",
-                "cancel_url" => "http://localhost/FITHUB-CONNECTS/pages/gym_details.php?gym_id=$gym_id",
+                "success_url" => "$base_url/pages/payment_success.php?gym_id=$gym_id&user_id=$user_id&plan_id=$plan_id",
+                "cancel_url" => "$base_url/pages/gym_details.php?gym_id=$gym_id",
             ]
         ]
     ];

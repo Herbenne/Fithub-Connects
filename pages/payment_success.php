@@ -56,6 +56,13 @@ if (!$update_stmt) {
 $update_stmt->bind_param("i", $user_id);
 $update_stmt->execute();
 $update_stmt->close();
+
+// Get base URL for navigation
+$base_url = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http") . "://" . $_SERVER['HTTP_HOST'];
+$base_path = dirname(dirname($_SERVER['PHP_SELF']));
+if ($base_path !== '/' && $base_path !== '\\') {
+    $base_url .= $base_path;
+}
 ?>
 
 <!DOCTYPE html>
@@ -102,7 +109,7 @@ $update_stmt->close();
     <div class="container">
         <h2>Payment Successful!</h2>
         <p>You are now a gym member.</p>
-        <a href="../pages/dashboard.php">Go to Dashboard</a>
+        <a href="<?php echo $base_url; ?>/pages/dashboard.php">Go to Dashboard</a>
     </div>
 
 </body>
