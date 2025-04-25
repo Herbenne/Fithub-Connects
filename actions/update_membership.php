@@ -19,36 +19,45 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $plan_id = intval($_POST['plan_id']);
     $start_date = $_POST['start_date'];
     $end_date = $_POST['end_date'];
+    $status = $_POST['status'];
     
-    // Calculate status based on end date
-    $status = (strtotime($end_date) >= strtotime('today')) ? 'active' : 'expired';
+    // Begin transaction
+    $db_connection->begin_transaction();
     
-    $query = "UPDATE gym_members 
-              SET plan_id = ?, 
-                  start_date = ?, 
-                  end_date = ?
-              WHERE id = ?";
-              
-    $stmt = $db_connection->prepare($query);
-    $stmt->bind_param("issi", $plan_id, $start_date, $end_date, $membership_id);
-    
-    if ($stmt->execute()) {
-        // If membership is expired, remove user access
-        if ($status === 'expired') {
-            // You might want to add a status column to gym_members table
-            $update_status = "UPDATE gym_members SET status = 'expired' WHERE id = ?";
-            $status_stmt = $db_connection->prepare($update_status);
-            $status_stmt->bind_param("i", $membership_id);
-            $status_stmt->execute();
-            $status_stmt->close();
+    try {
+        // Update membership details
+        $query = "UPDATE gym_members 
+                SET plan_id = ?, 
+                    start_date = ?, 
+                    end_date = ?,
+                    status = ?
+                WHERE id = ?";
+                
+        $stmt = $db_connection->prepare($query);
+        
+        if (!$stmt) {
+            throw new Exception("Error preparing statement: " . $db_connection->error);
         }
         
-        echo json_encode(['success' => true]);
-    } else {
-        echo json_encode(['success' => false, 'message' => 'Failed to update membership']);
+        $stmt->bind_param("isssi", $plan_id, $start_date, $end_date, $status, $membership_id);
+        
+        if (!$stmt->execute()) {
+            throw new Exception("Error executing statement: " . $stmt->error);
+        }
+        
+        // If all went well, commit the transaction
+        $db_connection->commit();
+        
+        echo json_encode(['success' => true, 'message' => 'Membership updated successfully']);
+    } catch (Exception $e) {
+        // If there was an error, roll back the transaction
+        $db_connection->rollback();
+        echo json_encode(['success' => false, 'message' => $e->getMessage()]);
     }
     
-    $stmt->close();
+    if (isset($stmt)) {
+        $stmt->close();
+    }
 } else {
     echo json_encode(['success' => false, 'message' => 'Invalid request method']);
 }

@@ -34,11 +34,9 @@ $result = $db_connection->query($query);
     <link rel="stylesheet" href="../assets/css/partial_manage_membership.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
     <style>
-        /* Copy styles from manage_users.php and add: */
         .status-active { color: #4CAF50; }
         .status-expired { color: #f44336; }
-    </style>
-    <style>
+        
         .form-actions {
             display: flex;
             justify-content: flex-end;
@@ -66,6 +64,52 @@ $result = $db_connection->query($query);
 
         .btn-primary:hover, .btn-secondary:hover {
             opacity: 0.9;
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.4);
+        }
+
+        .modal-content {
+            background-color: #fefefe;
+            margin: 15% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+            max-width: 500px;
+            border-radius: 8px;
+        }
+
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
         }
     </style>
 </head>
@@ -118,18 +162,20 @@ $result = $db_connection->query($query);
             <div class="modal-content">
                 <span class="close">&times;</span>
                 <h3>Edit Membership</h3>
-                <form id="editMembershipForm" method="POST">
+                <form id="editMembershipForm">
                     <input type="hidden" id="membership_id" name="membership_id">
                     
                     <div class="form-group">
                         <label for="plan_id">Membership Plan:</label>
                         <select id="plan_id" name="plan_id" required>
                             <?php
-                            $plans_query = "SELECT * FROM membership_plans ORDER BY plan_name";
+                            $plans_query = "SELECT mp.*, g.gym_name FROM membership_plans mp 
+                                           JOIN gyms g ON mp.gym_id = g.gym_id 
+                                           ORDER BY g.gym_name, mp.plan_name";
                             $plans_result = $db_connection->query($plans_query);
                             while ($plan = $plans_result->fetch_assoc()) {
                                 echo "<option value='" . $plan['plan_id'] . "'>" . 
-                                     htmlspecialchars($plan['plan_name']) . " (₱" . 
+                                     htmlspecialchars($plan['gym_name'] . " - " . $plan['plan_name']) . " (₱" . 
                                      number_format($plan['price'], 2) . ")</option>";
                             }
                             ?>
@@ -155,85 +201,13 @@ $result = $db_connection->query($query);
                     </div>
 
                     <div class="form-actions">
-                        <button type="button" class="btn-secondary" onclick="modal.style.display='none'">Cancel</button>
+                        <button type="button" class="btn-secondary" onclick="closeModal()">Cancel</button>
                         <button type="submit" class="btn-primary">Update Membership</button>
                     </div>
                 </form>
             </div>
         </div>
     </div>
-
-    <style>
-    /* Modal Styles */
-    .modal {
-        display: none;
-        position: fixed;
-        z-index: 1;
-        left: 0;
-        top: 0;
-        width: 100%;
-        height: 100%;
-        background-color: rgba(0,0,0,0.4);
-    }
-
-    .modal-content {
-        background-color: #fefefe;
-        margin: 15% auto;
-        padding: 20px;
-        border: 1px solid #888;
-        width: 80%;
-        max-width: 500px;
-        border-radius: 8px;
-    }
-
-    .close {
-        color: #aaa;
-        float: right;
-        font-size: 28px;
-        font-weight: bold;
-        cursor: pointer;
-    }
-
-    .form-group {
-        margin-bottom: 15px;
-    }
-
-    .form-group label {
-        display: block;
-        margin-bottom: 5px;
-    }
-
-    .form-group input,
-    .form-group select {
-        width: 100%;
-        padding: 8px;
-        border: 1px solid #ddd;
-        border-radius: 4px;
-    }
-
-    .form-actions {
-        display: flex;
-        justify-content: space-between;
-    }
-
-    .action-btn {
-        padding: 5px 10px;
-        margin: 0 2px;
-        border: none;
-        border-radius: 4px;
-        cursor: pointer;
-    }
-
-    .edit-btn {
-        background-color: #4CAF50;
-        color: white;
-    }
-
-    .delete-btn {
-        background-color: #f44336;
-        color: white;
-    }
-    </style>
 
     <script>
     const modal = document.getElementById('editModal');
@@ -256,6 +230,10 @@ $result = $db_connection->query($query);
         modal.style.display = "block";
     }
 
+    function closeModal() {
+        modal.style.display = "none";
+    }
+
     // Form submission handling
     document.getElementById('editMembershipForm').addEventListener('submit', async function(e) {
         e.preventDefault();
@@ -267,10 +245,6 @@ $result = $db_connection->query($query);
                 method: 'POST',
                 body: formData
             });
-
-            if (!response.ok) {
-                throw new Error('Network response was not ok');
-            }
 
             const data = await response.json();
 
@@ -288,16 +262,15 @@ $result = $db_connection->query($query);
 
     // Close modal handlers
     span.onclick = function() {
-        modal.style.display = "none";
+        closeModal();
     }
 
     window.onclick = function(event) {
         if (event.target == modal) {
-            modal.style.display = "none";
+            closeModal();
         }
     }
 
-    // Add this function after the existing script tag
     function confirmDelete(membershipId) {
         if (confirm('Are you sure you want to delete this membership?')) {
             const formData = new FormData();
