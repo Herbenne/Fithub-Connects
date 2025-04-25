@@ -48,6 +48,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
 <head>
     <title>Add Membership Plan</title>
+    <link rel="stylesheet" href="../assets/css/unified-theme.css">
 </head>
 
 <body>

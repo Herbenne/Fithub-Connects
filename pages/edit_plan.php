@@ -55,6 +55,7 @@ $duration_options = [1, 3, 6, 12]; // Common membership durations in months
     <link rel="stylesheet" href="../assets/css/mains.css">
     <link rel="stylesheet" href="../assets/css/manage_plans.css">
     <link rel="stylesheet" href="../assets/css/edit_plan.css">
+    <link rel="stylesheet" href="../assets/css/unified-theme.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
 </head>
 <body>

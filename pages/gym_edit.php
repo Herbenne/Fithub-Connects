@@ -77,6 +77,7 @@ $users = $db_connection->query($users_query);
     <title>Edit Gym - GymHub</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
     <link rel="stylesheet" href="../assets/css/gym_edit.css">
+    <link rel="stylesheet" href="../assets/css/unified-theme.css">
     <style>
         .loading-overlay {
             display: none;

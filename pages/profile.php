@@ -43,6 +43,7 @@ header('Expires: 0');
     <title>My Profile</title>
     <link rel="stylesheet" href="../assets/css/mains.css">
     <link rel="stylesheet" href="../assets/css/profile.css">
+    <link rel="stylesheet" href="../assets/css/unified-theme.css">
 </head>
 <body>
     <div class="profile-container">

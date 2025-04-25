@@ -173,6 +173,8 @@ $is_gym_owner = isGymOwner($_SESSION['user_id'] ?? null, $gym);
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
     <link rel="stylesheet" href="../assets/css/mains.css">
     <link rel="stylesheet" href="../assets/css/user_view_gym.css">
+    <link rel="stylesheet" href="../assets/css/unified-theme.css">
+
 </head>
 <body>
     <div class="page-container">

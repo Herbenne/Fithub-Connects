@@ -66,6 +66,7 @@ $s3_base_url = "https://fithubconnect-bucket.s3.ap-southeast-1.amazonaws.com/";
 <head>
     <title>View Gym Application - FitHub</title>
     <link rel="stylesheet" href="../assets/css/mains.css">
+    <link rel="stylesheet" href="../assets/css/unified-theme.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
     <style>
     .application-container {

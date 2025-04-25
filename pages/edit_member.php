@@ -40,6 +40,7 @@ $plans = $stmt->get_result();
     <title>Edit Member - FitHub</title>
     <link rel="stylesheet" href="../assets/css/mains.css">
     <link rel="stylesheet" href="../assets/css/edit_member.css">
+    <link rel="stylesheet" href="../assets/css/unified-theme.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
 </head>
 <body>

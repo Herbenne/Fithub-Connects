@@ -151,7 +151,7 @@ if ($stmt === false) {
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
     <link rel="stylesheet" href="../assets/css/main.css">
     <link rel="stylesheet" href="../assets/css/gym_details.css">
-    <!-- Add this after your other CSS links -->
+    <link rel="stylesheet" href="../assets/css/unified-theme.css">
     <style>
         .page-loader {
             position: fixed;

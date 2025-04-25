@@ -186,6 +186,7 @@ if (!empty($gym['equipment_images'])) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="../assets/css/mains.css">
     <link rel="stylesheet" href="../assets/css/edit_gym.css">
+    <link rel="stylesheet" href="../assets/css/unified-theme.css">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css" rel="stylesheet">
     <style>
         .success-message {
