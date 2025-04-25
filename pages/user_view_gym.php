@@ -1,6 +1,7 @@
 <?php
 session_start();
 include '../config/database.php';
+require_once '../includes/AWSFileManager.php';
 
 // Ensure user is logged in and is a regular user/member
 if (!isset($_SESSION['user_id']) || $_SESSION['role'] === 'admin' || $_SESSION['role'] === 'superadmin') {
@@ -14,6 +15,12 @@ $gym_id = $_GET['gym_id'] ?? null;
 if (!$gym_id) {
     header("Location: explore_gyms.php");
     exit();
+}
+
+// Initialize AWS file manager if needed for presigned URLs
+$awsManager = null;
+if (USE_AWS) {
+    $awsManager = new AWSFileManager();
 }
 
 // Fetch gym details with ratings
@@ -37,6 +44,14 @@ if (!$gym) {
     exit();
 }
 
+// Process gym thumbnail URL if using AWS
+if (USE_AWS && $awsManager && !empty($gym['gym_thumbnail'])) {
+    if (strpos($gym['gym_thumbnail'], 'http') !== 0) {
+        // Get a presigned URL for the thumbnail
+        $gym['gym_thumbnail'] = $awsManager->getPresignedUrl($gym['gym_thumbnail']);
+    }
+}
+
 // Add this after the initial gym query
 $avg_rating = $gym['avg_rating'] ?? 0;
 
@@ -48,7 +63,20 @@ $stmt->execute();
 $plans = $stmt->get_result();
 
 // Fetch equipment images
-$equipment_images = json_decode($gym['equipment_images'] ?? '[]', true);
+$equipment_images = [];
+if (!empty($gym['equipment_images'])) {
+    $equipment_images = json_decode($gym['equipment_images'] ?? '[]', true);
+    
+    // Process equipment image URLs if using AWS
+    if (USE_AWS && $awsManager && !empty($equipment_images)) {
+        foreach ($equipment_images as $key => $image) {
+            if (strpos($image, 'http') !== 0) {
+                // Get a presigned URL for each equipment image
+                $equipment_images[$key] = $awsManager->getPresignedUrl($image);
+            }
+        }
+    }
+}
 
 // Fetch reviews with user details
 $reviews_query = "SELECT r.*, 
@@ -66,29 +94,11 @@ $reviews = $stmt->get_result();
 
 <!DOCTYPE html>
 <html>
-<head></head>
+<head>
     <title><?php echo htmlspecialchars($gym['gym_name']); ?> - GymHub</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
     <link rel="stylesheet" href="../assets/css/mains.css">
     <link rel="stylesheet" href="../assets/css/user_view_gym.css">
-    <!-- Add page loader styles -->
-    <!-- <style>
-        .page-loader {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: #fff;
-            z-index: 9999;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-        .page-loader.hidden {
-            display: none;
-        }
-    </style> -->    
 </head>
 <body>
     <div class="page-container">
@@ -110,7 +120,7 @@ $reviews = $stmt->get_result();
         <div class="gym-details">
             <!-- Hero Section -->
             <div class="gym-hero">
-                <img src="../uploads/<?php echo htmlspecialchars($gym['gym_thumbnail']); ?>" 
+                <img src="<?php echo htmlspecialchars($gym['gym_thumbnail']); ?>" 
                      alt="<?php echo htmlspecialchars($gym['gym_name']); ?>"
                      class="gym-hero-image"
                      onload="this.style.opacity='1'"
@@ -190,7 +200,7 @@ $reviews = $stmt->get_result();
                 <div class="equipment-grid">
                     <?php foreach ($equipment_images as $image): ?>
                         <div class="equipment-item">
-                            <img src="../uploads/<?php echo htmlspecialchars($image); ?>" 
+                            <img src="<?php echo htmlspecialchars($image); ?>" 
                                  alt="Gym Equipment"
                                  onload="this.style.opacity='1'"
                                  onclick="showLightbox(this.src)"
@@ -365,6 +375,11 @@ $reviews = $stmt->get_result();
         form.style.display = form.style.display === 'none' ? 'block' : 'none';
     }
 
+    function toggleReplyForm(reviewId) {
+        const form = document.getElementById('reply-form-' + reviewId);
+        form.style.display = form.style.display === 'none' ? 'block' : 'none';
+    }
+
     function showLightbox(src) {
         const lightbox = document.createElement('div');
         lightbox.className = 'lightbox';
@@ -385,6 +400,5 @@ $reviews = $stmt->get_result();
         });
     }
     </script>
-    <script src="../assets/js/user_view_gym.js"></script>
 </body>
 </html>

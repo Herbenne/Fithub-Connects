@@ -82,9 +82,8 @@ class AWSFileManager {
                 return false;
             }
             
-            // Create subfolders 
+            // Create only necessary subfolders (removed amenities folder)
             $subfolders = [
-                'amenities/',
                 'equipment/',
                 'thumbnail/',
                 'legal_documents/'
@@ -106,7 +105,7 @@ class AWSFileManager {
             error_log("Error creating gym folder: " . $e->getMessage());
             return false;
         }
-    }
+    }    
 
     /**
      * Check if folder exists, create if it doesn't
@@ -202,10 +201,26 @@ class AWSFileManager {
      * Uploads a profile picture
      */
     public function uploadProfilePicture($tempFilePath, $userId, $fileName) {
+        // First, check if user already has a profile picture
+        global $db_connection;
+        $stmt = $db_connection->prepare("SELECT profile_picture FROM users WHERE id = ?");
+        $stmt->bind_param("i", $userId);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        $user = $result->fetch_assoc();
+        
+        // If there's an existing profile picture, delete it
+        if ($user && !empty($user['profile_picture'])) {
+            $this->deleteFile($user['profile_picture']);
+            error_log("Deleted existing profile picture: " . $user['profile_picture']);
+        }
+        
+        // Create new file path
         $ext = pathinfo($fileName, PATHINFO_EXTENSION);
         $newFileName = "user_{$userId}_" . time() . "." . $ext;
         $targetPath = "uploads/profile_pictures/{$newFileName}";
         
+        // Upload the new file
         return $this->uploadFile($tempFilePath, $targetPath, false); // Public, not encrypted
     }
     
@@ -213,9 +228,9 @@ class AWSFileManager {
      * Uploads a gym thumbnail
      */
     public function uploadGymThumbnail($tempFilePath, $gymId, $fileName) {
-        // Get gym data to find gym folder
+        // Get gym data to find gym folder and check for existing thumbnail
         global $db_connection;
-        $stmt = $db_connection->prepare("SELECT gym_name FROM gyms WHERE gym_id = ?");
+        $stmt = $db_connection->prepare("SELECT gym_name, gym_thumbnail FROM gyms WHERE gym_id = ?");
         $stmt->bind_param("i", $gymId);
         $stmt->execute();
         $result = $stmt->get_result();
@@ -223,6 +238,12 @@ class AWSFileManager {
         if ($row = $result->fetch_assoc()) {
             $sanitizedName = $this->sanitizeFileName($row['gym_name']);
             $folderPath = "uploads/gyms/gym{$gymId}_{$sanitizedName}/thumbnail/";
+            
+            // If there's an existing thumbnail, delete it
+            if (!empty($row['gym_thumbnail'])) {
+                $this->deleteFile($row['gym_thumbnail']);
+                error_log("Deleted existing thumbnail: " . $row['gym_thumbnail']);
+            }
             
             // Create folder if doesn't exist
             $this->createFolderIfNotExists($folderPath);
@@ -257,34 +278,6 @@ class AWSFileManager {
             
             $ext = pathinfo($fileName, PATHINFO_EXTENSION);
             $newFileName = "equipment_" . time() . "_" . uniqid() . "." . $ext;
-            $targetPath = $folderPath . $newFileName;
-            
-            return $this->uploadFile($tempFilePath, $targetPath, false); // Public, not encrypted
-        }
-        
-        return false;
-    }
-    
-    /**
-     * Uploads amenities images
-     */
-    public function uploadAmenityImages($tempFilePath, $gymId, $fileName) {
-        // Get gym data to find gym folder
-        global $db_connection;
-        $stmt = $db_connection->prepare("SELECT gym_name FROM gyms WHERE gym_id = ?");
-        $stmt->bind_param("i", $gymId);
-        $stmt->execute();
-        $result = $stmt->get_result();
-        
-        if ($row = $result->fetch_assoc()) {
-            $sanitizedName = $this->sanitizeFileName($row['gym_name']);
-            $folderPath = "uploads/gyms/gym{$gymId}_{$sanitizedName}/amenities/";
-            
-            // Create folder if doesn't exist
-            $this->createFolderIfNotExists($folderPath);
-            
-            $ext = pathinfo($fileName, PATHINFO_EXTENSION);
-            $newFileName = "amenity_" . time() . "_" . uniqid() . "." . $ext;
             $targetPath = $folderPath . $newFileName;
             
             return $this->uploadFile($tempFilePath, $targetPath, false); // Public, not encrypted
