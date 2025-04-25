@@ -84,5 +84,29 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     </div>
 
     <script src="../assets/js/auth.js"></script>
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const form = document.querySelector('form');
+        const usernameInput = document.getElementById('username');
+        const passwordInput = document.getElementById('password');
+        
+        form.addEventListener('submit', function(e) {
+            // Basic validation
+            if(usernameInput.value.trim() === '') {
+                e.preventDefault();
+                alert('Username cannot be empty');
+                usernameInput.focus();
+                return;
+            }
+            
+            if(passwordInput.value.trim() === '') {
+                e.preventDefault();
+                alert('Password cannot be empty');
+                passwordInput.focus();
+                return;
+            }
+        });
+    });
+    </script>
 </body>
 </html>
