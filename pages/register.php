@@ -1,20 +1,35 @@
 <?php include '../config/database.php'; ?>
 <?php
+// Initialize variables to store form data
+$first_name = '';
+$last_name = '';
+$username = '';
+$email = '';
+$contact_number = '';
+$birthdate = '';
+
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    // Store form data to preserve it in case of errors
     $first_name = $_POST['first_name'];
     $last_name = $_POST['last_name'];
     $username = $_POST['username'];
     $email = $_POST['email'];
     $contact_number = $_POST['contact_number']; 
+    $birthdate = $_POST['birthdate'] ?? '';
     $password = $_POST['password']; // Store original password for validation
     $confirm_password = $_POST['confirm_password'];
     $hashed_password = password_hash($_POST['password'], PASSWORD_DEFAULT); // Hash password
     $role = 'user'; // Default role
     $unique_id = "USR" . bin2hex(random_bytes(3)); // Generate a unique ID
+    
     // Calculate age from birthdate
-    $birthdate = new DateTime($_POST['birthdate']);
-    $today = new DateTime();
-    $age = $birthdate->diff($today)->y;
+    if (!empty($birthdate)) {
+        $birthdate_obj = new DateTime($birthdate);
+        $today = new DateTime();
+        $age = $birthdate_obj->diff($today)->y;
+    } else {
+        $age = 0;
+    }
     
     // Validation checks
     $errors = [];
@@ -36,12 +51,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     // Validate age (minimum 13 years)
     if ($age < 13) {
-        $error = "You must be at least 13 years old to register.";
+        $errors[] = "You must be at least 13 years old to register.";
     }
 
     // Validate contact number format
     if (!preg_match("/^[0-9+\-\s()]+$/", $contact_number)) {
-        $error = "Please enter a valid contact number";
+        $errors[] = "Please enter a valid contact number";
     }
 
     // Simplified password validation - only length check
@@ -117,35 +132,41 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             <div class="form-group">
                 <label for="first_name">First Name</label>
                 <input type="text" id="first_name" name="first_name" required 
-                       pattern="[A-Za-z ]+" title="Please enter a valid first name (letters only)">
+                       pattern="[A-Za-z ]+" title="Please enter a valid first name (letters only)"
+                       value="<?php echo htmlspecialchars($first_name); ?>">
             </div>
 
             <div class="form-group">
                 <label for="last_name">Last Name</label>
                 <input type="text" id="last_name" name="last_name" required 
-                       pattern="[A-Za-z ]+" title="Please enter a valid last name (letters only)">
+                       pattern="[A-Za-z ]+" title="Please enter a valid last name (letters only)"
+                       value="<?php echo htmlspecialchars($last_name); ?>">
             </div>
 
             <div class="form-group">
                 <label for="username">Username</label>
-                <input type="text" id="username" name="username" required>
+                <input type="text" id="username" name="username" required
+                       value="<?php echo htmlspecialchars($username); ?>">
             </div>
 
             <div class="form-group">
                 <label for="email">Email</label>
-                <input type="email" id="email" name="email" required>
+                <input type="email" id="email" name="email" required
+                       value="<?php echo htmlspecialchars($email); ?>">
             </div>
 
             <div class="form-group">
                 <label for="birthdate">Date of Birth</label>
-                <input type="date" id="birthdate" name="birthdate" required max="<?php echo date('Y-m-d', strtotime('-13 years')); ?>">
+                <input type="date" id="birthdate" name="birthdate" required max="<?php echo date('Y-m-d', strtotime('-13 years')); ?>"
+                       value="<?php echo htmlspecialchars($birthdate); ?>">
                 <small class="form-text">You must be at least 13 years old to register</small>
             </div>
 
             <div class="form-group">
                 <label for="contact_number">Contact Number</label>
                 <input type="tel" id="contact_number" name="contact_number" required
-                    pattern="[0-9+\-\s()]+" title="Please enter a valid phone number">
+                    pattern="[0-9+\-\s()]+" title="Please enter a valid phone number"
+                    value="<?php echo htmlspecialchars($contact_number); ?>">
                 <small class="form-text">Format: +63 XXX XXX XXXX or 09XXXXXXXXX</small>
             </div>
 
@@ -155,7 +176,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     <input type="password" id="password" name="password" required>
                     <i class="fas fa-eye" id="togglePassword"></i>
                 </div>
-                <small class="form-text">Password must be at least 6 characters long</small>
+                <small class="form-text">Password must be at least 6 characters (numbers are allowed)</small>
             </div>
 
             <div class="form-group">
@@ -167,7 +188,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             </div>
 
             <div class="form-group checkbox-group">
-                <input type="checkbox" id="terms" name="terms" required>
+                <input type="checkbox" id="terms" name="terms" required
+                       <?php echo (isset($_POST['terms'])) ? 'checked' : ''; ?>>
                 <label for="terms">I agree to the <a href="#" onclick="showTerms(); return false;">Terms and Conditions</a> and Privacy Policy</label>
             </div>
 
@@ -218,7 +240,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         const password = passwordInput.value;
         const confirmPassword = confirmPasswordInput.value;
         
-        // Simplified password validation
+        // Simplified password validation - only length check, no character requirements
         if(password.length < 6) {
             e.preventDefault();
             alert('Password must be at least 6 characters long');
