@@ -230,7 +230,7 @@ $reviews = $stmt->get_result();
                                 <div class="star-rating-input">
                                     <?php for ($i = 5; $i >= 1; $i--): ?>
                                         <input type="radio" id="star<?php echo $i; ?>" 
-                                               name="rating" value="<?php echo $i; ?>" required>
+                                            name="rating" value="<?php echo $i; ?>" required>
                                         <label for="star<?php echo $i; ?>">
                                             <i class="fas fa-star"></i>
                                         </label>
@@ -400,6 +400,43 @@ $reviews = $stmt->get_result();
                 document.body.style.overflow = '';
             }
         });
+        // Star rating functionality
+    document.addEventListener('DOMContentLoaded', function() {
+        // Get all star rating inputs
+        const starInputs = document.querySelectorAll('.star-rating-input input[type="radio"]');
+        const starLabels = document.querySelectorAll('.star-rating-input label');
+        
+        // Add click event listener to each star label
+        starLabels.forEach(label => {
+            label.addEventListener('click', function() {
+                // Get the corresponding input
+                const input = document.getElementById(this.getAttribute('for'));
+                if (input) {
+                    // Check the radio button
+                    input.checked = true;
+                    
+                    // Update visual feedback
+                    updateStarRating(input.value);
+                }
+            });
+        });
+        
+        // Function to update star colors based on selected rating
+        function updateStarRating(rating) {
+            starLabels.forEach((label, index) => {
+                // Stars are in reverse order (5-4-3-2-1), so we need to adjust the index
+                const starValue = 5 - index;
+                
+                // Add or remove the highlighted class based on the selected rating
+                if (starValue <= rating) {
+                    label.querySelector('i').classList.add('checked');
+                } else {
+                    label.querySelector('i').classList.remove('checked');
+                }
+            });
+        }
+    });
+
     }
     </script>
 </body>

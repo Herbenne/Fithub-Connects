@@ -687,3 +687,41 @@ body.loading {
   font-size: 0.8rem;
   margin-left: 0.5rem;
 }
+
+/* Fix for star rating hover and selection states */
+.star-rating-input {
+  display: flex;
+  flex-direction: row-reverse;
+  justify-content: flex-end;
+}
+
+.star-rating-input input[type="radio"] {
+  display: none;
+}
+
+.star-rating-input label {
+  cursor: pointer;
+  padding: 0 0.2em;
+  font-size: 1.5em;
+}
+
+.star-rating-input label i {
+  color: #ddd;
+  transition: color 0.3s ease;
+}
+
+.star-rating-input label:hover i,
+.star-rating-input label:hover ~ label i,
+.star-rating-input input[type="radio"]:checked ~ label i {
+  color: #ffb22c !important;
+}
+
+/* Ensure the checked stars stay highlighted */
+.star-rating-input label i.checked {
+  color: #ffb22c !important;
+}
+
+/* Add !important to override any conflicting styles */
+.fa-star.checked {
+  color: #ffb22c !important;
+}
