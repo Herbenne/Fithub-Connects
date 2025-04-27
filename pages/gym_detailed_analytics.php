@@ -503,7 +503,18 @@ $rating_stats = $stmt->get_result();
         const includeRevenue = document.getElementById('include-revenue');
         const includeCharts = document.getElementById('include-charts');
         
-        // Apply filters to the view (not just for PDF)
+        // Initialize filters to ensure data appears immediately
+        function initializeFilters() {
+            // Make sure all checkboxes are checked by default
+            [includeMembers, includeRatings, includeReviews, includeRevenue, includeCharts].forEach(checkbox => {
+                checkbox.checked = true;
+            });
+            
+            // Apply filters to make all data visible
+            applyFilters();
+        }
+        
+        // Apply filters to the view
         function applyFilters() {
             // Filter metric cards
             const metricCards = document.querySelectorAll('.metric-card');
@@ -536,6 +547,9 @@ $rating_stats = $stmt->get_result();
             });
         }
         
+        // Call initialize on page load
+        initializeFilters();
+        
         // Add filter change listeners
         [includeMembers, includeRatings, includeReviews, includeRevenue, includeCharts].forEach(checkbox => {
             checkbox.addEventListener('change', applyFilters);
@@ -546,6 +560,9 @@ $rating_stats = $stmt->get_result();
         }
         
         function generatePDF() {
+            // Make sure filters are properly initialized
+            initializeFilters();
+            
             // Create loading overlay
             const loadingOverlay = document.createElement('div');
             loadingOverlay.className = 'loading-overlay';
@@ -566,15 +583,47 @@ $rating_stats = $stmt->get_result();
                 const { jsPDF } = window.jspdf;
                 const doc = new jsPDF('p', 'mm', 'a4');
                 
+                // Define fonts for proper symbol display
+                const pdfFonts = {
+                    normal: 'Helvetica',
+                    bold: 'Helvetica-Bold'
+                };
+                
                 // Get gym info
                 const gymName = document.querySelector('.gym-info h2').innerText;
                 const date = new Date().toLocaleDateString();
-                const gymLocation = document.querySelector('.gym-info p').innerText;
+                const gymLocation = document.querySelector('.gym-info p').innerText.replace(/^.*?\s/, ""); // Remove icon
+                
+                // Collect stats for summary
+                const summaryStats = {
+                    members: "",
+                    rating: "",
+                    reviews: "",
+                    revenue: ""
+                };
+                
+                // Get stats from metric cards for summary
+                document.querySelectorAll('.metric-card').forEach(card => {
+                    const type = card.getAttribute('data-type');
+                    const value = card.querySelector('.number').innerText;
+                    
+                    if (type === 'members') {
+                        summaryStats.members = value;
+                    } else if (type === 'ratings') {
+                        summaryStats.rating = value.replace("⭐", "").trim();
+                    } else if (type === 'reviews') {
+                        summaryStats.reviews = value;
+                    } else if (type === 'revenue') {
+                        summaryStats.revenue = value;
+                    }
+                });
                 
                 // Set up PDF
+                doc.setFont(pdfFonts.bold);
                 doc.setFontSize(22);
                 doc.text(`${gymName} - Analytics Report`, 105, 20, { align: 'center' });
                 
+                doc.setFont(pdfFonts.normal);
                 doc.setFontSize(12);
                 doc.text(`Generated on: ${date}`, 105, 30, { align: 'center' });
                 doc.text(`Location: ${gymLocation}`, 105, 35, { align: 'center' });
@@ -595,15 +644,27 @@ $rating_stats = $stmt->get_result();
                 // Add gym key metrics
                 const visibleMetricCards = document.querySelectorAll('.metric-card[data-hidden="false"]');
                 if (visibleMetricCards.length > 0) {
+                    doc.setFont(pdfFonts.bold);
                     doc.setFontSize(16);
                     doc.text('Key Performance Metrics', 20, currentY);
                     currentY += 10;
                     
+                    doc.setFont(pdfFonts.normal);
                     doc.setFontSize(12);
                     
                     visibleMetricCards.forEach((card) => {
                         const label = card.querySelector('h3').innerText;
-                        const value = card.querySelector('.number').innerText;
+                        let value = card.querySelector('.number').innerText;
+                        
+                        // Fix currency and rating symbols
+                        if (label.includes('Revenue')) {
+                            // Make sure the currency symbol is correct
+                            value = value.replace('±', '₱').trim();
+                        } else if (label.includes('Rating')) {
+                            // Clean up rating value
+                            value = value.replace('+P', '').trim();
+                        }
+                        
                         doc.text(`${label}: ${value}`, 20, currentY);
                         currentY += 10;
                     });
@@ -619,23 +680,8 @@ $rating_stats = $stmt->get_result();
                         // Function to process charts one by one
                         const processChart = (index) => {
                             if (index >= visibleChartContainers.length) {
-                                // All charts processed, finalize PDF
-                                // Add footer
-                                const pageCount = doc.getNumberOfPages();
-                                for (let i = 1; i <= pageCount; i++) {
-                                    doc.setPage(i);
-                                    doc.setFontSize(10);
-                                    doc.setTextColor(150);
-                                    doc.text(`${gymName} Analytics Report - Page ${i} of ${pageCount}`, 105, 285, { align: 'center' });
-                                }
-                                
-                                // Remove loading overlay and save PDF
-                                document.body.removeChild(loadingOverlay);
-                                
-                                // Generate filename with gym name, date and filters
-                                const filterSuffix = filterText.join('_');
-                                const filename = `${gymName.replace(/\s+/g, '_')}_Analytics_${filterSuffix}_${date.replace(/\//g, '-')}.pdf`;
-                                doc.save(filename);
+                                // All charts processed, add summary page
+                                addSummaryPage();
                                 return;
                             }
                             
@@ -649,6 +695,7 @@ $rating_stats = $stmt->get_result();
                             }
                             
                             // Add chart title
+                            doc.setFont(pdfFonts.bold);
                             doc.setFontSize(14);
                             doc.text(title, 20, currentY);
                             currentY += 10;
@@ -677,22 +724,64 @@ $rating_stats = $stmt->get_result();
                         // Start processing charts
                         processChart(0);
                     } else {
-                        // No charts to process, finalize PDF
-                        const pageCount = doc.getNumberOfPages();
-                        for (let i = 1; i <= pageCount; i++) {
-                            doc.setPage(i);
-                            doc.setFontSize(10);
-                            doc.setTextColor(150);
-                            doc.text(`${gymName} Analytics Report - Page ${i} of ${pageCount}`, 105, 285, { align: 'center' });
-                        }
-                        
-                        document.body.removeChild(loadingOverlay);
-                        const filterSuffix = filterText.join('_');
-                        const filename = `${gymName.replace(/\s+/g, '_')}_Analytics_${filterSuffix}_${date.replace(/\//g, '-')}.pdf`;
-                        doc.save(filename);
+                        // No charts to process, add summary page
+                        addSummaryPage();
                     }
                 } else {
-                    // Charts not included, finalize PDF
+                    // Charts not included, add summary page
+                    addSummaryPage();
+                }
+                
+                function addSummaryPage() {
+                    // Add summary page
+                    doc.addPage();
+                    doc.setFont(pdfFonts.bold);
+                    doc.setFontSize(16);
+                    doc.text("Analytics Summary", 105, 20, { align: 'center' });
+                    
+                    doc.setFont(pdfFonts.normal);
+                    doc.setFontSize(12);
+                    let summaryY = 40;
+                    
+                    // Create a paragraph summary based on collected stats
+                    let summary = `This report presents a comprehensive analysis of ${gymName} located at ${gymLocation}. `;
+                    
+                    if (summaryStats.members) {
+                        summary += `The gym currently has ${summaryStats.members} active members. `;
+                    }
+                    
+                    if (summaryStats.rating) {
+                        summary += `The average customer satisfaction rating is ${summaryStats.rating} out of 5 stars, `;
+                        const ratingValue = parseFloat(summaryStats.rating);
+                        if (ratingValue >= 4) {
+                            summary += "indicating excellent customer satisfaction. ";
+                        } else if (ratingValue >= 3) {
+                            summary += "showing good customer satisfaction. ";
+                        } else {
+                            summary += "suggesting there are areas for improvement in customer satisfaction. ";
+                        }
+                    }
+                    
+                    if (summaryStats.reviews) {
+                        summary += `Based on ${summaryStats.reviews} customer reviews, `;
+                    }
+                    
+                    if (summaryStats.revenue) {
+                        summary += `the gym has generated a total revenue of ${summaryStats.revenue}. `;
+                    }
+                    
+                    summary += `\n\nThis report was generated on ${date} and includes `;
+                    if (includeCharts.checked) {
+                        summary += "visualizations of key performance indicators through charts and graphs. ";
+                    }
+                    summary += "The data provides valuable insights for gym management to make informed decisions ";
+                    summary += "regarding membership growth strategies, pricing optimization, and service improvements.";
+                    
+                    // Add the summary paragraph to the PDF with proper line breaks
+                    const splitText = doc.splitTextToSize(summary, 170);
+                    doc.text(splitText, 20, summaryY);
+                    
+                    // Finalize PDF - add footer and save
                     const pageCount = doc.getNumberOfPages();
                     for (let i = 1; i <= pageCount; i++) {
                         doc.setPage(i);
@@ -701,7 +790,10 @@ $rating_stats = $stmt->get_result();
                         doc.text(`${gymName} Analytics Report - Page ${i} of ${pageCount}`, 105, 285, { align: 'center' });
                     }
                     
+                    // Remove loading overlay and save PDF
                     document.body.removeChild(loadingOverlay);
+                    
+                    // Generate filename with gym name, date and filters
                     const filterSuffix = filterText.join('_');
                     const filename = `${gymName.replace(/\s+/g, '_')}_Analytics_${filterSuffix}_${date.replace(/\//g, '-')}.pdf`;
                     doc.save(filename);
@@ -709,4 +801,3 @@ $rating_stats = $stmt->get_result();
             }, 500);
         }
     });
-    </script>

@@ -346,208 +346,316 @@ $gyms_result = $db_connection->query($gyms_query);
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
-    <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const downloadPdfBtn = document.getElementById('downloadPdfBtn');
-        
-        // Filter checkboxes
-        const includeGyms = document.getElementById('include-gyms');
-        const includeMembers = document.getElementById('include-members');
-        const includeRatings = document.getElementById('include-ratings');
-        const includeRevenue = document.getElementById('include-revenue');
-        
-        // Apply filters to the view (not just for PDF)
-        function applyFilters() {
-            // Filter stat cards
-            const statCards = document.querySelectorAll('.stat-card');
-            statCards.forEach(card => {
-                const type = card.getAttribute('data-type');
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+            const downloadPdfBtn = document.getElementById('downloadPdfBtn');
+            // Filter checkboxes
+            const includeGyms = document.getElementById('include-gyms');
+            const includeMembers = document.getElementById('include-members');
+            const includeRatings = document.getElementById('include-ratings');
+            const includeRevenue = document.getElementById('include-revenue');
+            
+            // Initialize all checkboxes as checked
+            function initializeFilters() {
+                // Make sure all checkboxes are checked by default
+                [includeGyms, includeMembers, includeRatings, includeRevenue].forEach(checkbox => {
+                    checkbox.checked = true;
+                });
                 
-                if (type === 'gyms') {
+                // Apply filters to make all data visible
+                applyFilters();
+            }
+            
+            // Apply filters to the view (not just for PDF)
+            function applyFilters() {
+                // Filter stat cards
+                const statCards = document.querySelectorAll('.stat-card');
+                statCards.forEach(card => {
+                    const type = card.getAttribute('data-type');
+                    
+                    if (type === 'gyms') {
+                        card.setAttribute('data-hidden', !includeGyms.checked);
+                    } else if (type === 'members') {
+                        card.setAttribute('data-hidden', !includeMembers.checked);
+                    } else if (type === 'ratings') {
+                        card.setAttribute('data-hidden', !includeRatings.checked);
+                    } else if (type === 'revenue') {
+                        card.setAttribute('data-hidden', !includeRevenue.checked);
+                    }
+                });
+                
+                // Filter gym cards if not including gyms
+                const gymCards = document.querySelectorAll('.gym-card');
+                gymCards.forEach(card => {
                     card.setAttribute('data-hidden', !includeGyms.checked);
-                } else if (type === 'members') {
-                    card.setAttribute('data-hidden', !includeMembers.checked);
-                } else if (type === 'ratings') {
-                    card.setAttribute('data-hidden', !includeRatings.checked);
-                } else if (type === 'revenue') {
-                    card.setAttribute('data-hidden', !includeRevenue.checked);
-                }
+                });
+            }
+            
+            // Call initialize on page load
+            initializeFilters();
+            
+            // Add filter change listeners
+            [includeGyms, includeMembers, includeRatings, includeRevenue].forEach(checkbox => {
+                checkbox.addEventListener('change', applyFilters);
             });
             
-            // Filter gym cards if not including gyms
-            const gymCards = document.querySelectorAll('.gym-card');
-            gymCards.forEach(card => {
-                card.setAttribute('data-hidden', !includeGyms.checked);
-            });
-        }
-        
-        // Add filter change listeners
-        [includeGyms, includeMembers, includeRatings, includeRevenue].forEach(checkbox => {
-            checkbox.addEventListener('change', applyFilters);
-        });
-        
-        if (downloadPdfBtn) {
-            downloadPdfBtn.addEventListener('click', generatePDF);
-        }
-        
-        function generatePDF() {
-            // Create loading overlay
-            const loadingOverlay = document.createElement('div');
-            loadingOverlay.className = 'loading-overlay';
+            if (downloadPdfBtn) {
+                downloadPdfBtn.addEventListener('click', generatePDF);
+            }
             
-            const spinner = document.createElement('div');
-            spinner.className = 'spinner';
-            
-            const loadingText = document.createElement('div');
-            loadingText.className = 'loading-text';
-            loadingText.innerText = 'Generating PDF...';
-            
-            loadingOverlay.appendChild(spinner);
-            loadingOverlay.appendChild(loadingText);
-            document.body.appendChild(loadingOverlay);
-            
-            // Use setTimeout to allow the loading indicator to appear
-            setTimeout(function() {
-                const { jsPDF } = window.jspdf;
-                const doc = new jsPDF('p', 'mm', 'a4');
+            function generatePDF() {
+                // Make sure filters are properly initialized
+                initializeFilters();
                 
-                // Setup PDF
-                const date = new Date().toLocaleDateString();
+                // Create loading overlay
+                const loadingOverlay = document.createElement('div');
+                loadingOverlay.className = 'loading-overlay';
                 
-                doc.setFontSize(22);
-                doc.text('FitHub Platform Analytics Report', 105, 20, { align: 'center' });
+                const spinner = document.createElement('div');
+                spinner.className = 'spinner';
                 
-                doc.setFontSize(12);
-                doc.text(`Generated on: ${date}`, 105, 30, { align: 'center' });
+                const loadingText = document.createElement('div');
+                loadingText.className = 'loading-text';
+                loadingText.innerText = 'Generating PDF...';
                 
-                doc.setFontSize(10);
-                doc.text('Filters applied:', 20, 40);
-                const filterText = [];
-                if (includeGyms.checked) filterText.push('Gyms');
-                if (includeMembers.checked) filterText.push('Members');
-                if (includeRatings.checked) filterText.push('Ratings');
-                if (includeRevenue.checked) filterText.push('Revenue');
-                doc.text(`Included: ${filterText.join(', ')}`, 20, 45);
+                loadingOverlay.appendChild(spinner);
+                loadingOverlay.appendChild(loadingText);
+                document.body.appendChild(loadingOverlay);
                 
-                let currentY = 55;
-                
-                // Add platform overview
-                if (filterText.length > 0) {
-                    doc.setFontSize(16);
-                    doc.text('Platform Overview', 20, currentY);
-                    currentY += 10;
+                // Use setTimeout to allow the loading indicator to appear
+                setTimeout(function() {
+                    const { jsPDF } = window.jspdf;
+                    const doc = new jsPDF('p', 'mm', 'a4');
                     
+                    // Define fonts for proper symbol display
+                    const pdfFonts = {
+                        normal: 'Helvetica',
+                        bold: 'Helvetica-Bold'
+                    };
+                    
+                    // Setup PDF
+                    const date = new Date().toLocaleDateString();
+                    
+                    doc.setFont(pdfFonts.bold);
+                    doc.setFontSize(22);
+                    doc.text('FitHub Platform Analytics Report', 105, 20, { align: 'center' });
+                    
+                    doc.setFont(pdfFonts.normal);
                     doc.setFontSize(12);
+                    doc.text(`Generated on: ${date}`, 105, 30, { align: 'center' });
                     
-                    const statCards = document.querySelectorAll('.stats-overview .stat-card[data-hidden="false"]');
-                    statCards.forEach((card) => {
-                        const label = card.querySelector('h3').innerText;
-                        const value = card.querySelector('.stat-number').innerText;
-                        doc.text(`${label}: ${value}`, 20, currentY);
-                        currentY += 10;
-                    });
-                    
-                    currentY += 10; // Add more space after overview
-                }
-                
-                // Add gym listings
-                if (includeGyms.checked) {
-                    // Add a section title for gyms
-                    doc.setFontSize(16);
-                    doc.text('Registered Gyms', 20, currentY);
-                    currentY += 10;
-                    
-                    const gyms = document.querySelectorAll('.gym-card[data-hidden="false"]');
-                    
-                    gyms.forEach((gym, index) => {
-                        // Check if we need a new page
-                        if (currentY > 250) {
-                            doc.addPage();
-                            currentY = 20;
-                        }
-                        
-                        // Get gym data
-                        const gymName = gym.querySelector('h3').innerText;
-                        const location = gym.querySelector('.location').innerText;
-                        
-                        // Get stats
-                        const stats = [];
-                        if (includeMembers.checked) {
-                            const memberStat = gym.querySelector('.stat:nth-child(1)');
-                            if (memberStat) {
-                                stats.push({
-                                    label: memberStat.querySelector('label').innerText,
-                                    value: memberStat.querySelector('span').innerText
-                                });
-                            }
-                        }
-                        if (includeRatings.checked) {
-                            const ratingStat = gym.querySelector('.stat:nth-child(2)');
-                            if (ratingStat) {
-                                stats.push({
-                                    label: ratingStat.querySelector('label').innerText,
-                                    value: ratingStat.querySelector('span').innerText
-                                });
-                            }
-                        }
-                        if (includeRevenue.checked) {
-                            const revenueStat = gym.querySelector('.stat:nth-child(3)');
-                            if (revenueStat) {
-                                stats.push({
-                                    label: revenueStat.querySelector('label').innerText,
-                                    value: revenueStat.querySelector('span').innerText
-                                });
-                            }
-                        }
-                        
-                        // Add gym name
-                        doc.setFontSize(14);
-                        doc.text(`${index + 1}. ${gymName}`, 20, currentY);
-                        currentY += 7;
-                        
-                        // Add location
-                        doc.setFontSize(10);
-                        doc.text(`Location: ${location}`, 25, currentY);
-                        currentY += 7;
-                        
-                        // Add stats
-                        if (stats.length > 0) {
-                            doc.text('Statistics:', 25, currentY);
-                            currentY += 5;
-                            
-                            stats.forEach((stat) => {
-                                doc.text(`• ${stat.label}: ${stat.value}`, 30, currentY);
-                                currentY += 5;
-                            });
-                        }
-                        
-                        // Add separator
-                        doc.setDrawColor(200, 200, 200);
-                        doc.line(20, currentY, 190, currentY);
-                        
-                        currentY += 10;
-                    });
-                }
-                
-                // Add footer
-                const pageCount = doc.getNumberOfPages();
-                for (let i = 1; i <= pageCount; i++) {
-                    doc.setPage(i);
                     doc.setFontSize(10);
-                    doc.setTextColor(150);
-                    doc.text(`FitHub Analytics Report - Page ${i} of ${pageCount}`, 105, 285, { align: 'center' });
+                    doc.text('Filters applied:', 20, 40);
+                    const filterText = [];
+                    if (includeGyms.checked) filterText.push('Gyms');
+                    if (includeMembers.checked) filterText.push('Members');
+                    if (includeRatings.checked) filterText.push('Ratings');
+                    if (includeRevenue.checked) filterText.push('Revenue');
+                    doc.text(`Included: ${filterText.join(', ')}`, 20, 45);
+                    
+                    let currentY = 55;
+                    
+                    // Collect stats for summary
+                    const summaryStats = {
+                        totalGyms: 0,
+                        totalMembers: 0,
+                        avgRating: 0,
+                        totalRevenue: 0
+                    };
+                    
+                    // Add platform overview
+                    if (filterText.length > 0) {
+                        doc.setFont(pdfFonts.bold);
+                        doc.setFontSize(16);
+                        doc.text('Platform Overview', 20, currentY);
+                        currentY += 10;
+                        
+                        doc.setFont(pdfFonts.normal);
+                        doc.setFontSize(12);
+                        
+                        const statCards = document.querySelectorAll('.stats-overview .stat-card[data-hidden="false"]');
+                        statCards.forEach((card) => {
+                            const label = card.querySelector('h3').innerText;
+                            let value = card.querySelector('.stat-number').innerText;
+                            
+                            // Fix currency and rating symbols
+                            if (label.includes('Revenue')) {
+                                // Replace ± with ₱ for proper peso sign
+                                value = value.replace('±', '₱').trim();
+                                summaryStats.totalRevenue = value;
+                            } else if (label.includes('Rating')) {
+                                // Remove any unusual characters from rating
+                                value = value.replace('+P', '').replace('±', '').trim();
+                                summaryStats.avgRating = value;
+                            } else if (label.includes('Gyms')) {
+                                summaryStats.totalGyms = value;
+                            } else if (label.includes('Members')) {
+                                summaryStats.totalMembers = value;
+                            }
+                            
+                            doc.text(`${label}: ${value}`, 20, currentY);
+                            currentY += 10;
+                        });
+                        
+                        currentY += 10; // Add more space after overview
+                    }
+                    
+                    // Add gym listings
+                    if (includeGyms.checked) {
+                        // Add a section title for gyms
+                        doc.setFont(pdfFonts.bold);
+                        doc.setFontSize(16);
+                        doc.text('Registered Gyms', 20, currentY);
+                        currentY += 10;
+                        
+                        doc.setFont(pdfFonts.normal);
+                        doc.setFontSize(12);
+                        
+                        const gyms = document.querySelectorAll('.gym-card[data-hidden="false"]');
+                        
+                        gyms.forEach((gym, index) => {
+                            // Check if we need a new page
+                            if (currentY > 250) {
+                                doc.addPage();
+                                currentY = 20;
+                            }
+                            
+                            // Get gym data
+                            const gymName = gym.querySelector('h3').innerText;
+                            const location = gym.querySelector('.location').innerText;
+                            
+                            // Get stats
+                            const stats = [];
+                            if (includeMembers.checked) {
+                                const memberStat = gym.querySelector('.stat:nth-child(1)');
+                                if (memberStat) {
+                                    stats.push({
+                                        label: memberStat.querySelector('label').innerText,
+                                        value: memberStat.querySelector('span').innerText
+                                    });
+                                }
+                            }
+                            if (includeRatings.checked) {
+                                const ratingStat = gym.querySelector('.stat:nth-child(2)');
+                                if (ratingStat) {
+                                    stats.push({
+                                        label: ratingStat.querySelector('label').innerText,
+                                        value: ratingStat.querySelector('span').innerText
+                                    });
+                                }
+                            }
+                            if (includeRevenue.checked) {
+                                const revenueStat = gym.querySelector('.stat:nth-child(3)');
+                                if (revenueStat) {
+                                    stats.push({
+                                        label: revenueStat.querySelector('label').innerText,
+                                        value: revenueStat.querySelector('span').innerText
+                                    });
+                                }
+                            }
+                            
+                            // Add gym name
+                            doc.setFont(pdfFonts.bold);
+                            doc.setFontSize(14);
+                            doc.text(`${index + 1}. ${gymName}`, 20, currentY);
+                            currentY += 7;
+                            
+                            // Add location
+                            doc.setFont(pdfFonts.normal);
+                            doc.setFontSize(10);
+                            doc.text(`Location: ${location}`, 25, currentY);
+                            currentY += 7;
+                            
+                            // Add stats
+                            if (stats.length > 0) {
+                                doc.text('Statistics:', 25, currentY);
+                                currentY += 5;
+                                
+                                stats.forEach((stat) => {
+                                    let value = stat.value;
+                                    
+                                    // Fix currency and rating symbols for each gym
+                                    if (stat.label.includes('Revenue')) {
+                                        value = `₱${value}`;
+                                    }
+                                    
+                                    doc.text(`• ${stat.label}: ${value}`, 30, currentY);
+                                    currentY += 5;
+                                });
+                            }
+                            
+                            // Add separator
+                            doc.setDrawColor(200, 200, 200);
+                            doc.line(20, currentY, 190, currentY);
+                            
+                            currentY += 10;
+                        });
+                    }
+                    
+                    // Add a summary page at the end
+                    doc.addPage();
+                    doc.setFont(pdfFonts.bold);
+                    doc.setFontSize(16);
+                    doc.text("Analytics Summary", 105, 20, { align: 'center' });
+                    
+                    doc.setFont(pdfFonts.normal);
+                    doc.setFontSize(12);
+                    let summaryY = 40;
+                    
+                    // Create a paragraph summary based on collected stats
+                    let summary = `This report presents a comprehensive overview of the FitHub platform performance. `;
+                    
+                    if (summaryStats.totalGyms) {
+                        summary += `The platform currently hosts ${summaryStats.totalGyms} registered gyms. `;
+                    }
+                    
+                    if (summaryStats.totalMembers) {
+                        summary += `There are ${summaryStats.totalMembers} active members across all gyms. `;
+                    }
+                    
+                    if (summaryStats.avgRating) {
+                        summary += `The average customer satisfaction rating is ${summaryStats.avgRating} out of 5 stars, `;
+                        if (parseFloat(summaryStats.avgRating) >= 4) {
+                            summary += "indicating excellent overall customer satisfaction. ";
+                        } else if (parseFloat(summaryStats.avgRating) >= 3) {
+                            summary += "showing good overall customer satisfaction. ";
+                        } else {
+                            summary += "suggesting there are areas for improvement in customer satisfaction. ";
+                        }
+                    }
+                    
+                    if (summaryStats.totalRevenue) {
+                        summary += `The platform has generated a total revenue of ${summaryStats.totalRevenue}. `;
+                    }
+                    
+                    summary += `\n\nThis report was generated on ${date} and includes `;
+                    summary += "detailed metrics on gym performance, membership distribution, and revenue generation. ";
+                    summary += "The data provides insights into overall platform health and can be used for strategic business planning.";
+                    
+                    // Add the summary paragraph to the PDF with proper line breaks
+                    const splitText = doc.splitTextToSize(summary, 170);
+                    doc.text(splitText, 20, summaryY);
+                    
+                    // Add footer with page numbers
+                    const pageCount = doc.getNumberOfPages();
+                    for (let i = 1; i <= pageCount; i++) {
+                        doc.setPage(i);
+                        doc.setFont(pdfFonts.normal);
+                        doc.setFontSize(10);
+                        doc.setTextColor(150);
+                        doc.text(`FitHub Analytics Report - Page ${i} of ${pageCount}`, 105, 285, { align: 'center' });
+                    }
+                    
+                    // Remove loading overlay and save the PDF
+                    document.body.removeChild(loadingOverlay);
+                    
+                    // Generate filename with date and filters
+                    const filterSuffix = filterText.join('_');
+                    const filename = `FitHub_Analytics_${filterSuffix}_${date.replace(/\//g, '-')}.pdf`;
+                    doc.save(filename);
+                }, 500);
                 }
-                
-                // Remove loading overlay and save the PDF
-                document.body.removeChild(loadingOverlay);
-                
-                // Generate filename with date and filters
-                const filterSuffix = filterText.join('_');
-                const filename = `FitHub_Analytics_${filterSuffix}_${date.replace(/\//g, '-')}.pdf`;
-                doc.save(filename);
-            }, 500);
-        }
-    });
-    </script>
-</body>
+            });
+        </script>
+    </body>
 </html>

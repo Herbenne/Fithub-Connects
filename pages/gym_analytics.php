@@ -381,15 +381,18 @@ $rating_stats = $stmt->get_result();
         const includeRevenue = document.getElementById('include-revenue');
         const includeRatings = document.getElementById('include-ratings');
         
-        // Add data-type attributes to chart containers
-        const chartContainers = document.querySelectorAll('.chart-container');
-        if (chartContainers.length >= 3) {
-            chartContainers[0].setAttribute('data-type', 'members');
-            chartContainers[1].setAttribute('data-type', 'revenue');
-            chartContainers[2].setAttribute('data-type', 'ratings');
+        // Initialize filters to ensure data appears immediately
+        function initializeFilters() {
+            // Make sure all checkboxes are checked by default
+            [includeMembers, includeRevenue, includeRatings].forEach(checkbox => {
+                checkbox.checked = true;
+            });
+            
+            // Apply filters to make all data visible
+            applyFilters();
         }
         
-        // Apply filters to the view (not just for PDF)
+        // Apply filters to the view
         function applyFilters() {
             // Filter charts
             const chartContainers = document.querySelectorAll('.chart-container');
@@ -406,6 +409,9 @@ $rating_stats = $stmt->get_result();
             });
         }
         
+        // Call initialize on page load
+        initializeFilters();
+        
         // Add filter change listeners
         [includeMembers, includeRevenue, includeRatings].forEach(checkbox => {
             checkbox.addEventListener('change', applyFilters);
@@ -416,6 +422,9 @@ $rating_stats = $stmt->get_result();
         }
         
         function generatePDF() {
+            // Make sure filters are properly initialized
+            initializeFilters();
+            
             // Create loading overlay
             const loadingOverlay = document.createElement('div');
             loadingOverlay.className = 'loading-overlay';
@@ -436,14 +445,63 @@ $rating_stats = $stmt->get_result();
                 const { jsPDF } = window.jspdf;
                 const doc = new jsPDF('p', 'mm', 'a4');
                 
+                // Define fonts for proper symbol display
+                const pdfFonts = {
+                    normal: 'Helvetica',
+                    bold: 'Helvetica-Bold'
+                };
+                
                 // Get gym info
                 const gymName = document.querySelector('h2').innerText.replace('Analytics for ', '');
                 const date = new Date().toLocaleDateString();
                 
+                // Collect data for summary
+                const summaryStats = {
+                    members: 0,
+                    revenue: 0,
+                    rating: 0
+                };
+                
+                // Try to extract data from charts
+                try {
+                    // Member data from chart
+                    const memberChart = document.getElementById('memberChart');
+                    if (memberChart && memberChart.chart) {
+                        const memberData = memberChart.chart.data.datasets[0].data;
+                        summaryStats.members = memberData.reduce((a, b) => a + b, 0);
+                    }
+                    
+                    // Revenue data from chart
+                    const revenueChart = document.getElementById('revenueChart');
+                    if (revenueChart && revenueChart.chart) {
+                        const revenueData = revenueChart.chart.data.datasets[0].data;
+                        summaryStats.revenue = revenueData.reduce((a, b) => a + b, 0);
+                    }
+                    
+                    // Rating data from chart
+                    const ratingChart = document.getElementById('ratingChart');
+                    if (ratingChart && ratingChart.chart) {
+                        const ratingData = ratingChart.chart.data.datasets[0].data;
+                        // Calculate average rating
+                        let totalReviews = ratingData.reduce((a, b) => a + b, 0);
+                        let weightedSum = 0;
+                        for (let i = 0; i < ratingData.length; i++) {
+                            weightedSum += (i + 1) * ratingData[i];
+                        }
+                        if (totalReviews > 0) {
+                            summaryStats.rating = (weightedSum / totalReviews).toFixed(1);
+                        }
+                    }
+                } catch (e) {
+                    console.log("Error extracting data for summary:", e);
+                }
+                
                 // Set up PDF
+                doc.setFont(pdfFonts.bold);
                 doc.setFontSize(22);
                 doc.text(`${gymName} - Analytics Report`, 105, 20, { align: 'center' });
                 
+                doc.setFont(pdfFonts.normal);
                 doc.setFontSize(12);
                 doc.text(`Generated on: ${date}`, 105, 30, { align: 'center' });
                 
@@ -465,23 +523,8 @@ $rating_stats = $stmt->get_result();
                     // Function to process charts one by one
                     const processChart = (index) => {
                         if (index >= visibleChartContainers.length) {
-                            // All charts processed, finalize PDF
-                            // Add footer
-                            const pageCount = doc.getNumberOfPages();
-                            for (let i = 1; i <= pageCount; i++) {
-                                doc.setPage(i);
-                                doc.setFontSize(10);
-                                doc.setTextColor(150);
-                                doc.text(`${gymName} Analytics Report - Page ${i} of ${pageCount}`, 105, 285, { align: 'center' });
-                            }
-                            
-                            // Remove loading overlay and save PDF
-                            document.body.removeChild(loadingOverlay);
-                            
-                            // Generate filename with gym name, date and filters
-                            const filterSuffix = filterText.join('_');
-                            const filename = `${gymName.replace(/\s+/g, '_')}_Analytics_${filterSuffix}_${date.replace(/\//g, '-')}.pdf`;
-                            doc.save(filename);
+                            // All charts processed, add summary page
+                            addSummaryPage();
                             return;
                         }
                         
@@ -495,6 +538,7 @@ $rating_stats = $stmt->get_result();
                         }
                         
                         // Add chart title
+                        doc.setFont(pdfFonts.bold);
                         doc.setFontSize(14);
                         doc.text(title, 20, currentY);
                         currentY += 10;
@@ -523,13 +567,69 @@ $rating_stats = $stmt->get_result();
                     // Start processing charts
                     processChart(0);
                 } else {
-                    // No charts to process, finalize PDF
-                    doc.text("No data selected for this report.", 20, currentY);
+                    // No charts to process, add summary page
+                    addSummaryPage();
+                }
+                
+                function addSummaryPage() {
+                    // Add summary page
+                    doc.addPage();
+                    doc.setFont(pdfFonts.bold);
+                    doc.setFontSize(16);
+                    doc.text("Analytics Summary", 105, 20, { align: 'center' });
+                    
+                    doc.setFont(pdfFonts.normal);
+                    doc.setFontSize(12);
+                    let summaryY = 40;
+                    
+                    // Create a paragraph summary based on collected stats
+                    let summary = `This report presents the analytics data for ${gymName}. `;
+                    
+                    if (includeMembers.checked) {
+                        summary += `The gym has been tracking membership growth over time. `;
+                        if (summaryStats.members > 0) {
+                            summary += `A total of ${summaryStats.members} new member registrations have been recorded in the analyzed period. `;
+                        }
+                    }
+                    
+                    if (includeRevenue.checked) {
+                        summary += `Revenue tracking shows the financial performance of the gym. `;
+                        if (summaryStats.revenue > 0) {
+                            summary += `The gym has generated ₱${summaryStats.revenue.toLocaleString()} in revenue during the analyzed period. `;
+                        }
+                    }
+                    
+                    if (includeRatings.checked) {
+                        summary += `Customer satisfaction is measured through ratings. `;
+                        if (summaryStats.rating > 0) {
+                            summary += `The gym has an average rating of ${summaryStats.rating} out of 5 stars. `;
+                            
+                            if (summaryStats.rating >= 4) {
+                                summary += "This indicates excellent customer satisfaction. ";
+                            } else if (summaryStats.rating >= 3) {
+                                summary += "This shows good customer satisfaction with room for improvement. ";
+                            } else {
+                                summary += "This suggests significant areas for improvement in customer satisfaction. ";
+                            }
+                        }
+                    }
+                    
+                    summary += `\n\nThis report was generated on ${date} and provides valuable insights for gym management. `;
+                    summary += "The data can be used to identify trends, make data-driven decisions, and develop strategies ";
+                    summary += "for improving membership growth, revenue generation, and customer satisfaction.";
+                    
+                    // Add the summary paragraph to the PDF with proper line breaks
+                    const splitText = doc.splitTextToSize(summary, 170);
+                    doc.text(splitText, 20, summaryY);
                     
                     // Add footer
-                    doc.setFontSize(10);
-                    doc.setTextColor(150);
-                    doc.text(`${gymName} Analytics Report - Page 1 of 1`, 105, 285, { align: 'center' });
+                    const pageCount = doc.getNumberOfPages();
+                    for (let i = 1; i <= pageCount; i++) {
+                        doc.setPage(i);
+                        doc.setFontSize(10);
+                        doc.setTextColor(150);
+                        doc.text(`${gymName} Analytics Report - Page ${i} of ${pageCount}`, 105, 285, { align: 'center' });
+                    }
                     
                     document.body.removeChild(loadingOverlay);
                     const filterSuffix = filterText.join('_');
