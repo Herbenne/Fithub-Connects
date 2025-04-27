@@ -159,21 +159,21 @@ if ($result === false) {
             ></div>
         <div class="nav-links">
             <?php if (!isset($_SESSION['user_id'])): ?>
-                <a href="login.php" class="nav-btn login-btn">Login</a>
-                <a href="register.php" class="nav-btn register-btn">Register</a>
+                <a href="login.php">Login</a>
+                <a href="register.php">Register</a>
             <?php else: ?>
                 <?php if ($_SESSION['role'] === 'user'): ?>
-                    <a href="dashboard.php" class="nav-btn">Dashboard</a>
-                    <a href="explore_gyms.php" class="nav-btn">Explore Gyms</a>
-                    <a href="profile.php" class="nav-btn">My Profile</a>
+                    <a href="dashboard.php">Dashboard</a>
+                    <a href="explore_gyms.php">Explore Gyms</a>
+                    <a href="profile.php">My Profile</a>
                 <?php elseif ($_SESSION['role'] === 'member'): ?>
-                    <a href="dashboard.php" class="nav-btn">Dashboard</a>
-                    <a href="explore_gyms.php" class="nav-btn">Explore Gyms</a>
-                    <a href="profile.php" class="nav-btn">My Profile</a>
+                    <a href="dashboard.php">Dashboard</a>
+                    <a href="explore_gyms.php">Explore Gyms</a>
+                    <a href="profile.php">My Profile</a>
                 <?php elseif ($_SESSION['role'] === 'admin'): ?>
-                    <a href="dashboard.php" class="nav-btn">Dashboard</a>
-                    <a href="edit_gym.php" class="nav-btn">My Gym</a>
-                    <a href="profile.php" class="nav-btn">My Profile</a>
+                    <a href="dashboard.php">Dashboard</a>
+                    <a href="edit_gym.php">My Gym</a>
+                    <a href="profile.php">My Profile</a>
                 <?php elseif ($_SESSION['role'] === 'superadmin'): ?>
                     <a href="all_gyms_analytics.php">FitHub Analytics</a>
                 <?php endif; ?>
@@ -666,39 +666,6 @@ if ($result === false) {
         margin-right: 10px;
         font-size: 24px;
 }
-
-.site-header {
-    background-color: #ffffff;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    position: sticky;
-    top: 0;
-    z-index: 1000;
-    width: 100%;
-}
-
-.container {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 0 20px;
-}
-
-.header-content {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 15px 0;
-}
-
-.logo-container {
-    display: flex;
-    align-items: center;
-}
-
-.site-logo {
-    height: 50px;
-    width: auto;
-}
-
 
 /* Media queries for responsive design */
 @media (max-width: 768px) {

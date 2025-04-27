@@ -438,6 +438,7 @@ if (!empty($gym['equipment_images'])) {
                             <img src="<?php echo htmlspecialchars($gym['gym_thumbnail']); ?>" 
                                 alt="Current thumbnail" 
                                 onerror="this.src='../assets/images/default-gym.jpg';">
+                            <br>
                             <span>Current thumbnail</span>
                         </div>
                         <?php endif; ?>
