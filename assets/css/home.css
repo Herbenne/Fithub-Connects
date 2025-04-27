@@ -365,8 +365,9 @@
     font-size: 2rem;
   }
 
-  .nav-links {
-    display: none;
+  .login-register-container {
+    display: flex;
+    align-items: center;
+    margin-right: 50px;
   }
-
 }
