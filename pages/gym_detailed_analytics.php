@@ -76,6 +76,9 @@ $rating_stats = $stmt->get_result();
     <link rel="stylesheet" href="../assets/css/unified-theme.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Make sure the scripts load before the page renders -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 </head>
 <body>
     <div class="analytics-container">
@@ -398,10 +401,6 @@ $rating_stats = $stmt->get_result();
     }
     </style>
 
-    <!-- PDF Generation Scripts -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-
     <script>
     // Prepare chart data
     <?php
@@ -493,7 +492,10 @@ $rating_stats = $stmt->get_result();
         }
     });
 
+    // Wait until DOM is fully loaded before attaching event handlers
     document.addEventListener('DOMContentLoaded', function() {
+        console.log("DOM fully loaded");
+        
         const downloadPdfBtn = document.getElementById('downloadPdfBtn');
         
         // Filter checkboxes
@@ -505,9 +507,10 @@ $rating_stats = $stmt->get_result();
         
         // Initialize filters to ensure data appears immediately
         function initializeFilters() {
+            console.log("Initializing filters");
             // Make sure all checkboxes are checked by default
             [includeMembers, includeRatings, includeReviews, includeRevenue, includeCharts].forEach(checkbox => {
-                checkbox.checked = true;
+                if (checkbox) checkbox.checked = true;
             });
             
             // Apply filters to make all data visible
@@ -516,6 +519,7 @@ $rating_stats = $stmt->get_result();
         
         // Apply filters to the view
         function applyFilters() {
+            console.log("Applying filters");
             // Filter metric cards
             const metricCards = document.querySelectorAll('.metric-card');
             metricCards.forEach(card => {
@@ -551,15 +555,19 @@ $rating_stats = $stmt->get_result();
         initializeFilters();
         
         // Add filter change listeners
-        [includeMembers, includeRatings, includeReviews, includeRevenue, includeCharts].forEach(checkbox => {
-            checkbox.addEventListener('change', applyFilters);
-        });
+        if (includeMembers) includeMembers.addEventListener('change', applyFilters);
+        if (includeRatings) includeRatings.addEventListener('change', applyFilters);
+        if (includeReviews) includeReviews.addEventListener('change', applyFilters);
+        if (includeRevenue) includeRevenue.addEventListener('change', applyFilters);
+        if (includeCharts) includeCharts.addEventListener('change', applyFilters);
         
         if (downloadPdfBtn) {
+            console.log("Adding click event to PDF button");
             downloadPdfBtn.addEventListener('click', generatePDF);
         }
         
         function generatePDF() {
+            console.log("Generating PDF");
             // Make sure filters are properly initialized
             initializeFilters();
             
@@ -632,11 +640,11 @@ $rating_stats = $stmt->get_result();
                 doc.setFontSize(10);
                 doc.text('Filters applied:', 20, 45);
                 const filterText = [];
-                if (includeMembers.checked) filterText.push('Members');
-                if (includeRatings.checked) filterText.push('Ratings');
-                if (includeReviews.checked) filterText.push('Reviews');
-                if (includeRevenue.checked) filterText.push('Revenue');
-                if (includeCharts.checked) filterText.push('Charts');
+                if (includeMembers && includeMembers.checked) filterText.push('Members');
+                if (includeRatings && includeRatings.checked) filterText.push('Ratings');
+                if (includeReviews && includeReviews.checked) filterText.push('Reviews');
+                if (includeRevenue && includeRevenue.checked) filterText.push('Revenue');
+                if (includeCharts && includeCharts.checked) filterText.push('Charts');
                 doc.text(`Included: ${filterText.join(', ')}`, 20, 50);
                 
                 let currentY = 60;
@@ -673,7 +681,7 @@ $rating_stats = $stmt->get_result();
                 }
                 
                 // Process charts if selected
-                if (includeCharts.checked) {
+                if (includeCharts && includeCharts.checked) {
                     const visibleChartContainers = document.querySelectorAll('.chart-container[data-hidden="false"]');
                     
                     if (visibleChartContainers.length > 0) {
@@ -771,7 +779,7 @@ $rating_stats = $stmt->get_result();
                     }
                     
                     summary += `\n\nThis report was generated on ${date} and includes `;
-                    if (includeCharts.checked) {
+                    if (includeCharts && includeCharts.checked) {
                         summary += "visualizations of key performance indicators through charts and graphs. ";
                     }
                     summary += "The data provides valuable insights for gym management to make informed decisions ";
@@ -801,3 +809,6 @@ $rating_stats = $stmt->get_result();
             }, 500);
         }
     });
+    </script>
+</body>
+</html>
