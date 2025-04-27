@@ -99,6 +99,7 @@ $reviews = $stmt->get_result();
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
     <link rel="stylesheet" href="../assets/css/mains.css">
     <link rel="stylesheet" href="../assets/css/user_view_gym.css">
+    <link rel="stylesheet" href="../assets/css/fithub-ui-fixes-updated.css">
     <link rel="stylesheet" href="../assets/css/unified-theme.css">
 
 </head>
@@ -225,8 +226,9 @@ $reviews = $stmt->get_result();
                     <div id="review-form" class="review-form" style="display: none;">
                         <form action="../actions/submit_review.php" method="POST">
                             <input type="hidden" name="gym_id" value="<?php echo $gym_id; ?>">
+                            
                             <div class="rating-select">
-                                <label>Your Rating</label>
+                                <label>Your Rating:</label>
                                 <div class="star-rating-input">
                                     <?php for ($i = 5; $i >= 1; $i--): ?>
                                         <input type="radio" id="star<?php echo $i; ?>" 
@@ -237,10 +239,12 @@ $reviews = $stmt->get_result();
                                     <?php endfor; ?>
                                 </div>
                             </div>
+                            
                             <div class="review-input">
                                 <textarea name="comment" required rows="4" 
-                                          placeholder="Share your experience..."></textarea>
+                                        placeholder="Share your experience..."></textarea>
                             </div>
+                            
                             <button type="submit" class="submit-btn">Submit Review</button>
                         </form>
                     </div>
@@ -437,6 +441,156 @@ $reviews = $stmt->get_result();
         }
     });
 
+    }
+    // Star rating functionality fix
+    document.addEventListener('DOMContentLoaded', function() {
+    // Target the star rating system
+    initializeStarRating();
+    
+    // Add "Explore Gyms" link to navigation if needed
+    updateNavigation();
+    
+    // Make Cancel button match Update button in edit pages
+    fixButtonStyles();
+    });
+
+    function initializeStarRating() {
+    // Get all star rating containers
+    const ratingContainers = document.querySelectorAll('.star-rating-input');
+    
+    ratingContainers.forEach(container => {
+        const stars = container.querySelectorAll('label i');
+        const inputs = container.querySelectorAll('input[type="radio"]');
+        
+        // Add event listeners to each star
+        stars.forEach((star, index) => {
+        // Get the corresponding input and label
+        const label = star.parentElement;
+        const input = document.getElementById(label.getAttribute('for'));
+        
+        // Hover effect
+        label.addEventListener('mouseenter', function() {
+            // Highlight this star and all previous stars
+            for (let i = stars.length - 1; i >= index; i--) {
+            stars[i].style.color = '#ffb22c';
+            }
+        });
+        
+        // Hover out effect
+        container.addEventListener('mouseleave', function() {
+            // Reset all stars
+            stars.forEach(s => s.style.color = '');
+            
+            // Highlight selected stars
+            const checkedInput = Array.from(inputs).find(input => input.checked);
+            if (checkedInput) {
+            const checkedValue = parseInt(checkedInput.value);
+            for (let i = stars.length - 1; i >= stars.length - checkedValue; i--) {
+                stars[i].classList.add('checked');
+            }
+            }
+        });
+        
+        // Click effect
+        label.addEventListener('click', function() {
+            // Reset all stars
+            stars.forEach(s => {
+            s.classList.remove('checked');
+            });
+            
+            // Check the input
+            if (input) {
+            input.checked = true;
+            
+            // Highlight stars based on selected value
+            const rating = parseInt(input.value);
+            for (let i = stars.length - 1; i >= stars.length - rating; i--) {
+                stars[i].classList.add('checked');
+            }
+            }
+        });
+        });
+        
+        // Initialize checked stars
+        const checkedInput = Array.from(inputs).find(input => input.checked);
+        if (checkedInput) {
+        const rating = parseInt(checkedInput.value);
+        for (let i = stars.length - 1; i >= stars.length - rating; i--) {
+            stars[i].classList.add('checked');
+        }
+        }
+    });
+    }
+
+    function updateNavigation() {
+    const navLinks = document.querySelector('.nav-links');
+    
+    if (navLinks) {
+        // Check if we need to add Explore Gyms link
+        const hasExploreLink = Array.from(navLinks.querySelectorAll('a')).some(
+        link => link.textContent.includes('Explore') || link.href.includes('explore_gyms.php')
+        );
+        
+        // Add the link if it doesn't exist and current user is not admin/superadmin
+        if (!hasExploreLink && 
+            !document.querySelector('.nav-links a[href*="manage_"]')) {
+        
+        // Create the link
+        const exploreLink = document.createElement('a');
+        exploreLink.href = 'explore_gyms.php';
+        exploreLink.className = 'explore-link';
+        exploreLink.innerHTML = 'Explore Gyms';
+        
+        // Insert it after Dashboard
+        const dashboardLink = document.querySelector('.nav-links a[href*="dashboard.php"]');
+        if (dashboardLink) {
+            navLinks.insertBefore(exploreLink, dashboardLink.nextSibling);
+        }
+        }
+    }
+    }
+
+    function fixButtonStyles() {
+    // Find cancel buttons that need to be styled like submit buttons
+    const cancelButtons = document.querySelectorAll('a.cancel-btn, button.cancel-btn');
+    
+    cancelButtons.forEach(button => {
+        button.style.backgroundColor = '#ffb22c';
+        button.style.color = '#000';
+        button.style.border = 'none';
+        
+        // Add hover effect
+        button.addEventListener('mouseenter', function() {
+        this.style.backgroundColor = '#e59f26';
+        });
+        
+        button.addEventListener('mouseleave', function() {
+        this.style.backgroundColor = '#ffb22c';
+        });
+    });
+    
+    // Specific fix for edit_gym.php
+    const updateButton = document.querySelector('button[name="update_gym"]');
+    const cancelLink = document.querySelector('a[href="dashboard.php"]');
+    
+    if (updateButton && cancelLink && !cancelLink.classList.contains('cancel-btn')) {
+        cancelLink.classList.add('cancel-btn');
+        cancelLink.style.backgroundColor = '#ffb22c';
+        cancelLink.style.color = '#000';
+        cancelLink.style.padding = '10px 20px';
+        cancelLink.style.borderRadius = '5px';
+        cancelLink.style.textDecoration = 'none';
+        cancelLink.style.display = 'inline-block';
+        
+        // Add hover effect
+        cancelLink.addEventListener('mouseenter', function() {
+        this.style.backgroundColor = '#e59f26';
+        });
+        
+        cancelLink.addEventListener('mouseleave', function() {
+        this.style.backgroundColor = '#ffb22c';
+        });
+    }
     }
     </script>
 </body>

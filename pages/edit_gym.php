@@ -188,6 +188,7 @@ if (!empty($gym['equipment_images'])) {
     <link rel="stylesheet" href="../assets/css/edit_gym.css">
     <link rel="stylesheet" href="../assets/css/unified-theme.css">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
     <style>
         .success-message {
             background-color: #d4edda;
@@ -207,15 +208,43 @@ if (!empty($gym['equipment_images'])) {
             margin-bottom: 20px;
         }
         
-        .back-to-dashboard {
-            display: inline-block;
-            margin-top: 10px;
-            text-decoration: none;
-            color: #4CAF50;
+        .page-container {
+            width: 100%;
         }
         
-        .back-to-dashboard:hover {
-            text-decoration: underline;
+        .navbar {
+            background-color: #f8f9fa;
+            padding: 15px 0;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .nav-content {
+            display: flex;
+            align-items: center;
+            padding: 0 20px;
+        }
+        
+        .back-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1.5rem;
+            color: #000000;
+            text-decoration: none;
+            border: 2px solid #FFB22C;
+            border-radius: 6px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            margin-bottom: 2rem;
+        }
+
+        .back-btn:hover {
+            background: #FFB22C;
+            transform: translateX(-5px);
+        }
+
+        .back-btn i {
+            margin-right: 0.5rem;
         }
         
         .loading-indicator {
@@ -238,19 +267,95 @@ if (!empty($gym['equipment_images'])) {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
+        
+        /* Additional styles for the new media section */
+        .media-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            background-color: #f9f9f9;
+            border-radius: 8px;
+        }
+        
+        .current-thumbnail {
+            margin: 15px 0;
+            display: inline-block;
+        }
+        
+        .current-thumbnail img {
+            max-width: 200px;
+            max-height: 150px;
+            border-radius: 4px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        
+        .current-equipment {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin: 15px 0;
+        }
+        
+        .equipment-item {
+            position: relative;
+            width: 150px;
+        }
+        
+        .equipment-item img {
+            width: 100%;
+            height: 120px;
+            object-fit: cover;
+            border-radius: 4px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        
+        .remove-image {
+            position: absolute;
+            top: -10px;
+            right: -10px;
+            background: #ff5252;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 25px;
+            height: 25px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .equipment-upload {
+            border: 2px dashed #ccc;
+            padding: 20px;
+            text-align: center;
+            border-radius: 8px;
+            margin: 15px 0;
+            background-color: #f5f5f5;
+            cursor: pointer;
+        }
+        
+        .equipment-upload:hover {
+            background-color: #eaeaea;
+        }
+        
+        .equipment-preview {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-top: 15px;
+        }
     </style>
 </head>
 <body>
-    <nav class="navbar">
-        <div class="nav-brand">
-            <img src="../assets/logo/FITHUB LOGO.png" alt="FitHub Logo" style="max-height: 50px;">
-        </div>
-        <div class="nav-links">
-            <a href="dashboard.php">Dashboard</a>
-            <a href="profile.php">My Profile</a>
-            <a href="../actions/logout.php">Logout</a>
-        </div>
-    </nav>
+    <div class="page-container">
+        <nav class="navbar">
+            <div class="nav-content">
+                <a href="dashboard.php" class="back-btn">
+                    <i class="fas fa-arrow-left"></i> Back to Dashboard
+                </a>
+                <h1>Edit Gym</h1>
+            </div>
+        </nav>
 
     <div class="container">
         <div class="edit-gym-section">
@@ -259,7 +364,6 @@ if (!empty($gym['equipment_images'])) {
             <?php if (!empty($success_message)): ?>
                 <div class="success-message">
                     <?php echo $success_message; ?>
-                    <a href="dashboard.php" class="back-to-dashboard">Back to Dashboard</a>
                 </div>
             <?php endif; ?>
             
@@ -295,31 +399,56 @@ if (!empty($gym['equipment_images'])) {
                     <textarea name="gym_amenities" required rows="3"><?php echo htmlspecialchars($gym['gym_amenities']); ?></textarea>
                 </div>
 
-                <div class="form-group">
-                    <label>Gym Thumbnail:</label>
-                    <input type="file" name="gym_thumbnail" accept="image/*" class="file-input">
-                    <?php if (!empty($gym['gym_thumbnail'])): ?>
-                        <div class="current-image">
-                            <img src="<?php echo $gym['gym_thumbnail']; ?>" alt="Current thumbnail" 
-                                 onerror="this.onerror=null; this.src='../assets/images/default-gym.jpg';">
+                <!-- Integrated Media Section from the template -->
+                <div class="media-section">
+                    <h3>Media & Images</h3>
+                    
+                    <!-- Gym thumbnail section -->
+                    <div class="form-group">
+                        <label for="gym_thumbnail">Gym Thumbnail</label>
+                        <input type="file" id="gym_thumbnail" name="gym_thumbnail" accept="image/*" class="file-input">
+                        
+                        <?php if (!empty($gym['gym_thumbnail'])): ?>
+                        <div class="current-thumbnail">
+                            <img src="<?php echo htmlspecialchars($gym['gym_thumbnail']); ?>" 
+                                alt="Current thumbnail" 
+                                onerror="this.src='../assets/images/default-gym.jpg';">
                             <span>Current thumbnail</span>
                         </div>
-                    <?php endif; ?>
-                </div>
-
-                <div class="form-group">
-                    <label>Equipment Images:</label>
-                    <input type="file" name="equipment_images[]" accept="image/*" multiple class="file-input">
-                    <div class="equipment-images">
-                        <?php foreach ($equipment_images as $index => $image): ?>
-                            <div class="equipment-image">
-                                <img src="<?php echo $image; ?>" alt="Equipment" 
-                                     onerror="this.onerror=null; this.src='../assets/images/default-equipment.jpg';">
-                                <button type="button" class="remove-btn" onclick="removeImage(this, <?php echo $index; ?>)">
-                                    <i class="bi bi-x"></i>
+                        <?php endif; ?>
+                    </div>
+                    
+                    <!-- Equipment images section with horizontal layout -->
+                    <div class="form-group">
+                        <label>Equipment Images</label>
+                        
+                        <!-- Current equipment images -->
+                        <?php if (!empty($equipment_images)): ?>
+                        <div class="current-equipment">
+                            <?php foreach ($equipment_images as $index => $image): ?>
+                            <div class="equipment-item">
+                                <img src="<?php echo htmlspecialchars($image); ?>" 
+                                    alt="Equipment <?php echo $index + 1; ?>"
+                                    onerror="this.src='../assets/images/default-equipment.jpg';">
+                                <button type="button" class="remove-image" onclick="removeImage(this, <?php echo $index; ?>)">
+                                    <i class="fas fa-times"></i>
                                 </button>
+                                <input type="hidden" name="existing_equipment[]" value="<?php echo htmlspecialchars($image); ?>">
                             </div>
-                        <?php endforeach; ?>
+                            <?php endforeach; ?>
+                        </div>
+                        <?php endif; ?>
+                        
+                        <!-- Upload new equipment images -->
+                        <div class="equipment-upload" id="dropArea">
+                            <i class="fas fa-cloud-upload-alt fa-2x"></i>
+                            <p>Drag and drop or click to upload equipment images</p>
+                            <span>(Maximum 5 images, 2MB each)</span>
+                            <input type="file" id="equipment_images" name="equipment_images[]" multiple accept="image/*" class="file-input">
+                        </div>
+                        
+                        <!-- Preview area for new uploads -->
+                        <div id="equipmentPreview" class="equipment-preview"></div>
                     </div>
                 </div>
 
@@ -328,8 +457,15 @@ if (!empty($gym['equipment_images'])) {
                     <p>Uploading images and updating gym details...</p>
                 </div>
 
-                <button type="submit" name="update_gym" class="submit-btn">Update Gym</button>
-                <a href="dashboard.php" class="cancel-btn">Cancel</a>
+                <div class="form-actions">
+                    <button type="submit" name="update_gym" class="submit-btn">
+                        <i class="fas fa-save"></i> Update Gym
+                    </button>
+                    <a href="dashboard.php" class="cancel-btn" style="background-color: #ffb22c; color: #000000; border: none; padding: 10px 20px; border-radius: 5px; text-decoration: none; display: inline-block; font-weight: 500;">
+                        <i class="fas fa-times"></i> Cancel
+                    </a>
+                </div>
+
             </form>
         </div>
     </div>
@@ -349,9 +485,213 @@ if (!empty($gym['equipment_images'])) {
                 document.getElementById('gymForm').appendChild(input);
                 
                 // Hide the image container
-                button.closest('.equipment-image').style.display = 'none';
+                button.closest('.equipment-item').style.display = 'none';
             }
         }
+        
+        // Additional JavaScript for drag and drop functionality
+        const dropArea = document.getElementById('dropArea');
+        const fileInput = document.getElementById('equipment_images');
+        const previewArea = document.getElementById('equipmentPreview');
+        
+        // Trigger file input when clicking on the drop area
+        dropArea.addEventListener('click', () => {
+            fileInput.click();
+        });
+        
+        // Prevent default drag behaviors
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            dropArea.addEventListener(eventName, preventDefaults, false);
+        });
+        
+        function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+        
+        // Highlight drop area when dragging over it
+        ['dragenter', 'dragover'].forEach(eventName => {
+            dropArea.addEventListener(eventName, highlight, false);
+        });
+        
+        ['dragleave', 'drop'].forEach(eventName => {
+            dropArea.addEventListener(eventName, unhighlight, false);
+        });
+        
+        function highlight() {
+            dropArea.classList.add('highlight');
+        }
+        
+        function unhighlight() {
+            dropArea.classList.remove('highlight');
+        }
+        
+        // Handle dropped files
+        dropArea.addEventListener('drop', handleDrop, false);
+        
+        function handleDrop(e) {
+            const dt = e.dataTransfer;
+            const files = dt.files;
+            fileInput.files = files;
+            handleFiles(files);
+        }
+        
+        // Handle selected files (both from drop and file input)
+        fileInput.addEventListener('change', function() {
+            handleFiles(this.files);
+        });
+        
+        function handleFiles(files) {
+            // Limit files to 5
+            const filesToProcess = Array.from(files).slice(0, 5);
+            
+            filesToProcess.forEach(file => {
+                // Check file size (2MB limit)
+                if (file.size > 2 * 1024 * 1024) {
+                    alert('File ' + file.name + ' exceeds the 2MB size limit.');
+                    return;
+                }
+                
+                // Preview image
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const preview = document.createElement('div');
+                    preview.className = 'equipment-item';
+                    preview.innerHTML = `
+                        <img src="${e.target.result}" alt="Preview">
+                        <button type="button" class="remove-image">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    `;
+                    
+                    // Add remove functionality for preview
+                    preview.querySelector('.remove-image').addEventListener('click', function() {
+                        preview.remove();
+                    });
+                    
+                    previewArea.appendChild(preview);
+                }
+                reader.readAsDataURL(file);
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+        // Handle file input change for equipment images
+        const equipmentInput = document.getElementById('equipment_images');
+        const previewContainer = document.getElementById('equipmentPreview');
+        
+        if (equipmentInput && previewContainer) {
+            equipmentInput.addEventListener('change', function(e) {
+                const files = e.target.files;
+                
+                if (files.length > 0) {
+                    // Add active class to show preview section
+                    previewContainer.classList.add('active');
+                    
+                    // Clear previous previews
+                    previewContainer.innerHTML = '';
+                    
+                    // Limit to max 5 images
+                    const maxImages = 5;
+                    const filesToProcess = Math.min(files.length, maxImages);
+                    
+                    if (files.length > maxImages) {
+                        alert(`Only the first ${maxImages} images will be uploaded. You selected ${files.length} images.`);
+                    }
+                    
+                    // Create previews for selected files
+                    Array.from(files).slice(0, maxImages).forEach((file, index) => {
+                        createImagePreview(file, index, previewContainer);
+                    });
+                }
+            });
+        }
+        
+        // Function to create image preview
+        function createImagePreview(file, index, container) {
+            const reader = new FileReader();
+            
+            reader.onload = function(e) {
+                const previewItem = document.createElement('div');
+                previewItem.className = 'equipment-item';
+                
+                const img = document.createElement('img');
+                img.src = e.target.result;
+                img.alt = `Equipment preview ${index + 1}`;
+                
+                const removeBtn = document.createElement('button');
+                removeBtn.className = 'remove-btn';
+                removeBtn.innerHTML = '<i class="fas fa-times"></i>';
+                removeBtn.onclick = function() {
+                    previewItem.remove();
+                    // Check if all items removed
+                    if (container.children.length === 0) {
+                        container.classList.remove('active');
+                    }
+                };
+                
+                previewItem.appendChild(img);
+                previewItem.appendChild(removeBtn);
+                container.appendChild(previewItem);
+            };
+            
+            reader.readAsDataURL(file);
+        }
+        
+        // Handle removing existing images
+        const removeButtons = document.querySelectorAll('.remove-image');
+        
+        removeButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                if (confirm('Are you sure you want to remove this image?')) {
+                    const item = this.closest('.equipment-item');
+                    const index = Array.from(item.parentNode.children).indexOf(item);
+                    
+                    // Create hidden input to track removed images
+                    const input = document.createElement('input');
+                    input.type = 'hidden';
+                    input.name = 'remove_equipment[]';
+                    input.value = index;
+                    document.querySelector('form').appendChild(input);
+                    
+                    // Hide the item
+                    item.style.display = 'none';
+                }
+            });
+        });
+        
+        // Make equipment upload area clickable
+        const uploadArea = document.querySelector('.equipment-upload');
+        if (uploadArea && equipmentInput) {
+            uploadArea.addEventListener('click', function() {
+                equipmentInput.click();
+            });
+            
+            // Add drag and drop functionality
+            uploadArea.addEventListener('dragover', function(e) {
+                e.preventDefault();
+                this.classList.add('highlight');
+            });
+            
+            uploadArea.addEventListener('dragleave', function() {
+                this.classList.remove('highlight');
+            });
+            
+            uploadArea.addEventListener('drop', function(e) {
+                e.preventDefault();
+                this.classList.remove('highlight');
+                
+                // Trigger file input with dropped files
+                if (e.dataTransfer.files.length > 0) {
+                    equipmentInput.files = e.dataTransfer.files;
+                    
+                    // Trigger change event manually
+                    const changeEvent = new Event('change', { bubbles: true });
+                    equipmentInput.dispatchEvent(changeEvent);
+                }
+            });
+        }
+    });
     </script>
 </body>
 </html>

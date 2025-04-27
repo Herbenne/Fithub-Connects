@@ -67,6 +67,7 @@ $s3_base_url = "https://fithubconnect-bucket.s3.ap-southeast-1.amazonaws.com/";
     <title>View Gym Application - FitHub</title>
     <link rel="stylesheet" href="../assets/css/mains.css">
     <link rel="stylesheet" href="../assets/css/unified-theme.css">
+    <link rel="stylesheet" href="../assets/css/fithub-ui.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
     <style>
     .application-container {
@@ -79,17 +80,26 @@ $s3_base_url = "https://fithubconnect-bucket.s3.ap-southeast-1.amazonaws.com/";
     }
     
     .back-btn {
-        margin-bottom: 20px;
-        display: inline-block;
-        padding: 8px 15px;
-        background-color: #f5f5f5;
-        color: #333;
-        border-radius: 4px;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.75rem 1.5rem;
+        color: #000000;
         text-decoration: none;
+        border: 2px solid #FFB22C;
+        border-radius: 6px;
+        font-weight: 500;
+        transition: all 0.3s ease;
+        margin-bottom: 2rem;
     }
-    
+
     .back-btn:hover {
-        background-color: #e0e0e0;
+        background: #FFB22C;
+        transform: translateX(-5px);
+    }
+
+    .back-btn i {
+        margin-right: 0.5rem;
     }
     
     .section {

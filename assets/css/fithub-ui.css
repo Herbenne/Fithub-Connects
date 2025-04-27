@@ -1,0 +1,236 @@
+/* Fithub UI Fixes - Updated based on screenshots */
+
+/* ==========================================================================
+   Star Rating Fix
+   ========================================================================== */
+
+/* Reset styles for star rating in review form */
+.star-rating-input {
+    display: flex;
+    flex-direction: row-reverse;
+    justify-content: flex-start;
+  }
+  
+  .star-rating-input input[type="radio"] {
+    display: none;
+  }
+  
+  .star-rating-input label {
+    cursor: pointer;
+    font-size: 24px;
+    margin: 0 5px 0 0;
+  }
+  
+  .star-rating-input label i {
+    color: #ddd;
+    transition: color 0.2s ease;
+  }
+  
+  /* Fix star hover states with important flags to override other styles */
+  .star-rating-input label:hover i,
+  .star-rating-input label:hover ~ label i,
+  .star-rating-input input[type="radio"]:checked ~ label i {
+    color: #ffb22c !important;
+  }
+  
+  /* Fix for pre-existing checked stars */
+  .fa-star.checked {
+    color: #ffb22c !important;
+  }
+  
+  /* ==========================================================================
+     Navigation Fixes
+     ========================================================================== */
+  
+  /* Main navbar with correct spacing/alignment */
+  .navbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 20px;
+    background: #fff;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+  
+  /* FitHub logo alignment - keep left-aligned */
+  .nav-brand {
+    display: flex;
+    align-items: center;
+  }
+  
+  .nav-brand img {
+    max-height: 50px;
+  }
+  
+  /* Nav links alignment - keep right-aligned */
+  .nav-links {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 20px;
+  }
+  
+  .nav-links a {
+    color: #000;
+    text-decoration: none;
+    padding: 10px 15px;
+    transition: color 0.3s ease;
+  }
+  
+  .nav-links a:hover {
+    color: #ffb22c;
+  }
+  
+  /* Add "Explore Gyms" link style */
+  .nav-links .explore-link {
+    color: #000;
+    text-decoration: none;
+  }
+  
+  /* ==========================================================================
+     Back Button Styling
+     ========================================================================== */
+  
+  /* Match the yellow-bordered back button style seen in view_application.php */
+  .back-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    color: #000;
+    text-decoration: none;
+    border: 2px solid #ffb22c;
+    border-radius: 6px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    margin-bottom: 20px;
+    background: transparent;
+  }
+  
+  .back-btn:hover {
+    background: #ffb22c;
+    transform: translateX(-5px);
+  }
+  
+  .back-btn i {
+    margin-right: 5px;
+  }
+  
+  /* ==========================================================================
+     Button Consistency Fixes
+     ========================================================================== */
+  
+  /* Make the Cancel button match Update button */
+  .submit-btn, 
+  .update-btn,
+  .cancel-btn {
+    padding: 10px 20px;
+    border-radius: 5px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    display: inline-block;
+    text-align: center;
+  }
+  
+  .submit-btn, 
+  .update-btn {
+    background: #ffb22c;
+    color: #000;
+    border: none;
+  }
+  
+  /* Style cancel button to match update button */
+  .cancel-btn {
+    background: #ffb22c !important;
+    color: #000 !important;
+    border: none !important;
+  }
+  
+  .submit-btn:hover, 
+  .update-btn:hover,
+  .cancel-btn:hover {
+    background: #e59f26 !important;
+  }
+  
+  /* Fix for edit_gym.php buttons */
+  .gym-edit-buttons {
+    margin-top: 20px;
+    display: flex;
+    gap: 10px;
+  }
+  
+  /* ==========================================================================
+     Login/Register Alignment
+     ========================================================================== */
+  
+  /* For public landing page */
+  .auth-links {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    display: flex;
+    gap: 20px;
+  }
+  
+  .auth-links a {
+    color: #000;
+    text-decoration: none;
+    padding: 8px 15px;
+  }
+  
+  /* ==========================================================================
+     Rating Display Styling
+     ========================================================================== */
+  
+  /* Consistent styling for star ratings display on cards */
+  .stars {
+    display: flex;
+  }
+  
+  .stars .fa-star {
+    color: #ddd;
+    margin-right: 2px;
+  }
+  
+  .stars .fa-star.checked {
+    color: #ffb22c !important;
+  }
+  
+  /* ==========================================================================
+     Mobile Responsiveness
+     ========================================================================== */
+  
+  @media (max-width: 768px) {
+    .navbar {
+      flex-direction: column;
+      padding: 10px;
+    }
+    
+    .nav-brand {
+      margin-bottom: 10px;
+    }
+    
+    .nav-links {
+      width: 100%;
+      justify-content: center;
+    }
+    
+    .auth-links {
+      position: static;
+      width: 100%;
+      justify-content: center;
+      margin-top: 15px;
+    }
+    
+    .gym-edit-buttons {
+      flex-direction: column;
+    }
+    
+    .submit-btn, 
+    .update-btn,
+    .cancel-btn {
+      width: 100%;
+    }
+  }

@@ -120,6 +120,7 @@ if ($result === false) {
     <link rel="stylesheet" href="../assets/css/mains.css">
     <link rel="stylesheet" href="../assets/css/dashboards.css">
     <link rel="stylesheet" href="../assets/css/unified-theme.css">
+    <link rel="stylesheet" href="../assets/css/fithub-ui.css">
     <!-- Add Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Add Bootstrap Icons -->
@@ -156,8 +157,18 @@ if ($result === false) {
                  style="max-height: 50px;"
             ></div>
         <div class="nav-links">
-            <a href="dashboard.php" class="active">Dashboard</a>
-            <a href="profile.php">My Profile</a>
+            <?php if ($_SESSION['role'] === 'member'): ?>
+                <a href="profile.php">My Profile</a>
+                <a href="explore_gyms.php">Explore Gyms</a>
+                <!-- Other member-specific links -->
+            <?php elseif ($_SESSION['role'] === 'admin'): ?>
+                <a href="profile.php">My Profile</a>
+                <a href="edit_gym.php">My Gym</a>
+                <!-- Other admin-specific links -->
+            <?php elseif ($_SESSION['role'] === 'superadmin'): ?>
+                <a href="admin_dashboard.php">Admin Panel</a>
+                <!-- Other superadmin-specific links -->
+            <?php endif; ?>
             <a href="../actions/logout.php">Logout</a>
         </div>
     </nav>
