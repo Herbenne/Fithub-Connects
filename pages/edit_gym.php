@@ -187,6 +187,7 @@ if (!empty($gym['equipment_images'])) {
     <link rel="stylesheet" href="../assets/css/mains.css">
     <link rel="stylesheet" href="../assets/css/edit_gym.css">
     <link rel="stylesheet" href="../assets/css/unified-theme.css">
+    <link rel="stylesheet" href="../assets/css/fithub-ui.css">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
     <style>
@@ -224,23 +225,6 @@ if (!empty($gym['equipment_images'])) {
             padding: 0 20px;
         }
         
-        .back-btn {
-            display: inline-flex;
-            align-items: center;
-            text-decoration: none;
-            color: #4CAF50;
-            font-weight: 500;
-            margin-right: 20px;
-        }
-        
-        .back-btn i {
-            margin-right: 5px;
-        }
-        
-        .back-btn:hover {
-            color: #3d8b40;
-        }
-        
         .loading-indicator {
             display: none;
             text-align: center;
@@ -274,7 +258,6 @@ if (!empty($gym['equipment_images'])) {
         .current-thumbnail {
             margin: 15px 0;
             display: block;
-            text-align: center;
         }
         
         .current-thumbnail img {

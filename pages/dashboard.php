@@ -152,37 +152,31 @@ if ($result === false) {
         <h3>Submitting Application...</h3>
         <p>Please wait while we upload your files and process your application.</p>
     </div>
-    <header class="site-header">
-        <div class="container">
-            <div class="header-content">
-                <div class="logo-container">
-                    <a href="<?php echo ($_SESSION['user_id'] ?? false) ? 'dashboard.php' : '../index.php'; ?>">
-                        <img src="../assets/logo/FITHUB LOGO.png" alt="FitHub Logo" class="site-logo">
-                    </a>
-                </div>
-                <div class="nav-links">
-                    <?php if (!isset($_SESSION['user_id'])): ?>
-                        <a href="login.php" class="nav-btn login-btn">Login</a>
-                        <a href="register.php" class="nav-btn register-btn">Register</a>
-                    <?php else: ?>
-                        <?php if ($_SESSION['role'] === 'member'): ?>
-                            <a href="dashboard.php" class="nav-btn">Dashboard</a>
-                            <a href="explore_gyms.php" class="nav-btn">Explore Gyms</a>
-                            <a href="profile.php" class="nav-btn">My Profile</a>
-                        <?php elseif ($_SESSION['role'] === 'admin'): ?>
-                            <a href="dashboard.php" class="nav-btn">Dashboard</a>
-                            <a href="edit_gym.php" class="nav-btn">My Gym</a>
-                            <a href="profile.php" class="nav-btn">My Profile</a>
-                        <?php elseif ($_SESSION['role'] === 'superadmin'): ?>
-                            <a href="all_gyms_analytics.php">FitHub Analytics</a>
-                        <?php endif; ?>
-                        <a href="../actions/logout.php" class="nav-btn logout-btn">Logout</a>
-                    <?php endif; ?>
-                </div>
-            </div>
+    <nav class="navbar">
+        <div class="nav-brand"> <img src="<?php echo dirname($_SERVER['PHP_SELF']) ?>/../assets/logo/FITHUB LOGO.png" 
+                 alt="Fithub Logo" 
+                 style="max-height: 50px;"
+            ></div>
+        <div class="nav-links">
+            <?php if (!isset($_SESSION['user_id'])): ?>
+                <a href="login.php" class="nav-btn login-btn">Login</a>
+                <a href="register.php" class="nav-btn register-btn">Register</a>
+            <?php else: ?>
+                <?php if ($_SESSION['role'] === 'member'): ?>
+                    <a href="dashboard.php" class="nav-btn">Dashboard</a>
+                    <a href="explore_gyms.php" class="nav-btn">Explore Gyms</a>
+                    <a href="profile.php" class="nav-btn">My Profile</a>
+                <?php elseif ($_SESSION['role'] === 'admin'): ?>
+                    <a href="dashboard.php" class="nav-btn">Dashboard</a>
+                    <a href="edit_gym.php" class="nav-btn">My Gym</a>
+                    <a href="profile.php" class="nav-btn">My Profile</a>
+                <?php elseif ($_SESSION['role'] === 'superadmin'): ?>
+                    <a href="all_gyms_analytics.php">FitHub Analytics</a>
+                <?php endif; ?>
+                <a href="../actions/logout.php">Logout</a>
+            <?php endif; ?>
         </div>
-    </header>
-
+    </nav>
     <div class="dashboard-container">     
     <?php
     // Display success and error messages based on URL parameters
@@ -715,32 +709,6 @@ if ($result === false) {
         flex-wrap: wrap;
     }
 }
-
-.transparent-header {
-    background-color: transparent;
-    box-shadow: none;
-    position: absolute;
-}
-
-.transparent-header .nav-btn {
-    color: white;
-}
-
-.transparent-header .login-btn {
-    border-color: white;
-    color: white;
-}
-
-.transparent-header .login-btn:hover {
-    background-color: white;
-    color: #4CAF50;
-}
-
-.transparent-header .register-btn {
-    background-color: #4CAF50;
-    color: white;
-}
-
 </style>
 
             <!-- User's active memberships section -->
