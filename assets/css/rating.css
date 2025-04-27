@@ -1,0 +1,15 @@
+/* Star Rating Styles */
+.fa-star {
+  color: #ddd;  /* Default gray color for empty stars */
+  margin: 0 1px;
+}
+
+.fa-star.active {
+  color: #FFB22C;  /* FitHub yellow color for filled stars */
+}
+
+.review-count {
+  color: #666;
+  font-size: 0.9rem;
+  margin-left: 5px;
+}
