@@ -251,42 +251,42 @@ $reviews = $stmt->get_result();
                 <?php endif; ?>
 
                 <div class="reviews-list">
-                <?php while ($review = $reviews->fetch_assoc()): ?>
-                    <div class="review-card">
-                        <div class="review-header">
-                            <div class="reviewer-info">
-                                <!-- Add profile picture -->
-                                <img src="fetch_image.php?user_id=<?php echo $review['reviewer_id']; ?>" 
-                                    alt="<?php echo htmlspecialchars($review['full_name']); ?>"
-                                    class="reviewer-avatar"
-                                    onerror="this.onerror=null; this.src='../assets/images/default-profile.jpg';">
-                                <div class="reviewer-details">
-                                    <strong><?php echo htmlspecialchars($review['full_name']); ?></strong>
-                                    <div class="star-rating">
-                                        <?php 
-                                        $rating = (float)$review['rating'];
-                                        for ($i = 1; $i <= 5; $i++): 
-                                        ?>
-                                            <i class="fas fa-star <?php echo ($i <= $rating) ? 'checked' : ''; ?>"></i>
-                                        <?php endfor; ?>
+                    <?php while ($review = $reviews->fetch_assoc()): ?>
+                        <div class="review-card">
+                            <div class="review-header">
+                                <div class="reviewer-info">
+                                    <!-- Add profile picture -->
+                                    <img src="fetch_image.php?user_id=<?php echo $review['reviewer_id']; ?>" 
+                                        alt="<?php echo htmlspecialchars($review['full_name']); ?>"
+                                        class="reviewer-avatar"
+                                        onerror="this.onerror=null; this.src='../assets/images/default-profile.jpg';">
+                                    <div class="reviewer-details">
+                                        <strong><?php echo htmlspecialchars($review['full_name']); ?></strong>
+                                        <div class="star-rating">
+                                            <?php 
+                                            $rating = (float)$review['rating'];
+                                            for ($i = 1; $i <= 5; $i++): 
+                                            ?>
+                                                <i class="fas fa-star <?php echo ($i <= $rating) ? 'checked' : ''; ?>"></i>
+                                            <?php endfor; ?>
+                                        </div>
                                     </div>
                                 </div>
+                                <div class="review-actions">
+                                    <span class="review-date">
+                                        <?php echo date('M d, Y', strtotime($review['created_at'])); ?>
+                                    </span>
+                                    <?php if ($_SESSION['user_id'] == $review['user_id']): ?>
+                                        <form action="../actions/delete_review.php" method="POST" style="display: inline;"
+                                            onsubmit="return confirm('Are you sure you want to delete this review?');">
+                                            <input type="hidden" name="review_id" value="<?php echo $review['review_id']; ?>">
+                                            <input type="hidden" name="gym_id" value="<?php echo $gym_id; ?>">
+                                            <button type="submit" class="delete-btn">Delete</button>
+                                        </form>
+                                    <?php endif; ?>
+                                </div>
                             </div>
-                            <div class="review-actions">
-                                <span class="review-date">
-                                    <?php echo date('M d, Y', strtotime($review['created_at'])); ?>
-                                </span>
-                                <?php if ($_SESSION['user_id'] == $review['user_id']): ?>
-                                    <form action="../actions/delete_review.php" method="POST" style="display: inline;"
-                                        onsubmit="return confirm('Are you sure you want to delete this review?');">
-                                        <input type="hidden" name="review_id" value="<?php echo $review['review_id']; ?>">
-                                        <input type="hidden" name="gym_id" value="<?php echo $gym_id; ?>">
-                                        <button type="submit" class="delete-btn">Delete</button>
-                                    </form>
-                                <?php endif; ?>
-                            </div>
-                        </div>
-                        <p class="review-content"><?php echo nl2br(htmlspecialchars($review['comment'])); ?></p>
+                            <p class="review-content"><?php echo nl2br(htmlspecialchars($review['comment'])); ?></p>
                             
                             <!-- Reply Button -->
                             <?php if (isset($_SESSION['user_id'])): ?>
