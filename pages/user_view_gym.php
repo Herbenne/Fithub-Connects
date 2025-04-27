@@ -112,11 +112,6 @@ $reviews = $stmt->get_result();
                 <i class="fas fa-arrow-left"></i> Back to Explore
             </a>
            </div>
-            <div class="nav-buttons">
-                <?php if ($_SESSION['role'] === 'member'): ?>
-                    <a href="dashboard.php" class="nav-btn">Dashboard</a>
-                <?php endif; ?>
-            </div>
         </nav>
 
         <!-- Main Content -->
