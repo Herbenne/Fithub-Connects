@@ -122,12 +122,15 @@ if ($result === false) {
     <link rel="stylesheet" href="../assets/css/unified-theme.css">
     <link rel="stylesheet" href="../assets/css/fithub-ui.css">
     <link rel="stylesheet" href="../assets/css/featured-gyms.css">
+    <link rel="stylesheet" href="../assets/css/navbar.css">
     <!-- Add Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Add Bootstrap Icons -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css" rel="stylesheet">
 </head>
 
+
+</style>
 <body>
     <script>
     // Remove any leftover "Submitting Application..." header
@@ -153,34 +156,44 @@ if ($result === false) {
         <p>Please wait while we upload your files and process your application.</p>
     </div>
     <nav class="navbar">
-        <div class="nav-brand"> <img src="<?php echo dirname($_SERVER['PHP_SELF']) ?>/../assets/logo/FITHUB LOGO.png" 
+    <div class="nav-container">
+        <div class="nav-brand">
+            <img src="<?php echo dirname($_SERVER['PHP_SELF']) ?>/../assets/logo/FITHUB LOGO.png" 
                  alt="Fithub Logo" 
-                 style="max-height: 50px;"
-            ></div>
-        <div class="nav-links">
+                 class="nav-logo">
+        </div>
+        
+        <button class="hamburger" id="hamburger">
+            <span class="bar"></span>
+            <span class="bar"></span>
+            <span class="bar"></span>
+        </button>
+
+        <div class="nav-links" id="nav-links">
             <?php if (!isset($_SESSION['user_id'])): ?>
-                <a href="login.php">Login</a>
-                <a href="register.php">Register</a>
+                <a href="login.php" class="nav-link">Login</a>
+                <a href="register.php" class="nav-link">Register</a>
             <?php else: ?>
                 <?php if ($_SESSION['role'] === 'user'): ?>
-                    <a href="dashboard.php">Dashboard</a>
-                    <a href="explore_gyms.php">Explore Gyms</a>
-                    <a href="profile.php">My Profile</a>
+                    <a href="dashboard.php" class="nav-link">Dashboard</a>
+                    <a href="explore_gyms.php" class="nav-link">Explore Gyms</a>
+                    <a href="profile.php" class="nav-link">My Profile</a>
                 <?php elseif ($_SESSION['role'] === 'member'): ?>
-                    <a href="dashboard.php">Dashboard</a>
-                    <a href="explore_gyms.php">Explore Gyms</a>
-                    <a href="profile.php">My Profile</a>
+                    <a href="dashboard.php" class="nav-link">Dashboard</a>
+                    <a href="explore_gyms.php" class="nav-link">Explore Gyms</a>
+                    <a href="profile.php" class="nav-link">My Profile</a>
                 <?php elseif ($_SESSION['role'] === 'admin'): ?>
-                    <a href="dashboard.php">Dashboard</a>
-                    <a href="edit_gym.php">My Gym</a>
-                    <a href="profile.php">My Profile</a>
+                    <a href="dashboard.php" class="nav-link">Dashboard</a>
+                    <a href="edit_gym.php" class="nav-link">My Gym</a>
+                    <a href="profile.php" class="nav-link">My Profile</a>
                 <?php elseif ($_SESSION['role'] === 'superadmin'): ?>
-                    <a href="all_gyms_analytics.php">FitHub Analytics</a>
+                    <a href="all_gyms_analytics.php" class="nav-link">FitHub Analytics</a>
                 <?php endif; ?>
-                <a href="../actions/logout.php">Logout</a>
+                <a href="../actions/logout.php" class="nav-link">Logout</a>
             <?php endif; ?>
         </div>
-    </nav>
+    </div>
+</nav>
     <div class="dashboard-container">     
     <?php
     // Display success and error messages based on URL parameters
@@ -750,6 +763,37 @@ if ($result === false) {
     <script src="../assets/js/main.js"></script>
     <script src="../assets/js/dashboard.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+
+
+        <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const hamburger = document.querySelector('.hamburger');
+        const navLinks = document.querySelector('.nav-links');
+        
+        hamburger.addEventListener('click', function() {
+            // Toggle active class
+            hamburger.classList.toggle('active');
+            navLinks.classList.toggle('active');
+        });
+
+        // Close menu when a link is clicked
+        document.querySelectorAll('.nav-link').forEach(link => {
+            link.addEventListener('click', () => {
+                hamburger.classList.remove('active');
+                navLinks.classList.remove('active');
+            });
+        });
+
+        // Close menu when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!hamburger.contains(e.target) && !navLinks.contains(e.target)) {
+                hamburger.classList.remove('active');
+                navLinks.classList.remove('active');
+            }
+        });
+    });
+    </script>
 
     <script>
     // Show loading overlay when the gym application form is submitted
@@ -913,6 +957,5 @@ if ($result === false) {
         });
     <script>
     
-</body>
-
+    </body>
 </html>

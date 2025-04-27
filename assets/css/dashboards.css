@@ -181,7 +181,7 @@
   font-weight: bold;
   color: #ffb22c; /* Changed from #007bff */
   flex-shrink: 0; /* Prevent brand from shrinking */
-  margin-left: 70px;
+ 
 }
 
 .nav-links {
@@ -218,6 +218,8 @@
 
   .nav-brand {
     font-size: 1.2rem;
+    margin-left: 70px;
+
   }
 }
 
@@ -752,4 +754,25 @@
 .dot.active {
   background: #FFB22C;
   transform: scale(1.2);
+}
+
+
+@media screen and (max-width: px) {
+  .carousel-container {
+    padding: 0 20px; /* Reduced padding for smaller screens */
+  }
+
+  .carousel-slide {
+    min-width: 200px; /* Adjusted width for smaller screens */
+  }
+
+  .carousel-btn {
+    width: 30px;
+    height: 30px;
+  }
+
+  .carousel-btn i {
+    font-size: 1rem;
+  }
+  
 }
