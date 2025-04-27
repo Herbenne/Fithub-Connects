@@ -369,10 +369,4 @@
     display: none;
   }
 
-  .login-register-container {
-    display: flex;
-    align-items: center;
-    background: blue;
-    margin-right: 0px;
-  }
 }
