@@ -181,6 +181,7 @@
   font-weight: bold;
   color: #ffb22c; /* Changed from #007bff */
   flex-shrink: 0; /* Prevent brand from shrinking */
+  margin-left: 70px;
 }
 
 .nav-links {
