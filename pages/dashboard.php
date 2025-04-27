@@ -162,7 +162,11 @@ if ($result === false) {
                 <a href="login.php" class="nav-btn login-btn">Login</a>
                 <a href="register.php" class="nav-btn register-btn">Register</a>
             <?php else: ?>
-                <?php if ($_SESSION['role'] === 'member'): ?>
+                <?php if ($_SESSION['role'] === 'user'): ?>
+                    <a href="dashboard.php" class="nav-btn">Dashboard</a>
+                    <a href="explore_gyms.php" class="nav-btn">Explore Gyms</a>
+                    <a href="profile.php" class="nav-btn">My Profile</a>
+                <?php elseif ($_SESSION['role'] === 'member'): ?>
                     <a href="dashboard.php" class="nav-btn">Dashboard</a>
                     <a href="explore_gyms.php" class="nav-btn">Explore Gyms</a>
                     <a href="profile.php" class="nav-btn">My Profile</a>
