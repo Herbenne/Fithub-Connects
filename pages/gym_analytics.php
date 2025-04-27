@@ -77,26 +77,184 @@ $rating_stats = $stmt->get_result();
 </head>
 <body>
     <div class="dashboard-container">
-        <a href="dashboard.php" class="back-btn">← Back to Dashboard</a>
-        <h2>Analytics for <?php echo htmlspecialchars($gym['gym_name']); ?></h2>
+        <div class="analytics-header">
+            <div class="header-left">
+                <a href="dashboard.php" class="back-btn">← Back to Dashboard</a>
+                <h2>Analytics for <?php echo htmlspecialchars($gym['gym_name']); ?></h2>
+            </div>
+            <div class="header-right">
+                <div class="filter-dropdown">
+                    <button class="filter-btn"><i class="fas fa-filter"></i> Filter Report</button>
+                    <div class="filter-menu">
+                        <div class="filter-item">
+                            <input type="checkbox" id="include-members" checked>
+                            <label for="include-members">Members</label>
+                        </div>
+                        <div class="filter-item">
+                            <input type="checkbox" id="include-revenue" checked>
+                            <label for="include-revenue">Revenue</label>
+                        </div>
+                        <div class="filter-item">
+                            <input type="checkbox" id="include-ratings" checked>
+                            <label for="include-ratings">Ratings</label>
+                        </div>
+                    </div>
+                </div>
+                <button id="downloadPdfBtn" class="pdf-download-btn">
+                    <i class="fas fa-file-pdf"></i> Export as PDF
+                </button>
+            </div>
+        </div>
 
         <div class="analytics-grid">
-            <div class="chart-container">
+            <div class="chart-container" data-type="members">
                 <h3>Member Growth</h3>
                 <canvas id="memberChart"></canvas>
             </div>
 
-            <div class="chart-container">
+            <div class="chart-container" data-type="revenue">
                 <h3>Monthly Revenue</h3>
                 <canvas id="revenueChart"></canvas>
             </div>
 
-            <div class="chart-container">
+            <div class="chart-container" data-type="ratings">
                 <h3>Rating Distribution</h3>
                 <canvas id="ratingChart"></canvas>
             </div>
         </div>
     </div>
+
+    <style>
+    .analytics-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 30px;
+        width: 100%;
+    }
+    
+    .header-left {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+    
+    .header-right {
+        display: flex;
+        gap: 15px;
+        align-items: center;
+    }
+    
+    .pdf-download-btn {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        background-color: #f44336;
+        color: white;
+        border: none;
+        padding: 10px 16px;
+        border-radius: 4px;
+        cursor: pointer;
+        font-weight: 500;
+        transition: background-color 0.3s;
+    }
+    
+    .pdf-download-btn:hover {
+        background-color: #d32f2f;
+    }
+    
+    .filter-dropdown {
+        position: relative;
+        display: inline-block;
+    }
+    
+    .filter-btn {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        background-color: #4CAF50;
+        color: white;
+        border: none;
+        padding: 10px 16px;
+        border-radius: 4px;
+        cursor: pointer;
+        font-weight: 500;
+        transition: background-color 0.3s;
+    }
+    
+    .filter-btn:hover {
+        background-color: #3d8b40;
+    }
+    
+    .filter-menu {
+        display: none;
+        position: absolute;
+        right: 0;
+        background-color: white;
+        min-width: 200px;
+        box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+        padding: 12px;
+        z-index: 1;
+        border-radius: 4px;
+    }
+    
+    .filter-dropdown:hover .filter-menu {
+        display: block;
+    }
+    
+    .filter-item {
+        padding: 8px 0;
+        display: flex;
+        align-items: center;
+    }
+    
+    .filter-item input {
+        margin-right: 10px;
+    }
+    
+    .loading-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0,0,0,0.7);
+        z-index: 9999;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        flex-direction: column;
+    }
+    
+    .spinner {
+        border: 5px solid #f3f3f3;
+        border-top: 5px solid #3498db;
+        border-radius: 50%;
+        width: 50px;
+        height: 50px;
+        animation: spin 2s linear infinite;
+        margin-bottom: 20px;
+    }
+    
+    .loading-text {
+        color: white;
+        font-size: 18px;
+    }
+    
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+    
+    .chart-container[data-hidden="true"] {
+        display: none;
+    }
+    </style>
+
+    <!-- PDF Generation Scripts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
     <script>
     // Prepare data for member growth chart
@@ -212,6 +370,173 @@ $rating_stats = $stmt->get_result();
         options: {
             responsive: true,
             maintainAspectRatio: false
+        }
+    });
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const downloadPdfBtn = document.getElementById('downloadPdfBtn');
+        
+        // Filter checkboxes
+        const includeMembers = document.getElementById('include-members');
+        const includeRevenue = document.getElementById('include-revenue');
+        const includeRatings = document.getElementById('include-ratings');
+        
+        // Add data-type attributes to chart containers
+        const chartContainers = document.querySelectorAll('.chart-container');
+        if (chartContainers.length >= 3) {
+            chartContainers[0].setAttribute('data-type', 'members');
+            chartContainers[1].setAttribute('data-type', 'revenue');
+            chartContainers[2].setAttribute('data-type', 'ratings');
+        }
+        
+        // Apply filters to the view (not just for PDF)
+        function applyFilters() {
+            // Filter charts
+            const chartContainers = document.querySelectorAll('.chart-container');
+            chartContainers.forEach(chart => {
+                const type = chart.getAttribute('data-type');
+                
+                if (type === 'members') {
+                    chart.setAttribute('data-hidden', !includeMembers.checked);
+                } else if (type === 'revenue') {
+                    chart.setAttribute('data-hidden', !includeRevenue.checked);
+                } else if (type === 'ratings') {
+                    chart.setAttribute('data-hidden', !includeRatings.checked);
+                }
+            });
+        }
+        
+        // Add filter change listeners
+        [includeMembers, includeRevenue, includeRatings].forEach(checkbox => {
+            checkbox.addEventListener('change', applyFilters);
+        });
+        
+        if (downloadPdfBtn) {
+            downloadPdfBtn.addEventListener('click', generatePDF);
+        }
+        
+        function generatePDF() {
+            // Create loading overlay
+            const loadingOverlay = document.createElement('div');
+            loadingOverlay.className = 'loading-overlay';
+            
+            const spinner = document.createElement('div');
+            spinner.className = 'spinner';
+            
+            const loadingText = document.createElement('div');
+            loadingText.className = 'loading-text';
+            loadingText.innerText = 'Generating PDF...';
+            
+            loadingOverlay.appendChild(spinner);
+            loadingOverlay.appendChild(loadingText);
+            document.body.appendChild(loadingOverlay);
+            
+            // Use setTimeout to allow the loading indicator to appear
+            setTimeout(function() {
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF('p', 'mm', 'a4');
+                
+                // Get gym info
+                const gymName = document.querySelector('h2').innerText.replace('Analytics for ', '');
+                const date = new Date().toLocaleDateString();
+                
+                // Set up PDF
+                doc.setFontSize(22);
+                doc.text(`${gymName} - Analytics Report`, 105, 20, { align: 'center' });
+                
+                doc.setFontSize(12);
+                doc.text(`Generated on: ${date}`, 105, 30, { align: 'center' });
+                
+                // Add filter information
+                doc.setFontSize(10);
+                doc.text('Filters applied:', 20, 40);
+                const filterText = [];
+                if (includeMembers.checked) filterText.push('Members');
+                if (includeRevenue.checked) filterText.push('Revenue');
+                if (includeRatings.checked) filterText.push('Ratings');
+                doc.text(`Included: ${filterText.join(', ')}`, 20, 45);
+                
+                let currentY = 55;
+                
+                // Process charts based on filters
+                const visibleChartContainers = document.querySelectorAll('.chart-container[data-hidden="false"]');
+                
+                if (visibleChartContainers.length > 0) {
+                    // Function to process charts one by one
+                    const processChart = (index) => {
+                        if (index >= visibleChartContainers.length) {
+                            // All charts processed, finalize PDF
+                            // Add footer
+                            const pageCount = doc.getNumberOfPages();
+                            for (let i = 1; i <= pageCount; i++) {
+                                doc.setPage(i);
+                                doc.setFontSize(10);
+                                doc.setTextColor(150);
+                                doc.text(`${gymName} Analytics Report - Page ${i} of ${pageCount}`, 105, 285, { align: 'center' });
+                            }
+                            
+                            // Remove loading overlay and save PDF
+                            document.body.removeChild(loadingOverlay);
+                            
+                            // Generate filename with gym name, date and filters
+                            const filterSuffix = filterText.join('_');
+                            const filename = `${gymName.replace(/\s+/g, '_')}_Analytics_${filterSuffix}_${date.replace(/\//g, '-')}.pdf`;
+                            doc.save(filename);
+                            return;
+                        }
+                        
+                        const chart = visibleChartContainers[index];
+                        const title = chart.querySelector('h3').innerText;
+                        
+                        // Check if we need a new page
+                        if (currentY > 220) {
+                            doc.addPage();
+                            currentY = 20;
+                        }
+                        
+                        // Add chart title
+                        doc.setFontSize(14);
+                        doc.text(title, 20, currentY);
+                        currentY += 10;
+                        
+                        // Capture chart canvas
+                        const canvas = chart.querySelector('canvas');
+                        
+                        html2canvas(canvas, {
+                            scale: 2, // Better quality
+                            backgroundColor: null,
+                            logging: false
+                        }).then(canvas => {
+                            // Add to PDF
+                            const imgData = canvas.toDataURL('image/png');
+                            const imgWidth = 170;
+                            const imgHeight = canvas.height * imgWidth / canvas.width;
+                            
+                            doc.addImage(imgData, 'PNG', 20, currentY, imgWidth, imgHeight);
+                            currentY += imgHeight + 20; // Add space after chart
+                            
+                            // Process next chart
+                            processChart(index + 1);
+                        });
+                    };
+                    
+                    // Start processing charts
+                    processChart(0);
+                } else {
+                    // No charts to process, finalize PDF
+                    doc.text("No data selected for this report.", 20, currentY);
+                    
+                    // Add footer
+                    doc.setFontSize(10);
+                    doc.setTextColor(150);
+                    doc.text(`${gymName} Analytics Report - Page 1 of 1`, 105, 285, { align: 'center' });
+                    
+                    document.body.removeChild(loadingOverlay);
+                    const filterSuffix = filterText.join('_');
+                    const filename = `${gymName.replace(/\s+/g, '_')}_Analytics_${filterSuffix}_${date.replace(/\//g, '-')}.pdf`;
+                    doc.save(filename);
+                }
+            }, 500);
         }
     });
     </script>

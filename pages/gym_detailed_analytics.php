@@ -90,35 +90,67 @@ $rating_stats = $stmt->get_result();
         <!-- Gym Overview Section -->
         <section class="gym-overview">
             <div class="gym-header">
-                <?php if ($gym['gym_thumbnail']): ?>
-                    <img src="<?php echo htmlspecialchars($gym['gym_thumbnail']); ?>" 
-                         alt="<?php echo htmlspecialchars($gym['gym_name']); ?>"
-                         class="gym-thumbnail">
-                <?php endif; ?>
-                <div class="gym-info">
-                    <h2><?php echo htmlspecialchars($gym['gym_name']); ?></h2>
-                    <p><i class="fas fa-map-marker-alt"></i> <?php echo htmlspecialchars($gym['gym_location']); ?></p>
+                <div class="gym-info-container">
+                    <?php if ($gym['gym_thumbnail']): ?>
+                        <img src="<?php echo htmlspecialchars($gym['gym_thumbnail']); ?>" 
+                            alt="<?php echo htmlspecialchars($gym['gym_name']); ?>"
+                            class="gym-thumbnail">
+                    <?php endif; ?>
+                    <div class="gym-info">
+                        <h2><?php echo htmlspecialchars($gym['gym_name']); ?></h2>
+                        <p><i class="fas fa-map-marker-alt"></i> <?php echo htmlspecialchars($gym['gym_location']); ?></p>
+                    </div>
+                </div>
+                <div class="report-actions">
+                    <div class="filter-dropdown">
+                        <button class="filter-btn"><i class="fas fa-filter"></i> Filter Report</button>
+                        <div class="filter-menu">
+                            <div class="filter-item">
+                                <input type="checkbox" id="include-members" checked>
+                                <label for="include-members">Members</label>
+                            </div>
+                            <div class="filter-item">
+                                <input type="checkbox" id="include-ratings" checked>
+                                <label for="include-ratings">Ratings</label>
+                            </div>
+                            <div class="filter-item">
+                                <input type="checkbox" id="include-reviews" checked>
+                                <label for="include-reviews">Reviews</label>
+                            </div>
+                            <div class="filter-item">
+                                <input type="checkbox" id="include-revenue" checked>
+                                <label for="include-revenue">Revenue</label>
+                            </div>
+                            <div class="filter-item">
+                                <input type="checkbox" id="include-charts" checked>
+                                <label for="include-charts">Charts & Graphs</label>
+                            </div>
+                        </div>
+                    </div>
+                    <button id="downloadPdfBtn" class="pdf-download-btn">
+                        <i class="fas fa-file-pdf"></i> Export as PDF
+                    </button>
                 </div>
             </div>
 
             <!-- Key Metrics -->
             <div class="metrics-grid">
-                <div class="metric-card">
+                <div class="metric-card" data-type="members">
                     <i class="fas fa-users"></i>
                     <h3>Total Members</h3>
                     <p class="number"><?php echo number_format($gym['member_count']); ?></p>
                 </div>
-                <div class="metric-card">
+                <div class="metric-card" data-type="ratings">
                     <i class="fas fa-star"></i>
                     <h3>Average Rating</h3>
                     <p class="number"><?php echo number_format($gym['avg_rating'], 1); ?> ⭐</p>
                 </div>
-                <div class="metric-card">
+                <div class="metric-card" data-type="reviews">
                     <i class="fas fa-comment"></i>
                     <h3>Total Reviews</h3>
                     <p class="number"><?php echo number_format($gym['review_count']); ?></p>
                 </div>
-                <div class="metric-card">
+                <div class="metric-card" data-type="revenue">
                     <i class="fas fa-peso-sign"></i>
                     <h3>Total Revenue</h3>
                     <p class="number">₱<?php echo number_format($gym['revenue'], 2); ?></p>
@@ -128,17 +160,17 @@ $rating_stats = $stmt->get_result();
 
         <!-- Charts Section -->
         <section class="charts-section">
-            <div class="chart-container">
+            <div class="chart-container" data-type="members">
                 <h3>Member Growth (Last 12 Months)</h3>
                 <canvas id="memberGrowthChart"></canvas>
             </div>
             
-            <div class="chart-container">
+            <div class="chart-container" data-type="revenue">
                 <h3>Monthly Revenue</h3>
                 <canvas id="revenueChart"></canvas>
             </div>
 
-            <div class="chart-container">
+            <div class="chart-container" data-type="ratings">
                 <h3>Rating Distribution</h3>
                 <canvas id="ratingChart"></canvas>
             </div>
@@ -161,26 +193,25 @@ $rating_stats = $stmt->get_result();
         background: white;
         border-radius: 10px;
         box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        
     }
 
     .back-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-    padding: 0.75rem 1.5rem;
-    color: #000000;
-    text-decoration: none;
-    border: 2px solid #FFB22C;
-    border-radius: 6px;
-    font-weight: 500;
-    transition: all 0.3s ease;
-}
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.75rem 1.5rem;
+        color: #000000;
+        text-decoration: none;
+        border: 2px solid #FFB22C;
+        border-radius: 6px;
+        font-weight: 500;
+        transition: all 0.3s ease;
+    }
 
     .back-btn:hover {
-    background: #FFB22C;
-    transform: translateX(-5px);
-}
+        background: #FFB22C;
+        transform: translateX(-5px);
+    }
 
     .gym-overview {
         background: white;
@@ -192,8 +223,14 @@ $rating_stats = $stmt->get_result();
 
     .gym-header {
         display: flex;
-        align-items: center;
+        justify-content: space-between;
+        align-items: flex-start;
         margin-bottom: 20px;
+    }
+
+    .gym-info-container {
+        display: flex;
+        align-items: center;
     }
 
     .gym-thumbnail {
@@ -247,7 +284,123 @@ $rating_stats = $stmt->get_result();
         margin-bottom: 15px;
         text-align: center;
     }
+
+    .report-actions {
+        display: flex;
+        gap: 15px;
+        align-items: center;
+    }
+
+    .pdf-download-btn {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        background-color: #f44336;
+        color: white;
+        border: none;
+        padding: 10px 16px;
+        border-radius: 4px;
+        cursor: pointer;
+        font-weight: 500;
+        transition: background-color 0.3s;
+    }
+
+    .pdf-download-btn:hover {
+        background-color: #d32f2f;
+    }
+
+    .filter-dropdown {
+        position: relative;
+        display: inline-block;
+    }
+
+    .filter-btn {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        background-color: #4CAF50;
+        color: white;
+        border: none;
+        padding: 10px 16px;
+        border-radius: 4px;
+        cursor: pointer;
+        font-weight: 500;
+        transition: background-color 0.3s;
+    }
+
+    .filter-btn:hover {
+        background-color: #3d8b40;
+    }
+
+    .filter-menu {
+        display: none;
+        position: absolute;
+        right: 0;
+        background-color: white;
+        min-width: 200px;
+        box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+        padding: 12px;
+        z-index: 1;
+        border-radius: 4px;
+    }
+
+    .filter-dropdown:hover .filter-menu {
+        display: block;
+    }
+
+    .filter-item {
+        padding: 8px 0;
+        display: flex;
+        align-items: center;
+    }
+
+    .filter-item input {
+        margin-right: 10px;
+    }
+
+    .loading-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0,0,0,0.7);
+        z-index: 9999;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        flex-direction: column;
+    }
+
+    .spinner {
+        border: 5px solid #f3f3f3;
+        border-top: 5px solid #3498db;
+        border-radius: 50%;
+        width: 50px;
+        height: 50px;
+        animation: spin 2s linear infinite;
+        margin-bottom: 20px;
+    }
+
+    .loading-text {
+        color: white;
+        font-size: 18px;
+    }
+
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+
+    .chart-container[data-hidden="true"],
+    .metric-card[data-hidden="true"] {
+        display: none;
+    }
     </style>
+
+    <!-- PDF Generation Scripts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
     <script>
     // Prepare chart data
@@ -339,6 +492,221 @@ $rating_stats = $stmt->get_result();
             }
         }
     });
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const downloadPdfBtn = document.getElementById('downloadPdfBtn');
+        
+        // Filter checkboxes
+        const includeMembers = document.getElementById('include-members');
+        const includeRatings = document.getElementById('include-ratings');
+        const includeReviews = document.getElementById('include-reviews');
+        const includeRevenue = document.getElementById('include-revenue');
+        const includeCharts = document.getElementById('include-charts');
+        
+        // Apply filters to the view (not just for PDF)
+        function applyFilters() {
+            // Filter metric cards
+            const metricCards = document.querySelectorAll('.metric-card');
+            metricCards.forEach(card => {
+                const type = card.getAttribute('data-type');
+                
+                if (type === 'members') {
+                    card.setAttribute('data-hidden', !includeMembers.checked);
+                } else if (type === 'ratings') {
+                    card.setAttribute('data-hidden', !includeRatings.checked);
+                } else if (type === 'reviews') {
+                    card.setAttribute('data-hidden', !includeReviews.checked);
+                } else if (type === 'revenue') {
+                    card.setAttribute('data-hidden', !includeRevenue.checked);
+                }
+            });
+            
+            // Filter charts
+            const chartContainers = document.querySelectorAll('.chart-container');
+            chartContainers.forEach(chart => {
+                const type = chart.getAttribute('data-type');
+                
+                if (type === 'members') {
+                    chart.setAttribute('data-hidden', !includeMembers.checked || !includeCharts.checked);
+                } else if (type === 'ratings') {
+                    chart.setAttribute('data-hidden', !includeRatings.checked || !includeCharts.checked);
+                } else if (type === 'revenue') {
+                    chart.setAttribute('data-hidden', !includeRevenue.checked || !includeCharts.checked);
+                }
+            });
+        }
+        
+        // Add filter change listeners
+        [includeMembers, includeRatings, includeReviews, includeRevenue, includeCharts].forEach(checkbox => {
+            checkbox.addEventListener('change', applyFilters);
+        });
+        
+        if (downloadPdfBtn) {
+            downloadPdfBtn.addEventListener('click', generatePDF);
+        }
+        
+        function generatePDF() {
+            // Create loading overlay
+            const loadingOverlay = document.createElement('div');
+            loadingOverlay.className = 'loading-overlay';
+            
+            const spinner = document.createElement('div');
+            spinner.className = 'spinner';
+            
+            const loadingText = document.createElement('div');
+            loadingText.className = 'loading-text';
+            loadingText.innerText = 'Generating PDF...';
+            
+            loadingOverlay.appendChild(spinner);
+            loadingOverlay.appendChild(loadingText);
+            document.body.appendChild(loadingOverlay);
+            
+            // Use setTimeout to allow the loading indicator to appear
+            setTimeout(function() {
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF('p', 'mm', 'a4');
+                
+                // Get gym info
+                const gymName = document.querySelector('.gym-info h2').innerText;
+                const date = new Date().toLocaleDateString();
+                const gymLocation = document.querySelector('.gym-info p').innerText;
+                
+                // Set up PDF
+                doc.setFontSize(22);
+                doc.text(`${gymName} - Analytics Report`, 105, 20, { align: 'center' });
+                
+                doc.setFontSize(12);
+                doc.text(`Generated on: ${date}`, 105, 30, { align: 'center' });
+                doc.text(`Location: ${gymLocation}`, 105, 35, { align: 'center' });
+                
+                // Add filter information
+                doc.setFontSize(10);
+                doc.text('Filters applied:', 20, 45);
+                const filterText = [];
+                if (includeMembers.checked) filterText.push('Members');
+                if (includeRatings.checked) filterText.push('Ratings');
+                if (includeReviews.checked) filterText.push('Reviews');
+                if (includeRevenue.checked) filterText.push('Revenue');
+                if (includeCharts.checked) filterText.push('Charts');
+                doc.text(`Included: ${filterText.join(', ')}`, 20, 50);
+                
+                let currentY = 60;
+                
+                // Add gym key metrics
+                const visibleMetricCards = document.querySelectorAll('.metric-card[data-hidden="false"]');
+                if (visibleMetricCards.length > 0) {
+                    doc.setFontSize(16);
+                    doc.text('Key Performance Metrics', 20, currentY);
+                    currentY += 10;
+                    
+                    doc.setFontSize(12);
+                    
+                    visibleMetricCards.forEach((card) => {
+                        const label = card.querySelector('h3').innerText;
+                        const value = card.querySelector('.number').innerText;
+                        doc.text(`${label}: ${value}`, 20, currentY);
+                        currentY += 10;
+                    });
+                    
+                    currentY += 10; // Add more space after metrics
+                }
+                
+                // Process charts if selected
+                if (includeCharts.checked) {
+                    const visibleChartContainers = document.querySelectorAll('.chart-container[data-hidden="false"]');
+                    
+                    if (visibleChartContainers.length > 0) {
+                        // Function to process charts one by one
+                        const processChart = (index) => {
+                            if (index >= visibleChartContainers.length) {
+                                // All charts processed, finalize PDF
+                                // Add footer
+                                const pageCount = doc.getNumberOfPages();
+                                for (let i = 1; i <= pageCount; i++) {
+                                    doc.setPage(i);
+                                    doc.setFontSize(10);
+                                    doc.setTextColor(150);
+                                    doc.text(`${gymName} Analytics Report - Page ${i} of ${pageCount}`, 105, 285, { align: 'center' });
+                                }
+                                
+                                // Remove loading overlay and save PDF
+                                document.body.removeChild(loadingOverlay);
+                                
+                                // Generate filename with gym name, date and filters
+                                const filterSuffix = filterText.join('_');
+                                const filename = `${gymName.replace(/\s+/g, '_')}_Analytics_${filterSuffix}_${date.replace(/\//g, '-')}.pdf`;
+                                doc.save(filename);
+                                return;
+                            }
+                            
+                            const chart = visibleChartContainers[index];
+                            const title = chart.querySelector('h3').innerText;
+                            
+                            // Check if we need a new page
+                            if (currentY > 240) {
+                                doc.addPage();
+                                currentY = 20;
+                            }
+                            
+                            // Add chart title
+                            doc.setFontSize(14);
+                            doc.text(title, 20, currentY);
+                            currentY += 10;
+                            
+                            // Capture chart canvas
+                            const canvas = chart.querySelector('canvas');
+                            
+                            html2canvas(canvas, {
+                                scale: 2, // Better quality
+                                backgroundColor: null,
+                                logging: false
+                            }).then(canvas => {
+                                // Add to PDF
+                                const imgData = canvas.toDataURL('image/png');
+                                const imgWidth = 170;
+                                const imgHeight = canvas.height * imgWidth / canvas.width;
+                                
+                                doc.addImage(imgData, 'PNG', 20, currentY, imgWidth, imgHeight);
+                                currentY += imgHeight + 15; // Add space after chart
+                                
+                                // Process next chart
+                                processChart(index + 1);
+                            });
+                        };
+                        
+                        // Start processing charts
+                        processChart(0);
+                    } else {
+                        // No charts to process, finalize PDF
+                        const pageCount = doc.getNumberOfPages();
+                        for (let i = 1; i <= pageCount; i++) {
+                            doc.setPage(i);
+                            doc.setFontSize(10);
+                            doc.setTextColor(150);
+                            doc.text(`${gymName} Analytics Report - Page ${i} of ${pageCount}`, 105, 285, { align: 'center' });
+                        }
+                        
+                        document.body.removeChild(loadingOverlay);
+                        const filterSuffix = filterText.join('_');
+                        const filename = `${gymName.replace(/\s+/g, '_')}_Analytics_${filterSuffix}_${date.replace(/\//g, '-')}.pdf`;
+                        doc.save(filename);
+                    }
+                } else {
+                    // Charts not included, finalize PDF
+                    const pageCount = doc.getNumberOfPages();
+                    for (let i = 1; i <= pageCount; i++) {
+                        doc.setPage(i);
+                        doc.setFontSize(10);
+                        doc.setTextColor(150);
+                        doc.text(`${gymName} Analytics Report - Page ${i} of ${pageCount}`, 105, 285, { align: 'center' });
+                    }
+                    
+                    document.body.removeChild(loadingOverlay);
+                    const filterSuffix = filterText.join('_');
+                    const filename = `${gymName.replace(/\s+/g, '_')}_Analytics_${filterSuffix}_${date.replace(/\//g, '-')}.pdf`;
+                    doc.save(filename);
+                }
+            }, 500);
+        }
+    });
     </script>
-</body>
-</html>
