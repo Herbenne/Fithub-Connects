@@ -121,6 +121,7 @@ if ($result === false) {
     <link rel="stylesheet" href="../assets/css/dashboards.css">
     <link rel="stylesheet" href="../assets/css/unified-theme.css">
     <link rel="stylesheet" href="../assets/css/fithub-ui.css">
+    <link rel="stylesheet" href="../assets/css/featured-gyms.css">
     <!-- Add Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Add Bootstrap Icons -->
@@ -151,27 +152,36 @@ if ($result === false) {
         <h3>Submitting Application...</h3>
         <p>Please wait while we upload your files and process your application.</p>
     </div>
-    <nav class="navbar">
-        <div class="nav-brand"> <img src="<?php echo dirname($_SERVER['PHP_SELF']) ?>/../assets/logo/FITHUB LOGO.png" 
-                 alt="Fithub Logo" 
-                 style="max-height: 50px;"
-            ></div>
-        <div class="nav-links">
-            <?php if ($_SESSION['role'] === 'member'): ?>
-                <a href="profile.php">My Profile</a>
-                <a href="explore_gyms.php">Explore Gyms</a>
-                <!-- Other member-specific links -->
-            <?php elseif ($_SESSION['role'] === 'admin'): ?>
-                <a href="profile.php">My Profile</a>
-                <a href="edit_gym.php">My Gym</a>
-                <!-- Other admin-specific links -->
-            <?php elseif ($_SESSION['role'] === 'superadmin'): ?>
-                <a href="admin_dashboard.php">Admin Panel</a>
-                <!-- Other superadmin-specific links -->
-            <?php endif; ?>
-            <a href="../actions/logout.php">Logout</a>
+    <header class="site-header">
+        <div class="container">
+            <div class="header-content">
+                <div class="logo-container">
+                    <a href="<?php echo ($_SESSION['user_id'] ?? false) ? 'dashboard.php' : '../index.php'; ?>">
+                        <img src="../assets/logo/FITHUB LOGO.png" alt="FitHub Logo" class="site-logo">
+                    </a>
+                </div>
+                <div class="nav-links">
+                    <?php if (!isset($_SESSION['user_id'])): ?>
+                        <a href="login.php" class="nav-btn login-btn">Login</a>
+                        <a href="register.php" class="nav-btn register-btn">Register</a>
+                    <?php else: ?>
+                        <?php if ($_SESSION['role'] === 'member'): ?>
+                            <a href="dashboard.php" class="nav-btn">Dashboard</a>
+                            <a href="explore_gyms.php" class="nav-btn">Explore Gyms</a>
+                            <a href="profile.php" class="nav-btn">My Profile</a>
+                        <?php elseif ($_SESSION['role'] === 'admin'): ?>
+                            <a href="dashboard.php" class="nav-btn">Dashboard</a>
+                            <a href="edit_gym.php" class="nav-btn">My Gym</a>
+                            <a href="profile.php" class="nav-btn">My Profile</a>
+                        <?php elseif ($_SESSION['role'] === 'superadmin'): ?>
+                            <a href="all_gyms_analytics.php">FitHub Analytics</a>
+                        <?php endif; ?>
+                        <a href="../actions/logout.php" class="nav-btn logout-btn">Logout</a>
+                    <?php endif; ?>
+                </div>
+            </div>
         </div>
-    </nav>
+    </header>
 
     <div class="dashboard-container">     
     <?php
@@ -657,6 +667,78 @@ if ($result === false) {
 .success-message i {
         margin-right: 10px;
         font-size: 24px;
+}
+
+.site-header {
+    background-color: #ffffff;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    width: 100%;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+.header-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 0;
+}
+
+.logo-container {
+    display: flex;
+    align-items: center;
+}
+
+.site-logo {
+    height: 50px;
+    width: auto;
+}
+
+
+/* Media queries for responsive design */
+@media (max-width: 768px) {
+    .header-content {
+        flex-direction: column;
+        gap: 15px;
+    }
+    
+    .nav-links {
+        width: 100%;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+}
+
+.transparent-header {
+    background-color: transparent;
+    box-shadow: none;
+    position: absolute;
+}
+
+.transparent-header .nav-btn {
+    color: white;
+}
+
+.transparent-header .login-btn {
+    border-color: white;
+    color: white;
+}
+
+.transparent-header .login-btn:hover {
+    background-color: white;
+    color: #4CAF50;
+}
+
+.transparent-header .register-btn {
+    background-color: #4CAF50;
+    color: white;
 }
 
 </style>

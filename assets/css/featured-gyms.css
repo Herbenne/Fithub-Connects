@@ -1,0 +1,163 @@
+.featured-gyms {
+    padding: 40px 0;
+    background: #f8f9fa;
+    margin: 30px 0;
+  }
+  
+  .featured-gyms h2 {
+    text-align: center;
+    margin-bottom: 30px;
+    color: #333;
+    font-size: 2em;
+  }
+  
+  /* Grid layout for gym cards */
+  .gym-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 25px;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+  }
+  
+  /* Individual gym card styling */
+  .gym-card {
+    background: white;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    height: 100%; /* Ensure all cards have the same height */
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .gym-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+  }
+  
+  /* Gym card image container with fixed aspect ratio */
+  .gym-image {
+    position: relative;
+    width: 100%;
+    padding-top: 66.67%; /* 3:2 aspect ratio */
+    overflow: hidden;
+  }
+  
+  .gym-image img {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  
+  /* Top rated badge */
+  .badge {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    background-color: #ffb22c;
+    color: #000;
+    padding: 5px 10px;
+    border-radius: 20px;
+    font-size: 0.9em;
+    font-weight: bold;
+    z-index: 1;
+  }
+  
+  /* Gym information section */
+  .gym-info {
+    padding: 20px;
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  /* Gym name styling */
+  .gym-info h3 {
+    margin: 0 0 15px 0;
+    font-size: 1.5em;
+    color: #333;
+    /* Ensure consistent height for titles */
+    height: 1.8em;
+    line-height: 1.2;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+  }
+  
+  /* Star rating container */
+  .gym-rating {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 15px;
+  }
+  
+  .stars {
+    display: flex;
+  }
+  
+  .stars .fa-star {
+    color: #ddd;
+    font-size: 18px;
+  }
+  
+  .stars .fa-star.checked {
+    color: #ffb22c !important;
+  }
+  
+  .rating-text {
+    color: #666;
+    font-size: 0.9em;
+  }
+  
+  /* Location styling */
+  .gym-location {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    color: #666;
+    margin-bottom: 20px;
+    /* Consistent height for location text */
+    height: 3em;
+    overflow: hidden;
+  }
+  
+  .gym-location i {
+    color: #666;
+    margin-top: 3px; /* Align icon with text */
+    flex-shrink: 0;
+  }
+  
+  /* Button styling */
+  .learn-more-btn {
+    display: inline-block;
+    width: 100%;
+    padding: 12px 0;
+    background: #ffb22c;
+    color: #000;
+    text-align: center;
+    text-decoration: none;
+    border-radius: 6px;
+    font-weight: 600;
+    margin-top: auto; /* Push button to bottom */
+    transition: background 0.3s ease;
+  }
+  
+  .learn-more-btn:hover {
+    background: #e59f26;
+  }
+  
+  /* Responsive adjustments */
+  @media (max-width: 768px) {
+    .gym-grid {
+      grid-template-columns: 1fr;
+    }
+  }

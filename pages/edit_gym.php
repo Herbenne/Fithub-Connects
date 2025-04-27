@@ -227,24 +227,18 @@ if (!empty($gym['equipment_images'])) {
         .back-btn {
             display: inline-flex;
             align-items: center;
-            gap: 0.5rem;
-            padding: 0.75rem 1.5rem;
-            color: #000000;
             text-decoration: none;
-            border: 2px solid #FFB22C;
-            border-radius: 6px;
+            color: #4CAF50;
             font-weight: 500;
-            transition: all 0.3s ease;
-            margin-bottom: 2rem;
+            margin-right: 20px;
         }
-
-        .back-btn:hover {
-            background: #FFB22C;
-            transform: translateX(-5px);
-        }
-
+        
         .back-btn i {
-            margin-right: 0.5rem;
+            margin-right: 5px;
+        }
+        
+        .back-btn:hover {
+            color: #3d8b40;
         }
         
         .loading-indicator {
@@ -274,11 +268,13 @@ if (!empty($gym['equipment_images'])) {
             padding: 20px;
             background-color: #f9f9f9;
             border-radius: 8px;
+            overflow: hidden; /* Prevent content from overflowing */
         }
         
         .current-thumbnail {
             margin: 15px 0;
-            display: inline-block;
+            display: block;
+            text-align: center;
         }
         
         .current-thumbnail img {
@@ -286,6 +282,7 @@ if (!empty($gym['equipment_images'])) {
             max-height: 150px;
             border-radius: 4px;
             box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            margin-bottom: 5px;
         }
         
         .current-equipment {
@@ -298,11 +295,13 @@ if (!empty($gym['equipment_images'])) {
         .equipment-item {
             position: relative;
             width: 150px;
+            height: 120px;
+            margin-bottom: 10px;
         }
         
         .equipment-item img {
             width: 100%;
-            height: 120px;
+            height: 100%;
             object-fit: cover;
             border-radius: 4px;
             box-shadow: 0 2px 5px rgba(0,0,0,0.1);
@@ -310,9 +309,9 @@ if (!empty($gym['equipment_images'])) {
         
         .remove-image {
             position: absolute;
-            top: -10px;
-            right: -10px;
-            background: #ff5252;
+            top: 5px;
+            right: 5px;
+            background: rgba(255, 0, 0, 0.7);
             color: white;
             border: none;
             border-radius: 50%;
@@ -322,6 +321,11 @@ if (!empty($gym['equipment_images'])) {
             display: flex;
             align-items: center;
             justify-content: center;
+            z-index: 10;
+        }
+        
+        .remove-image:hover {
+            background: rgba(255, 0, 0, 0.9);
         }
         
         .equipment-upload {
@@ -332,10 +336,13 @@ if (!empty($gym['equipment_images'])) {
             margin: 15px 0;
             background-color: #f5f5f5;
             cursor: pointer;
+            width: 100%;
+            box-sizing: border-box;
         }
         
-        .equipment-upload:hover {
+        .equipment-upload:hover, .equipment-upload.highlight {
             background-color: #eaeaea;
+            border-color: #4CAF50;
         }
         
         .equipment-preview {
@@ -344,18 +351,46 @@ if (!empty($gym['equipment_images'])) {
             gap: 15px;
             margin-top: 15px;
         }
+        
+        .submit-btn, .cancel-btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+            cursor: pointer;
+            display: inline-block;
+            margin-right: 10px;
+            text-align: center;
+            font-weight: 500;
+        }
+        
+        .submit-btn {
+            background-color: #4CAF50;
+            color: white;
+        }
+        
+        .submit-btn:hover {
+            background-color: #3d8b40;
+        }
+        
+        .cancel-btn {
+            background-color: #f44336;
+            color: white;
+            text-decoration: none;
+        }
+        
+        .cancel-btn:hover {
+            background-color: #d32f2f;
+        }
     </style>
 </head>
 <body>
-    <div class="page-container">
-        <nav class="navbar">
-            <div class="nav-content">
+    <div class="container">
+            <div class="header-section">
                 <a href="dashboard.php" class="back-btn">
                     <i class="fas fa-arrow-left"></i> Back to Dashboard
                 </a>
-                <h1>Edit Gym</h1>
             </div>
-        </nav>
 
     <div class="container">
         <div class="edit-gym-section">
@@ -406,8 +441,15 @@ if (!empty($gym['equipment_images'])) {
                     <!-- Gym thumbnail section -->
                     <div class="form-group">
                         <label for="gym_thumbnail">Gym Thumbnail</label>
-                        <input type="file" id="gym_thumbnail" name="gym_thumbnail" accept="image/*" class="file-input">
+                        <!-- Upload new thumbnail -->
+                        <div class="equipment-upload" id="thumbnailDropArea">
+                            <i class="fas fa-cloud-upload-alt fa-2x"></i>
+                            <p>Drag and drop or click to upload gym thumbnail</p>
+                            <span>(Maximum 2MB)</span>
+                            <input type="file" id="gym_thumbnail" name="gym_thumbnail" accept="image/*" class="file-input">
+                        </div>
                         
+                        <!-- Current thumbnail display -->
                         <?php if (!empty($gym['gym_thumbnail'])): ?>
                         <div class="current-thumbnail">
                             <img src="<?php echo htmlspecialchars($gym['gym_thumbnail']); ?>" 
@@ -428,8 +470,8 @@ if (!empty($gym['equipment_images'])) {
                             <?php foreach ($equipment_images as $index => $image): ?>
                             <div class="equipment-item">
                                 <img src="<?php echo htmlspecialchars($image); ?>" 
-                                    alt="Equipment <?php echo $index + 1; ?>"
-                                    onerror="this.src='../assets/images/default-equipment.jpg';">
+                                     alt="Equipment <?php echo $index + 1; ?>"
+                                     onerror="this.src='../assets/images/default-equipment.jpg';">
                                 <button type="button" class="remove-image" onclick="removeImage(this, <?php echo $index; ?>)">
                                     <i class="fas fa-times"></i>
                                 </button>
@@ -457,18 +499,160 @@ if (!empty($gym['equipment_images'])) {
                     <p>Uploading images and updating gym details...</p>
                 </div>
 
-                <div class="form-actions">
-                    <button type="submit" name="update_gym" class="submit-btn">
-                        <i class="fas fa-save"></i> Update Gym
-                    </button>
-                    <a href="dashboard.php" class="cancel-btn" style="background-color: #ffb22c; color: #000000; border: none; padding: 10px 20px; border-radius: 5px; text-decoration: none; display: inline-block; font-weight: 500;">
-                        <i class="fas fa-times"></i> Cancel
-                    </a>
-                </div>
-
+                <button type="submit" name="update_gym" class="submit-btn">Update Gym</button>
+                <a href="dashboard.php" class="cancel-btn">Cancel</a>
             </form>
         </div>
     </div>
+
+    <script>
+        document.getElementById('gymForm').addEventListener('submit', function() {
+            document.getElementById('loadingIndicator').style.display = 'block';
+        });
+        
+        function removeImage(button, index) {
+            if (confirm('Are you sure you want to remove this image?')) {
+                // Create a hidden input to track removed images
+                const input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = 'remove_equipment[]';
+                input.value = index;
+                document.getElementById('gymForm').appendChild(input);
+                
+                // Hide the image container
+                button.closest('.equipment-item').style.display = 'none';
+            }
+        }
+        
+        // Handle thumbnail drag and drop functionality
+        const thumbnailDropArea = document.getElementById('thumbnailDropArea');
+        const thumbnailInput = document.getElementById('gym_thumbnail');
+        
+        // Trigger file input when clicking on the drop area
+        thumbnailDropArea.addEventListener('click', () => {
+            thumbnailInput.click();
+        });
+        
+        // Prevent default drag behaviors for thumbnail
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            thumbnailDropArea.addEventListener(eventName, preventDefaults, false);
+        });
+        
+        // Highlight thumbnail drop area when dragging over it
+        ['dragenter', 'dragover'].forEach(eventName => {
+            thumbnailDropArea.addEventListener(eventName, () => {
+                thumbnailDropArea.classList.add('highlight');
+            }, false);
+        });
+        
+        ['dragleave', 'drop'].forEach(eventName => {
+            thumbnailDropArea.addEventListener(eventName, () => {
+                thumbnailDropArea.classList.remove('highlight');
+            }, false);
+        });
+        
+        // Handle dropped files for thumbnail
+        thumbnailDropArea.addEventListener('drop', (e) => {
+            const dt = e.dataTransfer;
+            const files = dt.files;
+            
+            if (files.length > 0) {
+                // Only take the first file
+                thumbnailInput.files = files;
+                
+                // Check file size (2MB limit)
+                if (files[0].size > 2 * 1024 * 1024) {
+                    alert('File ' + files[0].name + ' exceeds the 2MB size limit.');
+                    return;
+                }
+            }
+        }, false);
+        
+        // Additional JavaScript for drag and drop functionality
+        const dropArea = document.getElementById('dropArea');
+        const fileInput = document.getElementById('equipment_images');
+        const previewArea = document.getElementById('equipmentPreview');
+        
+        // Trigger file input when clicking on the drop area
+        dropArea.addEventListener('click', () => {
+            fileInput.click();
+        });
+        
+        // Prevent default drag behaviors
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            dropArea.addEventListener(eventName, preventDefaults, false);
+        });
+        
+        function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+        
+        // Highlight drop area when dragging over it
+        ['dragenter', 'dragover'].forEach(eventName => {
+            dropArea.addEventListener(eventName, highlight, false);
+        });
+        
+        ['dragleave', 'drop'].forEach(eventName => {
+            dropArea.addEventListener(eventName, unhighlight, false);
+        });
+        
+        function highlight() {
+            dropArea.classList.add('highlight');
+        }
+        
+        function unhighlight() {
+            dropArea.classList.remove('highlight');
+        }
+        
+        // Handle dropped files
+        dropArea.addEventListener('drop', handleDrop, false);
+        
+        function handleDrop(e) {
+            const dt = e.dataTransfer;
+            const files = dt.files;
+            fileInput.files = files;
+            handleFiles(files);
+        }
+        
+        // Handle selected files (both from drop and file input)
+        fileInput.addEventListener('change', function() {
+            handleFiles(this.files);
+        });
+        
+        function handleFiles(files) {
+            // Limit files to 5
+            const filesToProcess = Array.from(files).slice(0, 5);
+            
+            filesToProcess.forEach(file => {
+                // Check file size (2MB limit)
+                if (file.size > 2 * 1024 * 1024) {
+                    alert('File ' + file.name + ' exceeds the 2MB size limit.');
+                    return;
+                }
+                
+                // Preview image
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const preview = document.createElement('div');
+                    preview.className = 'equipment-item';
+                    preview.innerHTML = `
+                        <img src="${e.target.result}" alt="Preview">
+                        <button type="button" class="remove-image">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    `;
+                    
+                    // Add remove functionality for preview
+                    preview.querySelector('.remove-image').addEventListener('click', function() {
+                        preview.remove();
+                    });
+                    
+                    previewArea.appendChild(preview);
+                }
+                reader.readAsDataURL(file);
+            });
+        }
 
     <script>
         document.getElementById('gymForm').addEventListener('submit', function() {

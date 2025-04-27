@@ -186,9 +186,7 @@
 .nav-links {
   display: flex;
   align-items: center;
-  gap: 20px; /* Use gap instead of margin-left */
-  margin-left: auto; /* Push links to the right */
-  margin-right: 50px; /* Add right margin */
+  gap: 15px;
 }
 
 .nav-links a {
