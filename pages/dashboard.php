@@ -840,6 +840,79 @@ if ($result === false) {
             }
         }
     });
+
+        document.addEventListener('DOMContentLoaded', function() {
+            // Check if there's a new membership from payment success
+            const newMembership = localStorage.getItem('newMembership');
+            
+            if (newMembership === 'true') {
+                // Get stored membership details
+                const gymName = localStorage.getItem('membershipGym');
+                const planName = localStorage.getItem('membershipPlan');
+                
+                // Create a success notification
+                const notification = document.createElement('div');
+                notification.className = 'success-message';
+                notification.innerHTML = `<i class="fas fa-check-circle"></i> Congratulations! You are now a member of ${gymName}.`;
+                
+                // Add it to the dashboard
+                const dashboardContainer = document.querySelector('.dashboard-container');
+                if (dashboardContainer) {
+                    dashboardContainer.insertBefore(notification, dashboardContainer.firstChild);
+                }
+                
+                // If there's no memberships section yet, create one
+                if (!document.querySelector('.my-memberships')) {
+                    // Create membership section
+                    const membershipSection = document.createElement('section');
+                    membershipSection.className = 'my-memberships';
+                    membershipSection.innerHTML = `
+                        <h2>My Memberships</h2>
+                        <div class="membership-grid">
+                            <div class="membership-card active">
+                                <div class="status-badge active">
+                                    Active
+                                </div>
+                                <img src="../assets/images/default-gym.jpg" alt="${gymName}" 
+                                    onerror="this.src='../assets/images/default-gym.jpg'">
+                                <div class="membership-details">
+                                    <h3>${gymName}</h3>
+                                    <p class="plan-name">${planName}</p>
+                                    <p class="membership-info">
+                                        <span class="label">Start Date:</span> 
+                                        ${new Date().toLocaleDateString()}
+                                    </p>
+                                    <p class="membership-info">
+                                        <span class="label">Status:</span> 
+                                        Active
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    
+                    // Insert before the featured gyms section or at the end
+                    const featuredGyms = document.querySelector('.featured-gyms');
+                    if (featuredGyms) {
+                        dashboardContainer.insertBefore(membershipSection, featuredGyms);
+                    } else {
+                        dashboardContainer.appendChild(membershipSection);
+                    }
+                }
+                
+                // Clear the localStorage to prevent showing again on refresh
+                localStorage.removeItem('newMembership');
+                localStorage.removeItem('membershipGym');
+                localStorage.removeItem('membershipPlan');
+                
+                // Force reload the page after 2 seconds to get the fresh data from server
+                setTimeout(function() {
+                    window.location.reload();
+                }, 2000);
+            }
+        });
+    <script>
+    
 </body>
 
 </html>

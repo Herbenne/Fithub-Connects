@@ -57,6 +57,28 @@ $update_stmt->bind_param("i", $user_id);
 $update_stmt->execute();
 $update_stmt->close();
 
+// Update the session to reflect the new role immediately
+if ($_SESSION['user_id'] == $user_id) {
+    $_SESSION['role'] = 'member';
+}
+
+// Get details for display
+$gym_query = "SELECT gym_name FROM gyms WHERE gym_id = ?";
+$gym_stmt = $db_connection->prepare($gym_query);
+$gym_stmt->bind_param("i", $gym_id);
+$gym_stmt->execute();
+$gym_result = $gym_stmt->get_result();
+$gym = $gym_result->fetch_assoc();
+$gym_stmt->close();
+
+$plan_query = "SELECT plan_name FROM membership_plans WHERE plan_id = ?";
+$plan_stmt = $db_connection->prepare($plan_query);
+$plan_stmt->bind_param("i", $plan_id);
+$plan_stmt->execute();
+$plan_result = $plan_stmt->get_result();
+$plan_name = $plan_result->fetch_assoc()['plan_name'];
+$plan_stmt->close();
+
 // Get base URL for navigation
 $base_url = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http") . "://" . $_SERVER['HTTP_HOST'];
 $base_path = dirname(dirname($_SERVER['PHP_SELF']));
@@ -72,47 +94,113 @@ if ($base_path !== '/' && $base_path !== '\\') {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="../assets/css/unified-theme.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
     <title>Payment Success</title>
     <style>
         body {
             font-family: Arial, sans-serif;
             text-align: center;
-            margin-top: 50px;
+            margin: 0;
+            padding: 0;
+            background-color: #f8f9fa;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
         }
 
-        .container {
-            max-width: 400px;
+        .success-container {
+            max-width: 500px;
             margin: auto;
-            padding: 20px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            border-radius: 8px;
+            background-color: white;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
         }
 
-        a {
+        .success-icon {
+            font-size: 60px;
+            color: #4CAF50;
+            margin-bottom: 20px;
+        }
+
+        h2 {
+            color: #333;
+            margin-bottom: 15px;
+        }
+
+        .membership-details {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            text-align: left;
+        }
+
+        .detail-item {
+            margin: 10px 0;
+        }
+
+        .detail-label {
+            font-weight: bold;
+            color: #666;
+        }
+
+        .primary-btn {
             display: inline-block;
             margin-top: 20px;
             text-decoration: none;
             color: white;
-            background-color: #28a745;
-            padding: 10px 15px;
+            background-color: #4CAF50;
+            padding: 12px 24px;
             border-radius: 5px;
+            font-weight: bold;
+            transition: background-color 0.3s;
         }
 
-        a:hover {
-            background-color: #218838;
+        .primary-btn:hover {
+            background-color: #3d8b40;
         }
     </style>
 </head>
 
 <body>
-
-    <div class="container">
+    <div class="success-container">
+        <i class="fas fa-check-circle success-icon"></i>
         <h2>Payment Successful!</h2>
-        <p>You are now a gym member.</p>
-        <a href="<?php echo $base_url; ?>/pages/dashboard.php">Go to Dashboard</a>
+        <p>You are now a member of <?php echo htmlspecialchars($gym['gym_name']); ?>.</p>
+        
+        <div class="membership-details">
+            <div class="detail-item">
+                <span class="detail-label">Gym:</span> 
+                <?php echo htmlspecialchars($gym['gym_name']); ?>
+            </div>
+            <div class="detail-item">
+                <span class="detail-label">Plan:</span> 
+                <?php echo htmlspecialchars($plan_name); ?>
+            </div>
+            <div class="detail-item">
+                <span class="detail-label">Start Date:</span> 
+                <?php echo date('F j, Y', strtotime($start_date)); ?>
+            </div>
+            <div class="detail-item">
+                <span class="detail-label">End Date:</span> 
+                <?php echo date('F j, Y', strtotime($end_date)); ?>
+            </div>
+        </div>
+        
+        <a href="<?php echo $base_url; ?>/pages/dashboard.php" class="primary-btn">Go to Dashboard</a>
     </div>
 
+    <script>
+        // This script ensures the session is refreshed on the dashboard
+        document.addEventListener('DOMContentLoaded', function() {
+            // Store membership info for dashboard to display
+            localStorage.setItem('newMembership', 'true');
+            localStorage.setItem('membershipGym', '<?php echo htmlspecialchars($gym['gym_name']); ?>');
+            localStorage.setItem('membershipPlan', '<?php echo htmlspecialchars($plan_name); ?>');
+        });
+    </script>
 </body>
 
 </html>

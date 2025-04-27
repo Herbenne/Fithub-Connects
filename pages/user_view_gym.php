@@ -78,14 +78,14 @@ if (!empty($gym['equipment_images'])) {
     }
 }
 
-// Fetch reviews with user details
+// Fetch reviews with user details and profile pictures
 $reviews_query = "SELECT r.*, 
-                  CONCAT(u.first_name, ' ', u.last_name) as full_name,
-                  u.username
-                  FROM gym_reviews r
-                  JOIN users u ON r.user_id = u.id
-                  WHERE r.gym_id = ?
-                  ORDER BY r.created_at DESC";
+                 CONCAT(u.first_name, ' ', u.last_name) as full_name,
+                 u.username, u.id as reviewer_id, u.profile_picture
+                 FROM gym_reviews r
+                 JOIN users u ON r.user_id = u.id
+                 WHERE r.gym_id = ?
+                 ORDER BY r.created_at DESC";
 $stmt = $db_connection->prepare($reviews_query);
 $stmt->bind_param("i", $gym_id);
 $stmt->execute();
@@ -224,30 +224,30 @@ $reviews = $stmt->get_result();
                     </button>
 
                     <div id="review-form" class="review-form" style="display: none;">
-                        <form action="../actions/submit_review.php" method="POST">
-                            <input type="hidden" name="gym_id" value="<?php echo $gym_id; ?>">
-                            
-                            <div class="rating-select">
-                                <label>Your Rating:</label>
-                                <div class="star-rating-input">
-                                    <?php for ($i = 5; $i >= 1; $i--): ?>
-                                        <input type="radio" id="star<?php echo $i; ?>" 
-                                            name="rating" value="<?php echo $i; ?>" required>
-                                        <label for="star<?php echo $i; ?>">
-                                            <i class="fas fa-star"></i>
-                                        </label>
-                                    <?php endfor; ?>
-                                </div>
+                    <form action="../actions/submit_review.php" method="POST">
+                        <input type="hidden" name="gym_id" value="<?php echo $gym_id; ?>">
+                        
+                        <div class="rating-select">
+                            <label>Your Rating:</label>
+                            <div class="star-rating-input">
+                                <?php for ($i = 5; $i >= 1; $i--): ?>
+                                    <input type="radio" id="star<?php echo $i; ?>" 
+                                        name="rating" value="<?php echo $i; ?>" required>
+                                    <label for="star<?php echo $i; ?>">
+                                        <i class="fas fa-star"></i>
+                                    </label>
+                                <?php endfor; ?>
                             </div>
-                            
-                            <div class="review-input">
-                                <textarea name="comment" required rows="4" 
-                                        placeholder="Share your experience..."></textarea>
-                            </div>
-                            
-                            <button type="submit" class="submit-btn">Submit Review</button>
-                        </form>
-                    </div>
+                        </div>
+                        
+                        <div class="review-input">
+                            <textarea name="comment" required rows="4" 
+                                    placeholder="Share your experience..."></textarea>
+                        </div>
+                        
+                        <button type="submit" class="submit-btn">Submit Review</button>
+                    </form>
+                </div>
                 <?php endif; ?>
 
                 <div class="reviews-list">
@@ -255,14 +255,21 @@ $reviews = $stmt->get_result();
                         <div class="review-card">
                             <div class="review-header">
                                 <div class="reviewer-info">
-                                    <strong><?php echo htmlspecialchars($review['full_name']); ?></strong>
-                                    <div class="star-rating">
-                                        <?php 
-                                        $rating = (float)$review['rating'];
-                                        for ($i = 1; $i <= 5; $i++): 
-                                        ?>
-                                            <i class="fas fa-star <?php echo ($i <= $rating) ? 'checked' : ''; ?>"></i>
-                                        <?php endfor; ?>
+                                    <!-- Add profile picture -->
+                                    <img src="fetch_image.php?user_id=<?php echo $review['reviewer_id']; ?>" 
+                                        alt="<?php echo htmlspecialchars($review['full_name']); ?>"
+                                        class="reviewer-avatar"
+                                        onerror="this.onerror=null; this.src='../assets/images/default-profile.jpg';">
+                                    <div class="reviewer-details">
+                                        <strong><?php echo htmlspecialchars($review['full_name']); ?></strong>
+                                        <div class="star-rating">
+                                            <?php 
+                                            $rating = (float)$review['rating'];
+                                            for ($i = 1; $i <= 5; $i++): 
+                                            ?>
+                                                <i class="fas fa-star <?php echo ($i <= $rating) ? 'checked' : ''; ?>"></i>
+                                            <?php endfor; ?>
+                                        </div>
                                     </div>
                                 </div>
                                 <div class="review-actions">
