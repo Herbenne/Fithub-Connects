@@ -6,7 +6,7 @@ session_start();
 <head>
     <title>FitHub - Find Your Perfect Gym</title>
     <link rel="stylesheet" href="../assets/css/mains.css">
-    <link rel="stylesheet" href="../assets/css/homes.css">
+    <link rel="stylesheet" href="../assets/css/home.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
 </head>
 <body>
@@ -23,8 +23,10 @@ session_start();
                 <a href="../pages/profile.php">Profile</a>
                 <a href="../actions/logout.php">Logout</a>
             <?php else: ?>
-                <a href="../pages/login.php">Login</a>
-                <a href="../pages/register.php">Register</a>
+              <div class="login-register-container">
+              <a href="../pages/login.php">Login</a>
+              <a href="../pages/register.php">Register</a>
+              </div>
             <?php endif; ?>
         </div>
     </nav>
