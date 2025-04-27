@@ -374,6 +374,49 @@ $rating_stats = $stmt->get_result();
     });
 
     document.addEventListener('DOMContentLoaded', function() {
+        function cleanTextForPDF(text, type) {
+            if (!text) return "";
+            
+            let cleanedText = text;
+            
+            // Handle different types of values
+            if (type === 'rating') {
+                // Remove any unexpected characters from rating
+                cleanedText = text.replace(/\+P/g, '').replace(/±/g, '').replace(/⭐/g, '').trim();
+                
+                // Make sure it just shows the number with up to one decimal place
+                const ratingNumber = parseFloat(cleanedText);
+                if (!isNaN(ratingNumber)) {
+                    cleanedText = ratingNumber.toFixed(1);
+                }
+                
+                // Return just the number - no emoji or extra text
+                return cleanedText;
+            } 
+            else if (type === 'revenue') {
+                // Remove any currency symbols and clean up
+                cleanedText = text.replace(/[₱±]/g, '').replace(/\s+/g, '').trim();
+                
+                // Parse and format the number properly
+                const numericValue = parseFloat(cleanedText.replace(/,/g, ''));
+                if (!isNaN(numericValue)) {
+                    // Format with commas and 2 decimal places
+                    cleanedText = numericValue.toLocaleString('en-US', {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2
+                    });
+                    
+                    // Add PHP prefix
+                    return "PHP " + cleanedText;
+                }
+                
+                // If parsing failed, just return original with PHP
+                return "PHP " + cleanedText;
+            }
+            
+            return cleanedText;
+        }
+        
         const downloadPdfBtn = document.getElementById('downloadPdfBtn');
         
         // Filter checkboxes
@@ -595,18 +638,23 @@ $rating_stats = $stmt->get_result();
                     if (includeRevenue.checked) {
                         summary += `Revenue tracking shows the financial performance of the gym. `;
                         if (summaryStats.revenue > 0) {
-                            summary += `The gym has generated ₱${summaryStats.revenue.toLocaleString()} in revenue during the analyzed period. `;
+                            // Clean revenue value for summary
+                            const cleanRevenue = cleanTextForPDF(summaryStats.revenue.toString(), 'revenue');
+                            summary += `The gym has generated ${cleanRevenue} in revenue during the analyzed period. `;
                         }
                     }
                     
                     if (includeRatings.checked) {
                         summary += `Customer satisfaction is measured through ratings. `;
                         if (summaryStats.rating > 0) {
-                            summary += `The gym has an average rating of ${summaryStats.rating} out of 5 stars. `;
+                            // Clean rating value for summary
+                            const cleanRating = cleanTextForPDF(summaryStats.rating.toString(), 'rating');
+                            summary += `The gym has an average rating of ${cleanRating} out of 5 stars. `;
                             
-                            if (summaryStats.rating >= 4) {
+                            const ratingValue = parseFloat(cleanRating);
+                            if (ratingValue >= 4) {
                                 summary += "This indicates excellent customer satisfaction. ";
-                            } else if (summaryStats.rating >= 3) {
+                            } else if (ratingValue >= 3) {
                                 summary += "This shows good customer satisfaction with room for improvement. ";
                             } else {
                                 summary += "This suggests significant areas for improvement in customer satisfaction. ";

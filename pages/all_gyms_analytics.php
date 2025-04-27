@@ -346,8 +346,52 @@ $gyms_result = $db_connection->query($gyms_query);
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
-        <script>
-            document.addEventListener('DOMContentLoaded', function() {
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Add the cleanTextForPDF function to standardize values for PDF output
+            function cleanTextForPDF(text, type) {
+                if (!text) return "";
+                
+                let cleanedText = text;
+                
+                // Handle different types of values
+                if (type === 'rating') {
+                    // Remove any unexpected characters from rating
+                    cleanedText = text.replace(/\+P/g, '').replace(/±/g, '').replace(/⭐/g, '').trim();
+                    
+                    // Make sure it just shows the number with up to one decimal place
+                    const ratingNumber = parseFloat(cleanedText);
+                    if (!isNaN(ratingNumber)) {
+                        cleanedText = ratingNumber.toFixed(1);
+                    }
+                    
+                    // Return just the number - no emoji or extra text
+                    return cleanedText;
+                } 
+                else if (type === 'revenue') {
+                    // Remove any currency symbols and clean up
+                    cleanedText = text.replace(/[₱±]/g, '').replace(/\s+/g, '').trim();
+                    
+                    // Parse and format the number properly
+                    const numericValue = parseFloat(cleanedText.replace(/,/g, ''));
+                    if (!isNaN(numericValue)) {
+                        // Format with commas and 2 decimal places
+                        cleanedText = numericValue.toLocaleString('en-US', {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2
+                        });
+                        
+                        // Add PHP prefix
+                        return "PHP " + cleanedText;
+                    }
+                    
+                    // If parsing failed, just return original with PHP
+                    return "PHP " + cleanedText;
+                }
+                
+                return cleanedText;
+            }
+            
             const downloadPdfBtn = document.getElementById('downloadPdfBtn');
             // Filter checkboxes
             const includeGyms = document.getElementById('include-gyms');
@@ -480,12 +524,12 @@ $gyms_result = $db_connection->query($gyms_query);
                             
                             // Fix currency and rating symbols
                             if (label.includes('Revenue')) {
-                                // Replace ± with ₱ for proper peso sign
-                                value = value.replace('±', '₱').trim();
+                                // Clean up revenue value for PDF
+                                value = cleanTextForPDF(value, 'revenue');
                                 summaryStats.totalRevenue = value;
                             } else if (label.includes('Rating')) {
-                                // Remove any unusual characters from rating
-                                value = value.replace('+P', '').replace('±', '').trim();
+                                // Clean up rating value for PDF
+                                value = cleanTextForPDF(value, 'rating');
                                 summaryStats.avgRating = value;
                             } else if (label.includes('Gyms')) {
                                 summaryStats.totalGyms = value;
@@ -576,7 +620,9 @@ $gyms_result = $db_connection->query($gyms_query);
                                     
                                     // Fix currency and rating symbols for each gym
                                     if (stat.label.includes('Revenue')) {
-                                        value = `₱${value}`;
+                                        value = cleanTextForPDF(value, 'revenue');
+                                    } else if (stat.label.includes('Rating')) {
+                                        value = cleanTextForPDF(value, 'rating');
                                     }
                                     
                                     doc.text(`• ${stat.label}: ${value}`, 30, currentY);
@@ -614,10 +660,13 @@ $gyms_result = $db_connection->query($gyms_query);
                     }
                     
                     if (summaryStats.avgRating) {
-                        summary += `The average customer satisfaction rating is ${summaryStats.avgRating} out of 5 stars, `;
-                        if (parseFloat(summaryStats.avgRating) >= 4) {
+                        // Clean up any potential formatting issues with the rating
+                        const cleanRating = cleanTextForPDF(summaryStats.avgRating.toString(), 'rating');
+                        summary += `The average customer satisfaction rating is ${cleanRating} out of 5 stars, `;
+                        const ratingValue = parseFloat(cleanRating);
+                        if (ratingValue >= 4) {
                             summary += "indicating excellent overall customer satisfaction. ";
-                        } else if (parseFloat(summaryStats.avgRating) >= 3) {
+                        } else if (ratingValue >= 3) {
                             summary += "showing good overall customer satisfaction. ";
                         } else {
                             summary += "suggesting there are areas for improvement in customer satisfaction. ";
@@ -625,7 +674,9 @@ $gyms_result = $db_connection->query($gyms_query);
                     }
                     
                     if (summaryStats.totalRevenue) {
-                        summary += `The platform has generated a total revenue of ${summaryStats.totalRevenue}. `;
+                        // Clean up any potential formatting issues with the revenue
+                        const cleanRevenue = cleanTextForPDF(summaryStats.totalRevenue.toString(), 'revenue');
+                        summary += `The platform has generated a total revenue of ${cleanRevenue}. `;
                     }
                     
                     summary += `\n\nThis report was generated on ${date} and includes `;
@@ -654,8 +705,8 @@ $gyms_result = $db_connection->query($gyms_query);
                     const filename = `FitHub_Analytics_${filterSuffix}_${date.replace(/\//g, '-')}.pdf`;
                     doc.save(filename);
                 }, 500);
-                }
-            });
+            }
+        });
         </script>
     </body>
 </html>

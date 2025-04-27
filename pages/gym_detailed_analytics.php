@@ -492,9 +492,53 @@ $rating_stats = $stmt->get_result();
         }
     });
 
-    // Wait until DOM is fully loaded before attaching event handlers
+    // Add this function after the DOM loaded event listener starts
     document.addEventListener('DOMContentLoaded', function() {
         console.log("DOM fully loaded");
+        
+        // Add the cleanTextForPDF function to standardize values for PDF output
+        function cleanTextForPDF(text, type) {
+            if (!text) return "";
+            
+            let cleanedText = text;
+            
+            // Handle different types of values
+            if (type === 'rating') {
+                // Remove any unexpected characters from rating
+                cleanedText = text.replace(/\+P/g, '').replace(/±/g, '').replace(/⭐/g, '').trim();
+                
+                // Make sure it just shows the number with up to one decimal place
+                const ratingNumber = parseFloat(cleanedText);
+                if (!isNaN(ratingNumber)) {
+                    cleanedText = ratingNumber.toFixed(1);
+                }
+                
+                // Return just the number - no emoji or extra text
+                return cleanedText;
+            } 
+            else if (type === 'revenue') {
+                // Remove any currency symbols and clean up
+                cleanedText = text.replace(/[₱±]/g, '').replace(/\s+/g, '').trim();
+                
+                // Parse and format the number properly
+                const numericValue = parseFloat(cleanedText.replace(/,/g, ''));
+                if (!isNaN(numericValue)) {
+                    // Format with commas and 2 decimal places
+                    cleanedText = numericValue.toLocaleString('en-US', {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2
+                    });
+                    
+                    // Add PHP prefix
+                    return "PHP " + cleanedText;
+                }
+                
+                // If parsing failed, just return original with PHP
+                return "PHP " + cleanedText;
+            }
+            
+            return cleanedText;
+        }
         
         const downloadPdfBtn = document.getElementById('downloadPdfBtn');
         
@@ -618,7 +662,7 @@ $rating_stats = $stmt->get_result();
                     if (type === 'members') {
                         summaryStats.members = value;
                     } else if (type === 'ratings') {
-                        summaryStats.rating = value.replace("⭐", "").trim();
+                        summaryStats.rating = value;
                     } else if (type === 'reviews') {
                         summaryStats.reviews = value;
                     } else if (type === 'revenue') {
@@ -664,16 +708,19 @@ $rating_stats = $stmt->get_result();
                         const label = card.querySelector('h3').innerText;
                         let value = card.querySelector('.number').innerText;
                         
-                        // Fix currency and rating symbols
-                        if (label.includes('Revenue')) {
-                            // Make sure the currency symbol is correct
-                            value = value.replace('±', '₱').trim();
-                        } else if (label.includes('Rating')) {
-                            // Clean up rating value
-                            value = value.replace('+P', '').trim();
+                        // Clean up the value based on what type of metric it is
+                        if (label.includes('Rating')) {
+                            value = cleanTextForPDF(value, 'rating');
+                            doc.text(`${label}: ${value}`, 20, currentY);
+                        } 
+                        else if (label.includes('Revenue')) {
+                            value = cleanTextForPDF(value, 'revenue');
+                            doc.text(`${label}: ${value}`, 20, currentY);
+                        }
+                        else {
+                            doc.text(`${label}: ${value}`, 20, currentY);
                         }
                         
-                        doc.text(`${label}: ${value}`, 20, currentY);
                         currentY += 10;
                     });
                     
@@ -759,7 +806,9 @@ $rating_stats = $stmt->get_result();
                     }
                     
                     if (summaryStats.rating) {
-                        summary += `The average customer satisfaction rating is ${summaryStats.rating} out of 5 stars, `;
+                        // Clean up rating for summary
+                        summaryStats.rating = cleanTextForPDF(summaryStats.rating, 'rating');
+                        summary += `The average customer satisfaction rating is ${summaryStats.rating} out of 5, `;
                         const ratingValue = parseFloat(summaryStats.rating);
                         if (ratingValue >= 4) {
                             summary += "indicating excellent customer satisfaction. ";
@@ -775,6 +824,8 @@ $rating_stats = $stmt->get_result();
                     }
                     
                     if (summaryStats.revenue) {
+                        // Clean up revenue for summary
+                        summaryStats.revenue = cleanTextForPDF(summaryStats.revenue, 'revenue');
                         summary += `the gym has generated a total revenue of ${summaryStats.revenue}. `;
                     }
                     
