@@ -743,16 +743,14 @@ $rating_stats = $stmt->get_result();
                             const chart = visibleChartContainers[index];
                             const title = chart.querySelector('h3').innerText;
                             
-                            // Check if we need a new page
-                            if (currentY > 240) {
-                                doc.addPage();
-                                currentY = 20;
-                            }
+                            // Always start each chart on a new page for better layout
+                            doc.addPage();
+                            currentY = 20;
                             
                             // Add chart title
                             doc.setFont(pdfFonts.bold);
                             doc.setFontSize(14);
-                            doc.text(title, 20, currentY);
+                            doc.text(title, 105, currentY, { align: 'center' });
                             currentY += 10;
                             
                             // Capture chart canvas
@@ -763,13 +761,15 @@ $rating_stats = $stmt->get_result();
                                 backgroundColor: null,
                                 logging: false
                             }).then(canvas => {
-                                // Add to PDF
+                                // Add to PDF - center the chart horizontally on the page
                                 const imgData = canvas.toDataURL('image/png');
-                                const imgWidth = 170;
+                                const imgWidth = 160; // Slightly narrower than before
                                 const imgHeight = canvas.height * imgWidth / canvas.width;
                                 
-                                doc.addImage(imgData, 'PNG', 20, currentY, imgWidth, imgHeight);
-                                currentY += imgHeight + 15; // Add space after chart
+                                // Calculate left position to center the chart
+                                const leftPos = (210 - imgWidth) / 2;
+                                
+                                doc.addImage(imgData, 'PNG', leftPos, currentY, imgWidth, imgHeight);
                                 
                                 // Process next chart
                                 processChart(index + 1);
