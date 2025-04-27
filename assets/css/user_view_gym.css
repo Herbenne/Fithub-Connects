@@ -726,20 +726,76 @@ body.loading {
   color: #ffb22c !important;
 }
 
-.reviewer-avatar {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  object-fit: cover;
-  margin-right: 10px;
-}
-
 .reviewer-info {
   display: flex;
+  flex-direction: row;
   align-items: center;
+  gap: 12px;
+}
+
+.reviewer-avatar {
+  width: 45px;
+  height: 45px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #ffb22c;
+  flex-shrink: 0;
 }
 
 .reviewer-details {
   display: flex;
   flex-direction: column;
 }
+
+/* Fix the review header layout */
+.review-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1rem;
+}
+
+/* Comment section styles */
+.comments-section {
+  margin-top: 1rem;
+  padding-left: 2rem;
+  border-left: 3px solid #ffb22c;
+}
+
+.comment-item {
+  padding: 1rem;
+  margin: 1rem 0;
+  background: #f7f7f7;
+  border-radius: 8px;
+  position: relative;
+}
+
+/* Comment author info with avatar */
+.comment-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.commenter-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.commenter-avatar {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1px solid #ffb22c;
+  flex-shrink: 0;
+}
+
+/* Better spacing for review content */
+.review-content {
+  margin: 0.5rem 0 1rem 0;
+  line-height: 1.6;
+}
+

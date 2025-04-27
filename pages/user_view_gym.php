@@ -213,128 +213,130 @@ $reviews = $stmt->get_result();
                 </div>
             </section>
             <?php endif; ?>
-
-            <!-- Reviews Section -->
-            <section class="reviews-section">
-                <h2>Reviews & Ratings</h2>
-                
-                <?php if (isset($_SESSION['user_id'])): ?>
-                    <button class="write-review-btn" onclick="toggleReviewForm()">
-                        <i class="fas fa-pen"></i> Write a Review
-                    </button>
-
-                    <div id="review-form" class="review-form" style="display: none;">
-                    <form action="../actions/submit_review.php" method="POST">
-                        <input type="hidden" name="gym_id" value="<?php echo $gym_id; ?>">
+                    <section class="reviews-section">
+                        <h2>Reviews & Ratings</h2>
                         
-                        <div class="rating-select">
-                            <label>Your Rating:</label>
-                            <div class="star-rating-input">
-                                <?php for ($i = 5; $i >= 1; $i--): ?>
-                                    <input type="radio" id="star<?php echo $i; ?>" 
-                                        name="rating" value="<?php echo $i; ?>" required>
-                                    <label for="star<?php echo $i; ?>">
-                                        <i class="fas fa-star"></i>
-                                    </label>
-                                <?php endfor; ?>
-                            </div>
-                        </div>
-                        
-                        <div class="review-input">
-                            <textarea name="comment" required rows="4" 
-                                    placeholder="Share your experience..."></textarea>
-                        </div>
-                        
-                        <button type="submit" class="submit-btn">Submit Review</button>
-                    </form>
-                </div>
-                <?php endif; ?>
+                        <?php if (isset($_SESSION['user_id'])): ?>
+                            <button class="write-review-btn" onclick="toggleReviewForm()">
+                                <i class="fas fa-pen"></i> Write a Review
+                            </button>
 
-                <div class="reviews-list">
-                    <?php while ($review = $reviews->fetch_assoc()): ?>
-                        <div class="review-card">
-                            <div class="review-header">
-                                <div class="reviewer-info">
-                                    <!-- Add profile picture -->
-                                    <img src="fetch_image.php?user_id=<?php echo $review['reviewer_id']; ?>" 
-                                        alt="<?php echo htmlspecialchars($review['full_name']); ?>"
-                                        class="reviewer-avatar"
-                                        onerror="this.onerror=null; this.src='../assets/images/default-profile.jpg';">
-                                    <div class="reviewer-details">
-                                        <strong><?php echo htmlspecialchars($review['full_name']); ?></strong>
-                                        <div class="star-rating">
-                                            <?php 
-                                            $rating = (float)$review['rating'];
-                                            for ($i = 1; $i <= 5; $i++): 
-                                            ?>
-                                                <i class="fas fa-star <?php echo ($i <= $rating) ? 'checked' : ''; ?>"></i>
-                                            <?php endfor; ?>
-                                        </div>
+                            <div id="review-form" class="review-form" style="display: none;">
+                            <form action="../actions/submit_review.php" method="POST">
+                                <input type="hidden" name="gym_id" value="<?php echo $gym_id; ?>">
+                                
+                                <div class="rating-select">
+                                    <label>Your Rating:</label>
+                                    <div class="star-rating-input">
+                                        <?php for ($i = 5; $i >= 1; $i--): ?>
+                                            <input type="radio" id="star<?php echo $i; ?>" 
+                                                name="rating" value="<?php echo $i; ?>" required>
+                                            <label for="star<?php echo $i; ?>">
+                                                <i class="fas fa-star"></i>
+                                            </label>
+                                        <?php endfor; ?>
                                     </div>
                                 </div>
-                                <div class="review-actions">
-                                    <span class="review-date">
-                                        <?php echo date('M d, Y', strtotime($review['created_at'])); ?>
-                                    </span>
-                                    <?php if ($_SESSION['user_id'] == $review['user_id']): ?>
-                                        <form action="../actions/delete_review.php" method="POST" style="display: inline;"
-                                            onsubmit="return confirm('Are you sure you want to delete this review?');">
-                                            <input type="hidden" name="review_id" value="<?php echo $review['review_id']; ?>">
-                                            <input type="hidden" name="gym_id" value="<?php echo $gym_id; ?>">
-                                            <button type="submit" class="delete-btn">Delete</button>
-                                        </form>
-                                    <?php endif; ?>
+                                
+                                <div class="review-input">
+                                    <textarea name="comment" required rows="4" 
+                                            placeholder="Share your experience..."></textarea>
                                 </div>
-                            </div>
-                            <p class="review-content"><?php echo nl2br(htmlspecialchars($review['comment'])); ?></p>
+                                
+                                <button type="submit" class="submit-btn">Submit Review</button>
+                            </form>
+                        </div>
+                        <?php endif; ?>
+
+            <div class="reviews-list">
+            <?php while ($review = $reviews->fetch_assoc()): ?>
+                <div class="review-card">
+                    <div class="review-header">
+                        <div class="reviewer-info">
+                            <img src="fetch_image.php?user_id=<?php echo $review['reviewer_id']; ?>" 
+                                alt="<?php echo htmlspecialchars($review['full_name']); ?>"
+                                class="reviewer-avatar"
+                                onerror="this.onerror=null; this.src='../assets/images/default-profile.jpg';">
                             
-                            <!-- Reply Button -->
-                            <?php if (isset($_SESSION['user_id'])): ?>
-                                <button class="reply-btn" onclick="toggleReplyForm(<?php echo $review['review_id']; ?>)">
-                                    <i class="fas fa-reply"></i> Reply
-                                </button>
-
-                                <!-- Reply Form -->
-                                <div id="reply-form-<?php echo $review['review_id']; ?>" class="comment-form" style="display: none;">
-                                    <form action="../actions/submit_comment.php" method="POST">
-                                        <input type="hidden" name="review_id" value="<?php echo $review['review_id']; ?>">
-                                        <input type="hidden" name="gym_id" value="<?php echo $gym_id; ?>">
-                                        <textarea name="comment" required placeholder="Write your reply..."></textarea>
-                                        <button type="submit" class="submit-btn">Submit Reply</button>
-                                    </form>
+                            <div class="reviewer-details">
+                                <strong><?php echo htmlspecialchars($review['full_name']); ?></strong>
+                                <div class="star-rating">
+                                    <?php 
+                                    $rating = (float)$review['rating'];
+                                    for ($i = 1; $i <= 5; $i++): 
+                                    ?>
+                                        <i class="fas fa-star <?php echo ($i <= $rating) ? 'checked' : ''; ?>"></i>
+                                    <?php endfor; ?>
                                 </div>
+                            </div>
+                        </div>
+                        
+                        <div class="review-actions">
+                            <span class="review-date">
+                                <?php echo date('M d, Y', strtotime($review['created_at'])); ?>
+                            </span>
+                            <?php if ($_SESSION['user_id'] == $review['user_id']): ?>
+                                <form action="../actions/delete_review.php" method="POST" style="display: inline;"
+                                    onsubmit="return confirm('Are you sure you want to delete this review?');">
+                                    <input type="hidden" name="review_id" value="<?php echo $review['review_id']; ?>">
+                                    <input type="hidden" name="gym_id" value="<?php echo $gym_id; ?>">
+                                    <button type="submit" class="delete-btn">Delete</button>
+                                </form>
                             <?php endif; ?>
+                        </div>
+                    </div>
+                    
+                    <p class="review-content"><?php echo nl2br(htmlspecialchars($review['comment'])); ?></p>
+                    
+                    <?php if (isset($_SESSION['user_id'])): ?>
+                        <button class="reply-btn" onclick="toggleReplyForm(<?php echo $review['review_id']; ?>)">
+                            <i class="fas fa-reply"></i> Reply
+                        </button>
 
-                            <!-- Comments Section -->
-                            <div class="comments-section">
-                                <?php
-                                $comments_query = "SELECT c.*, CONCAT(u.first_name, ' ', u.last_name) as commenter_name 
-                                                 FROM review_comments c 
-                                                 JOIN users u ON c.user_id = u.id 
-                                                 WHERE c.review_id = ? 
-                                                 ORDER BY c.created_at ASC";
-                                $comments_stmt = $db_connection->prepare($comments_query);
-                                $comments_stmt->bind_param("i", $review['review_id']);
-                                $comments_stmt->execute();
-                                $comments = $comments_stmt->get_result();
+                        <div id="reply-form-<?php echo $review['review_id']; ?>" class="comment-form" style="display: none;">
+                            <form action="../actions/submit_comment.php" method="POST">
+                                <input type="hidden" name="review_id" value="<?php echo $review['review_id']; ?>">
+                                <input type="hidden" name="gym_id" value="<?php echo $gym_id; ?>">
+                                <textarea name="comment" required placeholder="Write your reply..."></textarea>
+                                <button type="submit" class="submit-btn">Submit Reply</button>
+                            </form>
+                        </div>
+                    <?php endif; ?>
+                    <div class="comments-section">
+                        <?php
+                        $comments_query = "SELECT c.*, CONCAT(u.first_name, ' ', u.last_name) as commenter_name, u.id as commenter_id
+                                        FROM review_comments c 
+                                        JOIN users u ON c.user_id = u.id 
+                                        WHERE c.review_id = ? 
+                                        ORDER BY c.created_at ASC";
+                            $comments_stmt = $db_connection->prepare($comments_query);
+                            $comments_stmt->bind_param("i", $review['review_id']);
+                            $comments_stmt->execute();
+                            $comments = $comments_stmt->get_result();
 
-                                while ($comment = $comments->fetch_assoc()): ?>
-                                    <div class="comment-item">
-                                        <div class="comment-header">
+                            while ($comment = $comments->fetch_assoc()): ?>
+                                <div class="comment-item">
+                                    <div class="comment-header">
+                                        <div class="commenter-info">
+                                            <img src="fetch_image.php?user_id=<?php echo $comment['commenter_id']; ?>" 
+                                                alt="<?php echo htmlspecialchars($comment['commenter_name']); ?>"
+                                                class="commenter-avatar"
+                                                onerror="this.onerror=null; this.src='../assets/images/default-profile.jpg';">
                                             <strong><?php echo htmlspecialchars($comment['commenter_name']); ?></strong>
-                                            <span class="comment-date">
-                                                <?php echo date('M d, Y', strtotime($comment['created_at'])); ?>
-                                            </span>
                                         </div>
-                                        <p><?php echo nl2br(htmlspecialchars($comment['comment'])); ?></p>
-                                        <?php if ($_SESSION['user_id'] == $comment['user_id']): ?>
-                                            <form action="../actions/delete_comment.php" method="POST" class="delete-comment-form">
-                                                <input type="hidden" name="comment_id" value="<?php echo $comment['comment_id']; ?>">
-                                                <input type="hidden" name="gym_id" value="<?php echo $gym_id; ?>">
-                                                <button type="submit" class="delete-btn" onclick="return confirm('Delete this comment?');">Delete</button>
-                                            </form>
-                                        <?php endif; ?>
+                                        <span class="comment-date">
+                                            <?php echo date('M d, Y', strtotime($comment['created_at'])); ?>
+                                        </span>
                                     </div>
+                                    <p><?php echo nl2br(htmlspecialchars($comment['comment'])); ?></p>
+                                    <?php if ($_SESSION['user_id'] == $comment['user_id']): ?>
+                                        <form action="../actions/delete_comment.php" method="POST" class="delete-comment-form">
+                                            <input type="hidden" name="comment_id" value="<?php echo $comment['comment_id']; ?>">
+                                            <input type="hidden" name="gym_id" value="<?php echo $gym_id; ?>">
+                                            <button type="submit" class="delete-btn" onclick="return confirm('Delete this comment?');">Delete</button>
+                                        </form>
+                                        <?php endif; ?>
+                                     </div>
                                 <?php endwhile; ?>
                             </div>
                         </div>
