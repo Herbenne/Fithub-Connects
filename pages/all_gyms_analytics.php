@@ -146,6 +146,368 @@ $gyms_result = $db_connection->query($gyms_query);
                 <?php endwhile; ?>
             </div>
         </section>
+
+        <section class="all-members-section" data-type="members">
+            <div class="section-header">
+                <h2><i class="fas fa-users"></i> Platform Members</h2>
+                <div class="filter-dropdown">
+                    <button class="member-filter-btn"><i class="fas fa-filter"></i> Filter Members</button>
+                    <div class="member-filter-menu">
+                        <div class="filter-group">
+                            <label>Status:</label>
+                            <div class="checkbox-group">
+                                <div class="checkbox-item">
+                                    <input type="checkbox" id="filter-active-members" checked>
+                                    <label for="filter-active-members">Active Members</label>
+                                </div>
+                                <div class="checkbox-item">
+                                    <input type="checkbox" id="filter-inactive-members" checked>
+                                    <label for="filter-inactive-members">Inactive Members</label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="filter-group">
+                            <label>Date Range:</label>
+                            <div class="date-inputs">
+                                <div class="date-field">
+                                    <label for="member-start-date">From:</label>
+                                    <input type="date" id="member-start-date">
+                                </div>
+                                <div class="date-field">
+                                    <label for="member-end-date">To:</label>
+                                    <input type="date" id="member-end-date">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="filter-group">
+                            <label>Gym:</label>
+                            <select id="gym-filter">
+                                <option value="all">All Gyms</option>
+                                <?php
+                                // Reset the pointer for gyms result
+                                $gyms_result->data_seek(0);
+                                while ($gym = $gyms_result->fetch_assoc()): ?>
+                                    <option value="<?php echo $gym['gym_id']; ?>">
+                                        <?php echo htmlspecialchars($gym['gym_name']); ?>
+                                    </option>
+                                <?php endwhile; ?>
+                            </select>
+                        </div>
+                        <button id="reset-member-filters" class="reset-filters-btn">
+                            Reset Filters
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="member-stats-summary">
+                <div class="stat-box active">
+                    <div class="stat-icon"><i class="fas fa-user-check"></i></div>
+                    <div class="stat-content">
+                        <h3>Active Members</h3>
+                        <p class="stat-number"><?php echo number_format($overall_stats['active_members']); ?></p>
+                    </div>
+                </div>
+                <div class="stat-box inactive">
+                    <div class="stat-icon"><i class="fas fa-user-times"></i></div>
+                    <div class="stat-content">
+                        <h3>Inactive Members</h3>
+                        <p class="stat-number"><?php echo number_format($overall_stats['inactive_members']); ?></p>
+                    </div>
+                </div>
+                <div class="stat-box total">
+                    <div class="stat-icon"><i class="fas fa-users"></i></div>
+                    <div class="stat-content">
+                        <h3>Total Members</h3>
+                        <p class="stat-number"><?php echo number_format($overall_stats['total_members']); ?></p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="all-members-table-container">
+                <table id="allMembersTable" class="all-members-table">
+                    <thead>
+                        <tr>
+                            <th>Gym</th>
+                            <th>Member Name</th>
+                            <th>Membership Plan</th>
+                            <th>Amount</th>
+                            <th>Start Date</th>
+                            <th>End Date</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php if ($all_members_result && $all_members_result->num_rows > 0): ?>
+                            <?php while($member = $all_members_result->fetch_assoc()): ?>
+                                <tr class="member-row <?php echo strtolower($member['status']); ?>" 
+                                    data-gym-id="<?php echo $member['gym_id']; ?>"
+                                    data-start-date="<?php echo $member['start_date']; ?>"
+                                    data-end-date="<?php echo $member['end_date']; ?>"
+                                    data-status="<?php echo strtolower($member['status']); ?>">
+                                    <td><?php echo htmlspecialchars($member['gym_name']); ?></td>
+                                    <td><?php echo htmlspecialchars($member['member_name']); ?></td>
+                                    <td><?php echo htmlspecialchars($member['plan_name']); ?></td>
+                                    <td>₱<?php echo number_format($member['price'], 2); ?></td>
+                                    <td><?php echo date('M d, Y', strtotime($member['start_date'])); ?></td>
+                                    <td><?php echo date('M d, Y', strtotime($member['end_date'])); ?></td>
+                                    <td>
+                                        <span class="status-badge <?php echo strtolower($member['status']); ?>">
+                                            <?php echo $member['status']; ?>
+                                        </span>
+                                    </td>
+                                </tr>
+                            <?php endwhile; ?>
+                        <?php else: ?>
+                            <tr>
+                                <td colspan="7" class="no-data">No member data available.</td>
+                            </tr>
+                        <?php endif; ?>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <style>
+        /* All Members Section Styles */
+        .all-members-section {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 30px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .all-members-section h2 {
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .all-members-section h2 i {
+            color: #4CAF50;
+        }
+
+        .member-filter-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: background-color 0.3s;
+        }
+
+        .member-filter-btn:hover {
+            background-color: #3d8b40;
+        }
+
+        .member-filter-menu {
+            display: none;
+            position: absolute;
+            right: 0;
+            background-color: white;
+            width: 300px;
+            box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+            padding: 15px;
+            z-index: 10;
+            border-radius: 4px;
+        }
+
+        .filter-dropdown:hover .member-filter-menu {
+            display: block;
+        }
+
+        .filter-group {
+            margin-bottom: 15px;
+        }
+
+        .filter-group > label {
+            display: block;
+            font-weight: 500;
+            margin-bottom: 8px;
+            color: #333;
+        }
+
+        .checkbox-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .date-inputs {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .date-field {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .date-field input {
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+
+        #gym-filter {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+
+        .reset-filters-btn {
+            width: 100%;
+            padding: 8px 0;
+            background-color: #f0f0f0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            margin-top: 10px;
+        }
+
+        .reset-filters-btn:hover {
+            background-color: #e0e0e0;
+        }
+
+        .member-stats-summary {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .stat-box {
+            display: flex;
+            align-items: center;
+            padding: 20px;
+            border-radius: 8px;
+            background-color: #f8f9fa;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .stat-box.active {
+            border-left: 4px solid #4CAF50;
+        }
+
+        .stat-box.inactive {
+            border-left: 4px solid #F44336;
+        }
+
+        .stat-box.total {
+            border-left: 4px solid #2196F3;
+        }
+
+        .stat-icon {
+            font-size: 2rem;
+            margin-right: 20px;
+        }
+
+        .stat-box.active .stat-icon {
+            color: #4CAF50;
+        }
+
+        .stat-box.inactive .stat-icon {
+            color: #F44336;
+        }
+
+        .stat-box.total .stat-icon {
+            color: #2196F3;
+        }
+
+        .stat-content h3 {
+            margin: 0 0 5px 0;
+            font-size: 16px;
+            color: #666;
+        }
+
+        .stat-number {
+            font-size: 24px;
+            font-weight: bold;
+            margin: 0;
+            color: #333;
+        }
+
+        .all-members-table-container {
+            overflow-x: auto;
+            margin-top: 20px;
+            border: 1px solid #eee;
+            border-radius: 8px;
+        }
+
+        .all-members-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .all-members-table th,
+        .all-members-table td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+
+        .all-members-table th {
+            background-color: #f8f9fa;
+            font-weight: 600;
+            color: #555;
+        }
+
+        .all-members-table tr:hover {
+            background-color: #f8f9fa;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            font-weight: 500;
+        }
+
+        .status-badge.active {
+            background-color: rgba(76, 175, 80, 0.1);
+            color: #4CAF50;
+        }
+
+        .status-badge.inactive {
+            background-color: rgba(244, 67, 54, 0.1);
+            color: #F44336;
+        }
+
+        .no-data {
+            text-align: center;
+            color: #666;
+            padding: 20px;
+        }
+
+        /* Ensure this section is hidden when filters are applied */
+        .all-members-section[data-hidden="true"] {
+            display: none;
+        }
+
+        @media (max-width: 768px) {
+            .member-stats-summary {
+                grid-template-columns: 1fr;
+            }
+        }
+        </style>
     </div>
 
     <style>
@@ -637,6 +999,110 @@ $gyms_result = $db_connection->query($gyms_query);
                             currentY += 10;
                         });
                     }
+
+                    // Then add a member breakdown section to the PDF
+                    if (includeMembers.checked) {
+                        // Add a members section title
+                        doc.addPage();
+                        doc.setFont(pdfFonts.bold);
+                        doc.setFontSize(16);
+                        doc.text('Platform Members Overview', 20, 20);
+                        currentY = 30;
+                        
+                        doc.setFont(pdfFonts.normal);
+                        doc.setFontSize(12);
+                        
+                        // Add member statistics
+                        const activeCount = window.filteredMemberCounts ? window.filteredMemberCounts.active : parseInt(overall_stats['active_members']);
+                        const inactiveCount = window.filteredMemberCounts ? window.filteredMemberCounts.inactive : parseInt(overall_stats['inactive_members']);
+                        const totalCount = activeCount + inactiveCount;
+                        
+                        doc.text(`Active Members: ${activeCount.toLocaleString()}`, 20, currentY);
+                        currentY += 8;
+                        doc.text(`Inactive Members: ${inactiveCount.toLocaleString()}`, 20, currentY);
+                        currentY += 8;
+                        doc.text(`Total Members: ${totalCount.toLocaleString()}`, 20, currentY);
+                        currentY += 15;
+                        
+                        // Add gym-by-gym member breakdown if detailed info is available
+                        if (window.filteredMemberCounts && window.filteredMemberCounts.byGym) {
+                            doc.setFont(pdfFonts.bold);
+                            doc.setFontSize(14);
+                            doc.text('Membership Distribution by Gym', 20, currentY);
+                            currentY += 10;
+                            
+                            // Create a table header
+                            const columns = ["Gym Name", "Active", "Inactive", "Total"];
+                            const columnWidths = [100, 25, 25, 25];
+                            
+                            // Draw table header
+                            let xPos = 20;
+                            doc.setFillColor(240, 240, 240);
+                            doc.rect(xPos, currentY - 8, 175, 12, 'F');
+                            
+                            columns.forEach((column, index) => {
+                                doc.text(column, xPos, currentY);
+                                xPos += columnWidths[index];
+                            });
+                            
+                            currentY += 12;
+                            doc.setFont(pdfFonts.normal);
+                            
+                            // Draw each gym's member stats
+                            Object.keys(window.filteredMemberCounts.byGym).forEach((gymId, index) => {
+                                const gymData = window.filteredMemberCounts.byGym[gymId];
+                                
+                                // Check if we need a new page
+                                if (currentY > 270) {
+                                    doc.addPage();
+                                    currentY = 20;
+                                    
+                                    // Redraw header
+                                    doc.setFont(pdfFonts.bold);
+                                    doc.text('Membership Distribution by Gym (Continued)', 20, currentY);
+                                    currentY += 10;
+                                    
+                                    // Redraw table header
+                                    xPos = 20;
+                                    doc.setFillColor(240, 240, 240);
+                                    doc.rect(xPos, currentY - 8, 175, 12, 'F');
+                                    
+                                    columns.forEach((column, index) => {
+                                        doc.text(column, xPos, currentY);
+                                        xPos += columnWidths[index];
+                                    });
+                                    
+                                    currentY += 12;
+                                    doc.setFont(pdfFonts.normal);
+                                }
+                                
+                                // Add alternating row background
+                                if (index % 2 === 1) {
+                                    doc.setFillColor(247, 247, 247);
+                                    doc.rect(20, currentY - 8, 175, 12, 'F');
+                                }
+                                
+                                // Draw gym data
+                                xPos = 20;
+                                
+                                // Truncate long gym names
+                                const gymName = gymData.name.length > 45 ? gymData.name.substring(0, 42) + '...' : gymData.name;
+                                
+                                doc.text(gymName, xPos, currentY);
+                                xPos += columnWidths[0];
+                                
+                                doc.text(gymData.active.toString(), xPos, currentY);
+                                xPos += columnWidths[1];
+                                
+                                doc.text(gymData.inactive.toString(), xPos, currentY);
+                                xPos += columnWidths[2];
+                                
+                                doc.text(gymData.total.toString(), xPos, currentY);
+                                
+                                currentY += 12;
+                            });
+                        }
+                    }
                     
                     // Add a summary page at the end
                     doc.addPage();
@@ -650,13 +1116,18 @@ $gyms_result = $db_connection->query($gyms_query);
                     
                     // Create a paragraph summary based on collected stats
                     let summary = `This report presents a comprehensive overview of the FitHub platform performance. `;
-                    
+
                     if (summaryStats.totalGyms) {
                         summary += `The platform currently hosts ${summaryStats.totalGyms} registered gyms. `;
                     }
-                    
+
                     if (summaryStats.totalMembers) {
-                        summary += `There are ${summaryStats.totalMembers} active members across all gyms. `;
+                        // Include filtered members if available
+                        if (window.filteredMemberCounts) {
+                            summary += `There are ${window.filteredMemberCounts.active} active members and ${window.filteredMemberCounts.inactive} inactive members, for a total of ${window.filteredMemberCounts.total} members across all gyms. `;
+                        } else {
+                            summary += `There are ${summaryStats.totalMembers} active members across all gyms. `;
+                        }
                     }
                     
                     if (summaryStats.avgRating) {
@@ -705,6 +1176,228 @@ $gyms_result = $db_connection->query($gyms_query);
                     const filename = `FitHub_Analytics_${filterSuffix}_${date.replace(/\//g, '-')}.pdf`;
                     doc.save(filename);
                 }, 500);
+            }
+
+            // Member filtering logic for all gyms
+            const activeFilter = document.getElementById('filter-active-members');
+            const inactiveFilter = document.getElementById('filter-inactive-members');
+            const startDateFilter = document.getElementById('member-start-date');
+            const endDateFilter = document.getElementById('member-end-date');
+            const gymFilter = document.getElementById('gym-filter');
+            const resetFilterBtn = document.getElementById('reset-member-filters');
+            const membersTable = document.getElementById('allMembersTable');
+            
+            if (membersTable) {
+                // Set default dates (last 12 months to today)
+                const today = new Date();
+                const twelveMonthsAgo = new Date();
+                twelveMonthsAgo.setMonth(today.getMonth() - 12);
+                
+                // Format dates for input fields
+                startDateFilter.value = formatDateForInput(twelveMonthsAgo);
+                endDateFilter.value = formatDateForInput(today);
+                
+                // Apply initial filtering
+                applyMemberFilters();
+                
+                // Add event listeners
+                activeFilter.addEventListener('change', applyMemberFilters);
+                inactiveFilter.addEventListener('change', applyMemberFilters);
+                startDateFilter.addEventListener('change', applyMemberFilters);
+                endDateFilter.addEventListener('change', applyMemberFilters);
+                gymFilter.addEventListener('change', applyMemberFilters);
+                resetFilterBtn.addEventListener('click', resetMemberFilters);
+                
+                // Include member section in main filters
+                const includeMembers = document.getElementById('include-members');
+                if (includeMembers) {
+                    includeMembers.addEventListener('change', function() {
+                        const memberSection = document.querySelector('.all-members-section');
+                        if (memberSection) {
+                            memberSection.setAttribute('data-hidden', !this.checked);
+                        }
+                    });
+                }
+                
+                // Update PDF generation to include filtered members
+                const downloadPdfBtn = document.getElementById('downloadPdfBtn');
+                if (downloadPdfBtn) {
+                    const originalOnclick = downloadPdfBtn.onclick;
+                    downloadPdfBtn.onclick = function() {
+                        // Update filtered members data for PDF
+                        updateVisibleMembersForPDF();
+                        
+                        // Then call original function
+                        if (typeof originalOnclick === 'function') {
+                            originalOnclick.call(this);
+                        } else if (typeof generatePDF === 'function') {
+                            generatePDF();
+                        }
+                    };
+                }
+            }
+            
+            function formatDateForInput(date) {
+                const year = date.getFullYear();
+                const month = String(date.getMonth() + 1).padStart(2, '0');
+                const day = String(date.getDate()).padStart(2, '0');
+                return `${year}-${month}-${day}`;
+            }
+            
+            function resetMemberFilters() {
+                activeFilter.checked = true;
+                inactiveFilter.checked = true;
+                gymFilter.value = 'all';
+                
+                const today = new Date();
+                const twelveMonthsAgo = new Date();
+                twelveMonthsAgo.setMonth(today.getMonth() - 12);
+                
+                startDateFilter.value = formatDateForInput(twelveMonthsAgo);
+                endDateFilter.value = formatDateForInput(today);
+                
+                applyMemberFilters();
+            }
+            
+            function applyMemberFilters() {
+                const showActive = activeFilter.checked;
+                const showInactive = inactiveFilter.checked;
+                const gymId = gymFilter.value;
+                const startDate = startDateFilter.value ? new Date(startDateFilter.value) : null;
+                const endDate = endDateFilter.value ? new Date(endDateFilter.value) : null;
+                
+                const rows = membersTable.querySelectorAll('tbody tr.member-row');
+                let visibleCount = 0;
+                let activeCount = 0;
+                let inactiveCount = 0;
+                
+                rows.forEach(row => {
+                    const rowStatus = row.getAttribute('data-status');
+                    const rowGymId = row.getAttribute('data-gym-id');
+                    const rowStartDate = row.getAttribute('data-start-date') ? new Date(row.getAttribute('data-start-date')) : null;
+                    
+                    let visible = true;
+                    
+                    // Apply status filters
+                    if ((rowStatus === 'active' && !showActive) || 
+                        (rowStatus === 'inactive' && !showInactive)) {
+                        visible = false;
+                    }
+                    
+                    // Apply gym filter
+                    if (visible && gymId !== 'all' && rowGymId !== gymId) {
+                        visible = false;
+                    }
+                    
+                    // Apply date filters
+                    if (visible && startDate && rowStartDate && rowStartDate < startDate) {
+                        visible = false;
+                    }
+                    
+                    if (visible && endDate && rowStartDate && rowStartDate > endDate) {
+                        visible = false;
+                    }
+                    
+                    // Show/hide row
+                    row.style.display = visible ? '' : 'none';
+                    
+                    if (visible) {
+                        visibleCount++;
+                        if (rowStatus === 'active') {
+                            activeCount++;
+                        } else if (rowStatus === 'inactive') {
+                            inactiveCount++;
+                        }
+                    }
+                });
+                
+                // Update the visible count displays
+                updateMemberCountDisplay(activeCount, inactiveCount, visibleCount);
+                
+                // Show "No data" message if no visible rows
+                const noDataRow = membersTable.querySelector('.no-data-row');
+                if (visibleCount === 0 && !noDataRow) {
+                    const tbody = membersTable.querySelector('tbody');
+                    const tr = document.createElement('tr');
+                    tr.className = 'no-data-row';
+                    const td = document.createElement('td');
+                    td.className = 'no-data';
+                    td.setAttribute('colspan', '7');
+                    td.textContent = 'No members match the selected filters.';
+                    tr.appendChild(td);
+                    tbody.appendChild(tr);
+                } else if (visibleCount > 0 && noDataRow) {
+                    noDataRow.remove();
+                }
+            }
+            
+            function updateMemberCountDisplay(activeCount, inactiveCount, totalCount) {
+                // Update the stats boxes with filtered counts
+                const activeCountElem = document.querySelector('.stat-box.active .stat-number');
+                const inactiveCountElem = document.querySelector('.stat-box.inactive .stat-number');
+                const totalCountElem = document.querySelector('.stat-box.total .stat-number');
+                
+                if (activeCountElem) {
+                    activeCountElem.textContent = activeCount.toLocaleString();
+                }
+                
+                if (inactiveCountElem) {
+                    inactiveCountElem.textContent = inactiveCount.toLocaleString();
+                }
+                
+                if (totalCountElem) {
+                    totalCountElem.textContent = totalCount.toLocaleString();
+                }
+            }
+            
+            function updateVisibleMembersForPDF() {
+                // Mark visible members for PDF inclusion
+                const rows = membersTable.querySelectorAll('tbody tr.member-row');
+                
+                // Store the filtered counts for PDF generation
+                window.filteredMemberCounts = {
+                    active: 0,
+                    inactive: 0,
+                    total: 0,
+                    byGym: {}
+                };
+                
+                rows.forEach(row => {
+                    const isVisible = row.style.display !== 'none';
+                    row.setAttribute('data-visible-for-pdf', isVisible ? 'true' : 'false');
+                    
+                    if (isVisible) {
+                        const status = row.getAttribute('data-status');
+                        const gymId = row.getAttribute('data-gym-id');
+                        const gymName = row.cells[0].textContent;
+                        
+                        window.filteredMemberCounts.total++;
+                        
+                        if (status === 'active') {
+                            window.filteredMemberCounts.active++;
+                        } else if (status === 'inactive') {
+                            window.filteredMemberCounts.inactive++;
+                        }
+                        
+                        // Track by gym
+                        if (!window.filteredMemberCounts.byGym[gymId]) {
+                            window.filteredMemberCounts.byGym[gymId] = {
+                                name: gymName,
+                                active: 0,
+                                inactive: 0,
+                                total: 0
+                            };
+                        }
+                        
+                        window.filteredMemberCounts.byGym[gymId].total++;
+                        
+                        if (status === 'active') {
+                            window.filteredMemberCounts.byGym[gymId].active++;
+                        } else if (status === 'inactive') {
+                            window.filteredMemberCounts.byGym[gymId].inactive++;
+                        }
+                    }
+                });
             }
         });
         </script>

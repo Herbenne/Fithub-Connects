@@ -167,6 +167,336 @@ $rating_stats = $stmt->get_result();
                 <h3>Member Growth (Last 12 Months)</h3>
                 <canvas id="memberGrowthChart"></canvas>
             </div>
+
+            <section class="members-section" data-type="members">
+                <h2><i class="fas fa-users"></i> Gym Members</h2>
+                
+                <div class="filter-card">
+                    <div class="filter-header">
+                        <h3>Filter Members</h3>
+                    </div>
+                    <div class="filter-body">
+                        <div class="filter-row">
+                            <div class="filter-group">
+                                <label for="memberStatusFilter">Status:</label>
+                                <select id="memberStatusFilter" class="status-filter">
+                                    <option value="all">All Members</option>
+                                    <option value="active">Active Only</option>
+                                    <option value="inactive">Inactive Only</option>
+                                </select>
+                            </div>
+                            
+                            <div class="filter-group">
+                                <label for="startDateFilter">Start Date:</label>
+                                <input type="date" id="startDateFilter" class="date-input">
+                            </div>
+                            
+                            <div class="filter-group">
+                                <label for="endDateFilter">End Date:</label>
+                                <input type="date" id="endDateFilter" class="date-input">
+                            </div>
+                            
+                            <button id="resetFilters" class="reset-filter-btn">
+                                <i class="fas fa-sync-alt"></i> Reset Filters
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="member-stats-cards">
+                    <div class="member-stat-card active">
+                        <div class="stat-icon"><i class="fas fa-user-check"></i></div>
+                        <div class="stat-info">
+                            <span class="stat-label">Active Members</span>
+                            <span class="stat-value"><?php echo number_format($member_counts['active_count']); ?></span>
+                        </div>
+                    </div>
+                    
+                    <div class="member-stat-card inactive">
+                        <div class="stat-icon"><i class="fas fa-user-clock"></i></div>
+                        <div class="stat-info">
+                            <span class="stat-label">Inactive Members</span>
+                            <span class="stat-value"><?php echo number_format($member_counts['inactive_count']); ?></span>
+                        </div>
+                    </div>
+                    
+                    <div class="member-stat-card total">
+                        <div class="stat-icon"><i class="fas fa-users"></i></div>
+                        <div class="stat-info">
+                            <span class="stat-label">Total Members</span>
+                            <span class="stat-value"><?php echo number_format($member_counts['active_count'] + $member_counts['inactive_count']); ?></span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="table-container">
+                    <table id="membersTable" class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Member Name</th>
+                                <th>Membership Plan</th>
+                                <th>Price</th>
+                                <th>Start Date</th>
+                                <th>End Date</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php if ($members_list->num_rows > 0): ?>
+                                <?php while($member = $members_list->fetch_assoc()): ?>
+                                    <tr class="member-row <?php echo strtolower($member['status']); ?>" 
+                                        data-start-date="<?php echo $member['start_date']; ?>"
+                                        data-end-date="<?php echo $member['end_date']; ?>"
+                                        data-status="<?php echo strtolower($member['status']); ?>">
+                                        <td><?php echo htmlspecialchars($member['member_name']); ?></td>
+                                        <td><?php echo htmlspecialchars($member['plan_name']); ?></td>
+                                        <td>₱<?php echo number_format($member['price'], 2); ?></td>
+                                        <td><?php echo date('M d, Y', strtotime($member['start_date'])); ?></td>
+                                        <td><?php echo date('M d, Y', strtotime($member['end_date'])); ?></td>
+                                        <td>
+                                            <span class="status-badge <?php echo strtolower($member['status']); ?>">
+                                                <?php echo $member['status']; ?>
+                                            </span>
+                                        </td>
+                                    </tr>
+                                <?php endwhile; ?>
+                            <?php else: ?>
+                                <tr>
+                                    <td colspan="6" class="no-data">No members found for this gym.</td>
+                                </tr>
+                            <?php endif; ?>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <style>
+            /* Member Section Styles */
+            .members-section {
+                background: white;
+                border-radius: 10px;
+                padding: 20px;
+                margin-top: 30px;
+                box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            }
+
+            .members-section h2 {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                margin-bottom: 20px;
+                color: #333;
+            }
+
+            .members-section h2 i {
+                color: #4CAF50;
+            }
+
+            .filter-card {
+                background: #f8f9fa;
+                border-radius: 8px;
+                margin-bottom: 20px;
+                border: 1px solid #eee;
+            }
+
+            .filter-header {
+                padding: 15px 20px;
+                border-bottom: 1px solid #eee;
+            }
+
+            .filter-header h3 {
+                margin: 0;
+                font-size: 16px;
+                color: #555;
+            }
+
+            .filter-body {
+                padding: 15px 20px;
+            }
+
+            .filter-row {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 15px;
+                align-items: center;
+            }
+
+            .filter-group {
+                display: flex;
+                flex-direction: column;
+                gap: 5px;
+            }
+
+            .filter-group label {
+                font-size: 14px;
+                color: #666;
+            }
+
+            .status-filter, .date-input {
+                padding: 8px 12px;
+                border: 1px solid #ddd;
+                border-radius: 4px;
+                background-color: white;
+                min-width: 150px;
+            }
+
+            .reset-filter-btn {
+                margin-left: auto;
+                display: flex;
+                align-items: center;
+                gap: 5px;
+                padding: 8px 15px;
+                background-color: #f0f0f0;
+                border: 1px solid #ddd;
+                border-radius: 4px;
+                cursor: pointer;
+                color: #555;
+            }
+
+            .reset-filter-btn:hover {
+                background-color: #e0e0e0;
+            }
+
+            .member-stats-cards {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+                gap: 15px;
+                margin-bottom: 20px;
+            }
+
+            .member-stat-card {
+                display: flex;
+                align-items: center;
+                gap: 15px;
+                padding: 15px;
+                border-radius: 8px;
+                box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            }
+
+            .member-stat-card.active {
+                background-color: rgba(76, 175, 80, 0.1);
+                border-left: 4px solid #4CAF50;
+            }
+
+            .member-stat-card.inactive {
+                background-color: rgba(244, 67, 54, 0.1);
+                border-left: 4px solid #F44336;
+            }
+
+            .member-stat-card.total {
+                background-color: rgba(33, 150, 243, 0.1);
+                border-left: 4px solid #2196F3;
+            }
+
+            .stat-icon {
+                font-size: 24px;
+            }
+
+            .member-stat-card.active .stat-icon {
+                color: #4CAF50;
+            }
+
+            .member-stat-card.inactive .stat-icon {
+                color: #F44336;
+            }
+
+            .member-stat-card.total .stat-icon {
+                color: #2196F3;
+            }
+
+            .stat-info {
+                display: flex;
+                flex-direction: column;
+            }
+
+            .stat-label {
+                font-size: 14px;
+                color: #666;
+            }
+
+            .stat-value {
+                font-size: 22px;
+                font-weight: bold;
+                color: #333;
+            }
+
+            .table-container {
+                overflow-x: auto;
+                border-radius: 8px;
+                border: 1px solid #eee;
+            }
+
+            .data-table {
+                width: 100%;
+                border-collapse: collapse;
+            }
+
+            .data-table th,
+            .data-table td {
+                padding: 12px 15px;
+                text-align: left;
+                border-bottom: 1px solid #eee;
+            }
+
+            .data-table th {
+                background-color: #f8f9fa;
+                font-weight: 600;
+                color: #555;
+            }
+
+            .data-table tr:last-child td {
+                border-bottom: none;
+            }
+
+            .data-table tbody tr:hover {
+                background-color: #f8f9fa;
+            }
+
+            .status-badge {
+                display: inline-block;
+                padding: 5px 10px;
+                border-radius: 20px;
+                font-size: 0.85em;
+                font-weight: 500;
+            }
+
+            .status-badge.active {
+                background-color: rgba(76, 175, 80, 0.1);
+                color: #4CAF50;
+            }
+
+            .status-badge.inactive {
+                background-color: rgba(244, 67, 54, 0.1);
+                color: #F44336;
+            }
+
+            .no-data {
+                text-align: center;
+                color: #666;
+                padding: 20px;
+            }
+
+            /* Ensure this section is hidden when filters are applied */
+            .members-section[data-hidden="true"] {
+                display: none;
+            }
+
+            @media (max-width: 768px) {
+                .filter-row {
+                    flex-direction: column;
+                    align-items: stretch;
+                }
+                
+                .reset-filter-btn {
+                    margin-left: 0;
+                    margin-top: 10px;
+                }
+                
+                .member-stats-cards {
+                    grid-template-columns: 1fr;
+                }
+            }
+            </style>
             
             <div class="chart-container" data-type="revenue">
                 <h3>Monthly Revenue</h3>
@@ -802,7 +1132,12 @@ $rating_stats = $stmt->get_result();
                     let summary = `This report presents a comprehensive analysis of ${gymName} located at ${gymLocation}. `;
                     
                     if (summaryStats.members) {
-                        summary += `The gym currently has ${summaryStats.members} active members. `;
+                        // Include the member breakdown from filtered view if available
+                        if (window.filteredMemberCounts) {
+                            summary += `The gym currently has ${window.filteredMemberCounts.active} active members and ${window.filteredMemberCounts.inactive} inactive members, for a total of ${window.filteredMemberCounts.total} members. `;
+                        } else {
+                            summary += `The gym currently has ${summaryStats.members} total members. `;
+                        }
                     }
                     
                     if (summaryStats.rating) {
@@ -840,6 +1175,195 @@ $rating_stats = $stmt->get_result();
                     const splitText = doc.splitTextToSize(summary, 170);
                     doc.text(splitText, 20, summaryY);
                     
+                    // Add member list if included in filter
+                    if (includeMembers && includeMembers.checked) {
+                        // Calculate next Y position after summary
+                        summaryY += (splitText.length * 6) + 15;
+                        
+                        // Check if we need a new page
+                        if (summaryY > 220) {
+                            doc.addPage();
+                            summaryY = 40;
+                        }
+                        
+                        // Add member statistics header
+                        doc.setFont(pdfFonts.bold);
+                        doc.setFontSize(14);
+                        doc.text("Member Statistics & Distribution", 105, summaryY, { align: 'center' });
+                        summaryY += 15;
+                        
+                        // Create a table showing active vs inactive
+                        const tableWidth = 150;
+                        const colWidth = tableWidth / 3;
+                        let xPos = (210 - tableWidth) / 2; // center table
+                        
+                        // Draw header
+                        doc.setFillColor(240, 240, 240);
+                        doc.rect(xPos, summaryY - 8, tableWidth, 12, 'F');
+                        
+                        doc.setFont(pdfFonts.bold);
+                        doc.setFontSize(12);
+                        doc.text("Status", xPos + 10, summaryY);
+                        doc.text("Count", xPos + colWidth + 10, summaryY);
+                        doc.text("Percentage", xPos + (colWidth * 2) + 10, summaryY);
+                        
+                        summaryY += 12;
+                        
+                        // Active members row
+                        const activeCount = window.filteredMemberCounts ? window.filteredMemberCounts.active : parseInt(document.querySelector('.metric-card[data-type="members"] .number').textContent);
+                        const inactiveCount = window.filteredMemberCounts ? window.filteredMemberCounts.inactive : 0;
+                        const totalCount = activeCount + inactiveCount;
+                        const activePercent = totalCount > 0 ? ((activeCount / totalCount) * 100).toFixed(1) : 0;
+                        const inactivePercent = totalCount > 0 ? ((inactiveCount / totalCount) * 100).toFixed(1) : 0;
+                        
+                        doc.setFont(pdfFonts.normal);
+                        
+                        // Active row with light green background
+                        doc.setFillColor(240, 249, 240);
+                        doc.rect(xPos, summaryY - 8, tableWidth, 12, 'F');
+                        
+                        doc.setTextColor(76, 175, 80);
+                        doc.text("Active", xPos + 10, summaryY);
+                        doc.text(activeCount.toString(), xPos + colWidth + 10, summaryY);
+                        doc.text(`${activePercent}%`, xPos + (colWidth * 2) + 10, summaryY);
+                        
+                        summaryY += 12;
+                        
+                        // Inactive row with light red background
+                        doc.setFillColor(249, 240, 240);
+                        doc.rect(xPos, summaryY - 8, tableWidth, 12, 'F');
+                        
+                        doc.setTextColor(244, 67, 54);
+                        doc.text("Inactive", xPos + 10, summaryY);
+                        doc.text(inactiveCount.toString(), xPos + colWidth + 10, summaryY);
+                        doc.text(`${inactivePercent}%`, xPos + (colWidth * 2) + 10, summaryY);
+                        
+                        summaryY += 12;
+                        
+                        // Total row
+                        doc.setFillColor(240, 240, 240);
+                        doc.rect(xPos, summaryY - 8, tableWidth, 12, 'F');
+                        
+                        doc.setTextColor(0);
+                        doc.setFont(pdfFonts.bold);
+                        doc.text("Total", xPos + 10, summaryY);
+                        doc.text(totalCount.toString(), xPos + colWidth + 10, summaryY);
+                        doc.text("100%", xPos + (colWidth * 2) + 10, summaryY);
+                        
+                        doc.setTextColor(0); // Reset to black
+                        summaryY += 25;
+                        
+                        // Add member list table if we have visible members
+                        const visibleMemberRows = document.querySelectorAll('#membersTable tbody tr.member-row[data-visible-for-pdf="true"]');
+                        if (visibleMemberRows.length > 0) {
+                            // Check if we need a new page for the table
+                            if (summaryY > 180) {
+                                doc.addPage();
+                                summaryY = 40;
+                            }
+                            
+                            // Add table header
+                            doc.setFont(pdfFonts.bold);
+                            doc.text("Member List (Filtered View)", 105, summaryY, { align: 'center' });
+                            summaryY += 10;
+                            
+                            // Define table columns and widths
+                            const columns = ["Name", "Plan", "Price", "Start Date", "End Date", "Status"];
+                            const columnWidths = [40, 35, 25, 30, 30, 25];
+                            let tableX = 15; // Start position
+                            
+                            // Draw table header
+                            doc.setFillColor(240, 240, 240);
+                            doc.rect(tableX, summaryY - 8, 185, 12, 'F');
+                            
+                            let currentX = tableX + 5;
+                            columns.forEach((column, index) => {
+                                doc.text(column, currentX, summaryY);
+                                currentX += columnWidths[index];
+                            });
+                            
+                            summaryY += 12;
+                            doc.setFont(pdfFonts.normal);
+                            
+                            // Draw table rows (max 20 rows per page)
+                            let rowCount = 0;
+                            const maxRowsPerPage = 20;
+                            
+                            visibleMemberRows.forEach((row) => {
+                                // Check if we need a new page
+                                if (rowCount >= maxRowsPerPage) {
+                                    doc.addPage();
+                                    summaryY = 20;
+                                    
+                                    // Redraw header on new page
+                                    doc.setFont(pdfFonts.bold);
+                                    doc.text("Member List (Continued)", 105, summaryY, { align: 'center' });
+                                    summaryY += 10;
+                                    
+                                    doc.setFillColor(240, 240, 240);
+                                    doc.rect(tableX, summaryY - 8, 185, 12, 'F');
+                                    
+                                    currentX = tableX + 5;
+                                    columns.forEach((column, index) => {
+                                        doc.text(column, currentX, summaryY);
+                                        currentX += columnWidths[index];
+                                    });
+                                    
+                                    summaryY += 12;
+                                    doc.setFont(pdfFonts.normal);
+                                    rowCount = 0;
+                                }
+                                
+                                // Add alternating row background
+                                if (rowCount % 2 === 1) {
+                                    doc.setFillColor(247, 247, 247);
+                                    doc.rect(tableX, summaryY - 8, 185, 12, 'F');
+                                }
+                                
+                                // Extract and format cell values
+                                const cells = row.cells;
+                                const memberName = cells[0].textContent.trim();
+                                const planName = cells[1].textContent.trim();
+                                const price = cells[2].textContent.trim();
+                                const startDate = cells[3].textContent.trim();
+                                const endDate = cells[4].textContent.trim();
+                                const status = cells[5].textContent.trim();
+                                
+                                // Draw row
+                                currentX = tableX + 5;
+                                
+                                // Truncate long text
+                                doc.text(memberName.length > 20 ? memberName.substring(0, 17) + '...' : memberName, currentX, summaryY);
+                                currentX += columnWidths[0];
+                                
+                                doc.text(planName.length > 15 ? planName.substring(0, 12) + '...' : planName, currentX, summaryY);
+                                currentX += columnWidths[1];
+                                
+                                doc.text(price, currentX, summaryY);
+                                currentX += columnWidths[2];
+                                
+                                doc.text(startDate, currentX, summaryY);
+                                currentX += columnWidths[3];
+                                
+                                doc.text(endDate, currentX, summaryY);
+                                currentX += columnWidths[4];
+                                
+                                // Set color based on status
+                                if (status.toLowerCase().includes('active')) {
+                                    doc.setTextColor(76, 175, 80); // Green for active
+                                } else {
+                                    doc.setTextColor(244, 67, 54); // Red for inactive
+                                }
+                                
+                                doc.text(status, currentX, summaryY);
+                                doc.setTextColor(0); // Reset to black
+                                
+                                summaryY += 12;
+                                rowCount++;
+                            });
+                        }
+                    }
+                    
                     // Finalize PDF - add footer and save
                     const pageCount = doc.getNumberOfPages();
                     for (let i = 1; i <= pageCount; i++) {
@@ -858,6 +1382,191 @@ $rating_stats = $stmt->get_result();
                     doc.save(filename);
                 }
             }, 500);
+        }
+
+        // Member filtering logic
+        const statusFilter = document.getElementById('memberStatusFilter');
+        const startDateFilter = document.getElementById('startDateFilter');
+        const endDateFilter = document.getElementById('endDateFilter');
+        const resetFiltersBtn = document.getElementById('resetFilters');
+        const membersTable = document.getElementById('membersTable');
+        
+        if (statusFilter && membersTable) {
+            // Set default dates (last 12 months to today)
+            const today = new Date();
+            const twelveMonthsAgo = new Date();
+            twelveMonthsAgo.setMonth(today.getMonth() - 12);
+            
+            // Format dates for input fields
+            startDateFilter.value = formatDateForInput(twelveMonthsAgo);
+            endDateFilter.value = formatDateForInput(today);
+            
+            // Apply initial filtering
+            applyFilters();
+            
+            // Add event listeners
+            statusFilter.addEventListener('change', applyFilters);
+            startDateFilter.addEventListener('change', applyFilters);
+            endDateFilter.addEventListener('change', applyFilters);
+            resetFiltersBtn.addEventListener('click', resetFilters);
+            
+            // Include member filtering in the PDF export
+            const downloadPdfBtn = document.getElementById('downloadPdfBtn');
+            if (downloadPdfBtn) {
+                const originalOnclick = downloadPdfBtn.onclick;
+                downloadPdfBtn.onclick = function() {
+                    // Make sure visible members are reflected in PDF
+                    updateVisibleMembersForPDF();
+                    
+                    // Then call the original function if it exists
+                    if (typeof originalOnclick === 'function') {
+                        originalOnclick.call(this);
+                    } else if (typeof generatePDF === 'function') {
+                        generatePDF();
+                    }
+                };
+            }
+            
+            // Update member section visibility when other filters change
+            const includeMembers = document.getElementById('include-members');
+            if (includeMembers) {
+                includeMembers.addEventListener('change', function() {
+                    const memberSection = document.querySelector('.members-section');
+                    if (memberSection) {
+                        memberSection.setAttribute('data-hidden', !this.checked);
+                    }
+                });
+            }
+        }
+        
+        function formatDateForInput(date) {
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
+        
+        function resetFilters() {
+            statusFilter.value = 'all';
+            const today = new Date();
+            const twelveMonthsAgo = new Date();
+            twelveMonthsAgo.setMonth(today.getMonth() - 12);
+            
+            startDateFilter.value = formatDateForInput(twelveMonthsAgo);
+            endDateFilter.value = formatDateForInput(today);
+            
+            applyFilters();
+        }
+        
+        function applyFilters() {
+            const statusValue = statusFilter.value;
+            const startDate = startDateFilter.value ? new Date(startDateFilter.value) : null;
+            const endDate = endDateFilter.value ? new Date(endDateFilter.value) : null;
+            
+            const rows = membersTable.querySelectorAll('tbody tr.member-row');
+            let visibleCount = 0;
+            let activeCount = 0;
+            let inactiveCount = 0;
+            
+            rows.forEach(row => {
+                const rowStatus = row.getAttribute('data-status');
+                const rowStartDate = row.getAttribute('data-start-date') ? new Date(row.getAttribute('data-start-date')) : null;
+                
+                let visible = true;
+                
+                // Apply status filter
+                if (statusValue !== 'all' && rowStatus !== statusValue) {
+                    visible = false;
+                }
+                
+                // Apply date filters
+                if (visible && startDate && rowStartDate && rowStartDate < startDate) {
+                    visible = false;
+                }
+                
+                if (visible && endDate && rowStartDate && rowStartDate > endDate) {
+                    visible = false;
+                }
+                
+                // Show/hide row
+                row.style.display = visible ? '' : 'none';
+                
+                if (visible) {
+                    visibleCount++;
+                    if (rowStatus === 'active') {
+                        activeCount++;
+                    } else if (rowStatus === 'inactive') {
+                        inactiveCount++;
+                    }
+                }
+            });
+            
+            // Update the visible count displays
+            updateFilteredCountDisplay(activeCount, inactiveCount, visibleCount);
+            
+            // Show "No data" message if no visible rows
+            const noDataRow = membersTable.querySelector('.no-data-row');
+            if (visibleCount === 0 && !noDataRow) {
+                const tbody = membersTable.querySelector('tbody');
+                const tr = document.createElement('tr');
+                tr.className = 'no-data-row';
+                const td = document.createElement('td');
+                td.className = 'no-data';
+                td.setAttribute('colspan', '6');
+                td.textContent = 'No members match the selected filters.';
+                tr.appendChild(td);
+                tbody.appendChild(tr);
+            } else if (visibleCount > 0 && noDataRow) {
+                noDataRow.remove();
+            }
+        }
+        
+        function updateFilteredCountDisplay(activeCount, inactiveCount, totalCount) {
+            // This function updates the count displays based on filtered results
+            const activeCountDisplay = document.querySelector('.member-stat-card.active .stat-value');
+            const inactiveCountDisplay = document.querySelector('.member-stat-card.inactive .stat-value');
+            const totalCountDisplay = document.querySelector('.member-stat-card.total .stat-value');
+            
+            if (activeCountDisplay) {
+                activeCountDisplay.textContent = activeCount.toLocaleString();
+            }
+            
+            if (inactiveCountDisplay) {
+                inactiveCountDisplay.textContent = inactiveCount.toLocaleString();
+            }
+            
+            if (totalCountDisplay) {
+                totalCountDisplay.textContent = totalCount.toLocaleString();
+            }
+        }
+        
+        function updateVisibleMembersForPDF() {
+            // This function sets a data attribute to track which members are currently visible
+            // The PDF generation code can then use this to include only filtered members
+            const rows = membersTable.querySelectorAll('tbody tr.member-row');
+            
+            // Store the filtered counts for PDF generation
+            window.filteredMemberCounts = {
+                active: 0,
+                inactive: 0,
+                total: 0
+            };
+            
+            rows.forEach(row => {
+                const isVisible = row.style.display !== 'none';
+                row.setAttribute('data-visible-for-pdf', isVisible ? 'true' : 'false');
+                
+                if (isVisible) {
+                    window.filteredMemberCounts.total++;
+                    
+                    const status = row.getAttribute('data-status');
+                    if (status === 'active') {
+                        window.filteredMemberCounts.active++;
+                    } else if (status === 'inactive') {
+                        window.filteredMemberCounts.inactive++;
+                    }
+                }
+            });
         }
     });
     </script>
