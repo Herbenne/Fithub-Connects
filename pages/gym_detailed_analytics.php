@@ -37,6 +37,42 @@ if (!$gym) {
     exit();
 }
 
+// Get member counts by status
+$member_count_query = "SELECT 
+    SUM(CASE WHEN m.end_date >= CURDATE() THEN 1 ELSE 0 END) as active_count,
+    SUM(CASE WHEN m.end_date < CURDATE() THEN 1 ELSE 0 END) as inactive_count
+    FROM gym_members m
+    WHERE m.gym_id = ?";
+    
+$stmt = $db_connection->prepare($member_count_query);
+$stmt->bind_param("i", $gym_id);
+$stmt->execute();
+$member_counts = $stmt->get_result()->fetch_assoc();
+
+// Get detailed member list
+$members_list_query = "SELECT 
+    u.id as user_id, 
+    CONCAT(u.first_name, ' ', u.last_name) as member_name,
+    u.reg_date,
+    m.start_date,
+    m.end_date,
+    p.plan_name,
+    p.price,
+    CASE 
+        WHEN m.end_date >= CURDATE() THEN 'Active' 
+        ELSE 'Inactive' 
+    END as status
+    FROM gym_members m
+    JOIN users u ON m.user_id = u.id
+    JOIN membership_plans p ON m.plan_id = p.plan_id
+    WHERE m.gym_id = ?
+    ORDER BY status ASC, m.start_date DESC";
+
+$stmt = $db_connection->prepare($members_list_query);
+$stmt->bind_param("i", $gym_id);
+$stmt->execute();
+$members_list = $stmt->get_result();
+
 // Get monthly data for the gym
 $monthly_query = "SELECT 
     DATE_FORMAT(m.start_date, '%Y-%m') as month,
@@ -171,39 +207,7 @@ $rating_stats = $stmt->get_result();
             <section class="members-section" data-type="members">
                 <h2><i class="fas fa-users"></i> Gym Members</h2>
                 
-                <div class="filter-card">
-                    <div class="filter-header">
-                        <h3>Filter Members</h3>
-                    </div>
-                    <div class="filter-body">
-                        <div class="filter-row">
-                            <div class="filter-group">
-                                <label for="memberStatusFilter">Status:</label>
-                                <select id="memberStatusFilter" class="status-filter">
-                                    <option value="all">All Members</option>
-                                    <option value="active">Active Only</option>
-                                    <option value="inactive">Inactive Only</option>
-                                </select>
-                            </div>
-                            
-                            <div class="filter-group">
-                                <label for="startDateFilter">Start Date:</label>
-                                <input type="date" id="startDateFilter" class="date-input">
-                            </div>
-                            
-                            <div class="filter-group">
-                                <label for="endDateFilter">End Date:</label>
-                                <input type="date" id="endDateFilter" class="date-input">
-                            </div>
-                            
-                            <button id="resetFilters" class="reset-filter-btn">
-                                <i class="fas fa-sync-alt"></i> Reset Filters
-                            </button>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="member-stats-cards">
+                <div class="members-stats-cards">
                     <div class="member-stat-card active">
                         <div class="stat-icon"><i class="fas fa-user-check"></i></div>
                         <div class="stat-info">
@@ -229,13 +233,45 @@ $rating_stats = $stmt->get_result();
                     </div>
                 </div>
                 
+                <div class="filter-card">
+                    <div class="filter-header">
+                        <h3>Filter Members</h3>
+                    </div>
+                    <div class="filter-body">
+                        <div class="filter-row">
+                            <div class="filter-group">
+                                <label for="memberStatusFilter">Status:</label>
+                                <select id="memberStatusFilter" class="status-filter">
+                                    <option value="all">All Members</option>
+                                    <option value="active">Active Only</option>
+                                    <option value="inactive">Inactive Only</option>
+                                </select>
+                            </div>
+                            
+                            <div class="filter-group">
+                                <label for="startDateFilter">From:</label>
+                                <input type="date" id="startDateFilter" class="date-input">
+                            </div>
+                            
+                            <div class="filter-group">
+                                <label for="endDateFilter">To:</label>
+                                <input type="date" id="endDateFilter" class="date-input">
+                            </div>
+                            
+                            <button id="resetFilters" class="reset-filter-btn">
+                                <i class="fas fa-sync-alt"></i> Reset Filters
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
                 <div class="table-container">
                     <table id="membersTable" class="data-table">
                         <thead>
                             <tr>
-                                <th>Member Name</th>
-                                <th>Membership Plan</th>
-                                <th>Price</th>
+                                <th>Full Name</th>
+                                <th>Registration Date</th>
+                                <th>Plan</th>
                                 <th>Start Date</th>
                                 <th>End Date</th>
                                 <th>Status</th>
@@ -249,8 +285,8 @@ $rating_stats = $stmt->get_result();
                                         data-end-date="<?php echo $member['end_date']; ?>"
                                         data-status="<?php echo strtolower($member['status']); ?>">
                                         <td><?php echo htmlspecialchars($member['member_name']); ?></td>
+                                        <td><?php echo date('M d, Y', strtotime($member['start_date'])); ?></td>
                                         <td><?php echo htmlspecialchars($member['plan_name']); ?></td>
-                                        <td>₱<?php echo number_format($member['price'], 2); ?></td>
                                         <td><?php echo date('M d, Y', strtotime($member['start_date'])); ?></td>
                                         <td><?php echo date('M d, Y', strtotime($member['end_date'])); ?></td>
                                         <td>
@@ -270,8 +306,8 @@ $rating_stats = $stmt->get_result();
                 </div>
             </section>
 
+            <!-- Updated CSS for Members Section -->
             <style>
-            /* Member Section Styles */
             .members-section {
                 background: white;
                 border-radius: 10px;
@@ -286,110 +322,52 @@ $rating_stats = $stmt->get_result();
                 gap: 10px;
                 margin-bottom: 20px;
                 color: #333;
+                font-size: 1.8rem;
             }
 
             .members-section h2 i {
                 color: #4CAF50;
             }
 
-            .filter-card {
-                background: #f8f9fa;
-                border-radius: 8px;
-                margin-bottom: 20px;
-                border: 1px solid #eee;
-            }
-
-            .filter-header {
-                padding: 15px 20px;
-                border-bottom: 1px solid #eee;
-            }
-
-            .filter-header h3 {
-                margin: 0;
-                font-size: 16px;
-                color: #555;
-            }
-
-            .filter-body {
-                padding: 15px 20px;
-            }
-
-            .filter-row {
-                display: flex;
-                flex-wrap: wrap;
-                gap: 15px;
-                align-items: center;
-            }
-
-            .filter-group {
-                display: flex;
-                flex-direction: column;
-                gap: 5px;
-            }
-
-            .filter-group label {
-                font-size: 14px;
-                color: #666;
-            }
-
-            .status-filter, .date-input {
-                padding: 8px 12px;
-                border: 1px solid #ddd;
-                border-radius: 4px;
-                background-color: white;
-                min-width: 150px;
-            }
-
-            .reset-filter-btn {
-                margin-left: auto;
-                display: flex;
-                align-items: center;
-                gap: 5px;
-                padding: 8px 15px;
-                background-color: #f0f0f0;
-                border: 1px solid #ddd;
-                border-radius: 4px;
-                cursor: pointer;
-                color: #555;
-            }
-
-            .reset-filter-btn:hover {
-                background-color: #e0e0e0;
-            }
-
-            .member-stats-cards {
+            .members-stats-cards {
                 display: grid;
-                grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-                gap: 15px;
+                grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+                gap: 20px;
                 margin-bottom: 20px;
             }
 
             .member-stat-card {
                 display: flex;
                 align-items: center;
-                gap: 15px;
-                padding: 15px;
-                border-radius: 8px;
-                box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+                padding: 25px;
+                border-radius: 10px;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+                transition: transform 0.3s ease, box-shadow 0.3s ease;
+            }
+
+            .member-stat-card:hover {
+                transform: translateY(-5px);
+                box-shadow: 0 5px 15px rgba(0,0,0,0.1);
             }
 
             .member-stat-card.active {
                 background-color: rgba(76, 175, 80, 0.1);
-                border-left: 4px solid #4CAF50;
+                border-left: 5px solid #4CAF50;
             }
 
             .member-stat-card.inactive {
                 background-color: rgba(244, 67, 54, 0.1);
-                border-left: 4px solid #F44336;
+                border-left: 5px solid #F44336;
             }
 
             .member-stat-card.total {
                 background-color: rgba(33, 150, 243, 0.1);
-                border-left: 4px solid #2196F3;
+                border-left: 5px solid #2196F3;
             }
 
             .stat-icon {
-                font-size: 24px;
+                font-size: 28px;
+                margin-right: 20px;
             }
 
             .member-stat-card.active .stat-icon {
@@ -410,20 +388,97 @@ $rating_stats = $stmt->get_result();
             }
 
             .stat-label {
-                font-size: 14px;
+                font-size: 16px;
                 color: #666;
             }
 
             .stat-value {
-                font-size: 22px;
+                font-size: 28px;
                 font-weight: bold;
                 color: #333;
             }
 
-            .table-container {
-                overflow-x: auto;
-                border-radius: 8px;
+            .filter-card {
+                background: #f8f9fa;
+                border-radius: 10px;
+                margin-bottom: 20px;
                 border: 1px solid #eee;
+                overflow: hidden;
+            }
+
+            .filter-header {
+                padding: 15px 20px;
+                background: #f1f3f5;
+                border-bottom: 1px solid #eee;
+            }
+
+            .filter-header h3 {
+                margin: 0;
+                font-size: 16px;
+                color: #555;
+            }
+
+            .filter-body {
+                padding: 20px;
+            }
+
+            .filter-row {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 20px;
+                align-items: flex-end;
+            }
+
+            .filter-group {
+                display: flex;
+                flex-direction: column;
+                gap: 8px;
+                min-width: 180px;
+            }
+
+            .filter-group label {
+                font-size: 14px;
+                color: #666;
+                font-weight: 500;
+            }
+
+            .status-filter, .date-input {
+                padding: 10px 15px;
+                border: 1px solid #ddd;
+                border-radius: 6px;
+                background-color: white;
+                font-size: 14px;
+            }
+
+            .status-filter:focus, .date-input:focus {
+                border-color: #4CAF50;
+                outline: none;
+                box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.1);
+            }
+
+            .reset-filter-btn {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                padding: 10px 20px;
+                background-color: #f0f0f0;
+                border: 1px solid #ddd;
+                border-radius: 6px;
+                cursor: pointer;
+                font-size: 14px;
+                color: #555;
+                transition: all 0.3s ease;
+            }
+
+            .reset-filter-btn:hover {
+                background-color: #e0e0e0;
+            }
+
+            .table-container {
+                border: 1px solid #eee;
+                border-radius: 10px;
+                overflow: hidden;
+                box-shadow: 0 2px 4px rgba(0,0,0,0.05);
             }
 
             .data-table {
@@ -433,7 +488,7 @@ $rating_stats = $stmt->get_result();
 
             .data-table th,
             .data-table td {
-                padding: 12px 15px;
+                padding: 15px;
                 text-align: left;
                 border-bottom: 1px solid #eee;
             }
@@ -442,19 +497,21 @@ $rating_stats = $stmt->get_result();
                 background-color: #f8f9fa;
                 font-weight: 600;
                 color: #555;
-            }
-
-            .data-table tr:last-child td {
-                border-bottom: none;
+                position: sticky;
+                top: 0;
             }
 
             .data-table tbody tr:hover {
                 background-color: #f8f9fa;
             }
 
+            .data-table tr:last-child td {
+                border-bottom: none;
+            }
+
             .status-badge {
                 display: inline-block;
-                padding: 5px 10px;
+                padding: 6px 12px;
                 border-radius: 20px;
                 font-size: 0.85em;
                 font-weight: 500;
@@ -463,17 +520,20 @@ $rating_stats = $stmt->get_result();
             .status-badge.active {
                 background-color: rgba(76, 175, 80, 0.1);
                 color: #4CAF50;
+                border: 1px solid rgba(76, 175, 80, 0.2);
             }
 
             .status-badge.inactive {
                 background-color: rgba(244, 67, 54, 0.1);
                 color: #F44336;
+                border: 1px solid rgba(244, 67, 54, 0.2);
             }
 
             .no-data {
                 text-align: center;
                 color: #666;
-                padding: 20px;
+                padding: 30px;
+                font-style: italic;
             }
 
             /* Ensure this section is hidden when filters are applied */
@@ -487,12 +547,17 @@ $rating_stats = $stmt->get_result();
                     align-items: stretch;
                 }
                 
+                .filter-group {
+                    width: 100%;
+                }
+                
                 .reset-filter-btn {
-                    margin-left: 0;
+                    width: 100%;
+                    justify-content: center;
                     margin-top: 10px;
                 }
                 
-                .member-stats-cards {
+                .members-stats-cards {
                     grid-template-columns: 1fr;
                 }
             }
@@ -1383,8 +1448,7 @@ $rating_stats = $stmt->get_result();
                 }
             }, 500);
         }
-
-        // Member filtering logic
+        // Members filtering
         const statusFilter = document.getElementById('memberStatusFilter');
         const startDateFilter = document.getElementById('startDateFilter');
         const endDateFilter = document.getElementById('endDateFilter');
@@ -1409,23 +1473,6 @@ $rating_stats = $stmt->get_result();
             startDateFilter.addEventListener('change', applyFilters);
             endDateFilter.addEventListener('change', applyFilters);
             resetFiltersBtn.addEventListener('click', resetFilters);
-            
-            // Include member filtering in the PDF export
-            const downloadPdfBtn = document.getElementById('downloadPdfBtn');
-            if (downloadPdfBtn) {
-                const originalOnclick = downloadPdfBtn.onclick;
-                downloadPdfBtn.onclick = function() {
-                    // Make sure visible members are reflected in PDF
-                    updateVisibleMembersForPDF();
-                    
-                    // Then call the original function if it exists
-                    if (typeof originalOnclick === 'function') {
-                        originalOnclick.call(this);
-                    } else if (typeof generatePDF === 'function') {
-                        generatePDF();
-                    }
-                };
-            }
             
             // Update member section visibility when other filters change
             const includeMembers = document.getElementById('include-members');
@@ -1470,7 +1517,7 @@ $rating_stats = $stmt->get_result();
             
             rows.forEach(row => {
                 const rowStatus = row.getAttribute('data-status');
-                const rowStartDate = row.getAttribute('data-start-date') ? new Date(row.getAttribute('data-start-date')) : null;
+                const regDate = row.getAttribute('data-reg-date') ? new Date(row.getAttribute('data-reg-date')) : null;
                 
                 let visible = true;
                 
@@ -1480,11 +1527,11 @@ $rating_stats = $stmt->get_result();
                 }
                 
                 // Apply date filters
-                if (visible && startDate && rowStartDate && rowStartDate < startDate) {
+                if (visible && startDate && regDate && regDate < startDate) {
                     visible = false;
                 }
                 
-                if (visible && endDate && rowStartDate && rowStartDate > endDate) {
+                if (visible && endDate && regDate && regDate > endDate) {
                     visible = false;
                 }
                 
@@ -1502,7 +1549,13 @@ $rating_stats = $stmt->get_result();
             });
             
             // Update the visible count displays
-            updateFilteredCountDisplay(activeCount, inactiveCount, visibleCount);
+            const activeCountElem = document.querySelector('.member-stat-card.active .stat-value');
+            const inactiveCountElem = document.querySelector('.member-stat-card.inactive .stat-value');
+            const totalCountElem = document.querySelector('.member-stat-card.total .stat-value');
+            
+            if (activeCountElem) activeCountElem.textContent = activeCount;
+            if (inactiveCountElem) inactiveCountElem.textContent = inactiveCount;
+            if (totalCountElem) totalCountElem.textContent = visibleCount;
             
             // Show "No data" message if no visible rows
             const noDataRow = membersTable.querySelector('.no-data-row');
@@ -1519,54 +1572,13 @@ $rating_stats = $stmt->get_result();
             } else if (visibleCount > 0 && noDataRow) {
                 noDataRow.remove();
             }
-        }
-        
-        function updateFilteredCountDisplay(activeCount, inactiveCount, totalCount) {
-            // This function updates the count displays based on filtered results
-            const activeCountDisplay = document.querySelector('.member-stat-card.active .stat-value');
-            const inactiveCountDisplay = document.querySelector('.member-stat-card.inactive .stat-value');
-            const totalCountDisplay = document.querySelector('.member-stat-card.total .stat-value');
-            
-            if (activeCountDisplay) {
-                activeCountDisplay.textContent = activeCount.toLocaleString();
-            }
-            
-            if (inactiveCountDisplay) {
-                inactiveCountDisplay.textContent = inactiveCount.toLocaleString();
-            }
-            
-            if (totalCountDisplay) {
-                totalCountDisplay.textContent = totalCount.toLocaleString();
-            }
-        }
-        
-        function updateVisibleMembersForPDF() {
-            // This function sets a data attribute to track which members are currently visible
-            // The PDF generation code can then use this to include only filtered members
-            const rows = membersTable.querySelectorAll('tbody tr.member-row');
             
             // Store the filtered counts for PDF generation
             window.filteredMemberCounts = {
-                active: 0,
-                inactive: 0,
-                total: 0
+                active: activeCount,
+                inactive: inactiveCount,
+                total: visibleCount
             };
-            
-            rows.forEach(row => {
-                const isVisible = row.style.display !== 'none';
-                row.setAttribute('data-visible-for-pdf', isVisible ? 'true' : 'false');
-                
-                if (isVisible) {
-                    window.filteredMemberCounts.total++;
-                    
-                    const status = row.getAttribute('data-status');
-                    if (status === 'active') {
-                        window.filteredMemberCounts.active++;
-                    } else if (status === 'inactive') {
-                        window.filteredMemberCounts.inactive++;
-                    }
-                }
-            });
         }
     });
     </script>

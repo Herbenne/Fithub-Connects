@@ -64,10 +64,22 @@ $stmt->bind_param("i", $gym_id);
 $stmt->execute();
 $rating_stats = $stmt->get_result();
 
-// For gym_analytics.php (Admin View) - Add this after existing queries
-$member_list_query = "SELECT 
+//Get members
+$member_count_query = "SELECT 
+    SUM(CASE WHEN m.end_date >= CURDATE() THEN 1 ELSE 0 END) as active_count,
+    SUM(CASE WHEN m.end_date < CURDATE() THEN 1 ELSE 0 END) as inactive_count
+    FROM gym_members m
+    WHERE m.gym_id = ?";
+    
+$stmt = $db_connection->prepare($member_count_query);
+$stmt->bind_param("i", $gym_id);
+$stmt->execute();
+$member_counts = $stmt->get_result()->fetch_assoc();
+
+$members_list_query = "SELECT 
     u.id as user_id, 
     CONCAT(u.first_name, ' ', u.last_name) as member_name,
+    u.reg_date,
     m.start_date,
     m.end_date,
     p.plan_name,
@@ -81,97 +93,11 @@ $member_list_query = "SELECT
     WHERE m.gym_id = ?
     ORDER BY status ASC, m.start_date DESC";
 
-$stmt = $db_connection->prepare($member_list_query);
+$stmt = $db_connection->prepare($members_list_query);
 $stmt->bind_param("i", $gym_id);
 $stmt->execute();
 $members_list = $stmt->get_result();
 
-// Also add a count query for active/inactive members
-$member_count_query = "SELECT 
-    SUM(CASE WHEN m.end_date >= CURDATE() THEN 1 ELSE 0 END) as active_count,
-    SUM(CASE WHEN m.end_date < CURDATE() THEN 1 ELSE 0 END) as inactive_count
-    FROM gym_members m
-    WHERE m.gym_id = ?";
-    
-$stmt = $db_connection->prepare($member_count_query);
-$stmt->bind_param("i", $gym_id);
-$stmt->execute();
-$member_counts = $stmt->get_result()->fetch_assoc();
-
-// For gym_detailed_analytics.php (Superadmin View) - Add this after existing queries
-$member_list_query = "SELECT 
-    u.id as user_id, 
-    CONCAT(u.first_name, ' ', u.last_name) as member_name,
-    m.start_date,
-    m.end_date,
-    p.plan_name,
-    p.price,
-    CASE 
-        WHEN m.end_date >= CURDATE() THEN 'Active' 
-        ELSE 'Inactive' 
-    END as status
-    FROM gym_members m
-    JOIN users u ON m.user_id = u.id
-    JOIN membership_plans p ON m.plan_id = p.plan_id
-    WHERE m.gym_id = ?
-    ORDER BY status ASC, m.start_date DESC";
-
-$stmt = $db_connection->prepare($member_list_query);
-$stmt->bind_param("i", $gym_id);
-$stmt->execute();
-$members_list = $stmt->get_result();
-
-// Member count query for active/inactive
-$member_count_query = "SELECT 
-    SUM(CASE WHEN m.end_date >= CURDATE() THEN 1 ELSE 0 END) as active_count,
-    SUM(CASE WHEN m.end_date < CURDATE() THEN 1 ELSE 0 END) as inactive_count
-    FROM gym_members m
-    WHERE m.gym_id = ?";
-    
-$stmt = $db_connection->prepare($member_count_query);
-$stmt->bind_param("i", $gym_id);
-$stmt->execute();
-$member_counts = $stmt->get_result()->fetch_assoc();
-
-// For all_gyms_analytics.php (Superadmin View) - Add to overall_stats_query
-// Modify the existing overall_stats_query to include active/inactive counts:
-
-$overall_stats_query = "SELECT 
-    COUNT(DISTINCT g.gym_id) as total_gyms,
-    COUNT(DISTINCT m.user_id) as total_members,
-    SUM(CASE WHEN m.end_date >= CURDATE() THEN 1 ELSE 0 END) as active_members,
-    SUM(CASE WHEN m.end_date < CURDATE() THEN 1 ELSE 0 END) as inactive_members,
-    COUNT(DISTINCT r.review_id) as total_reviews,
-    COALESCE(AVG(r.rating), 0) as overall_rating,
-    SUM(p.price) as total_revenue
-    FROM gyms g
-    LEFT JOIN gym_members m ON g.gym_id = m.gym_id
-    LEFT JOIN gym_reviews r ON g.gym_id = r.gym_id
-    LEFT JOIN membership_plans p ON m.plan_id = p.plan_id
-    WHERE g.status = 'approved'";
-
-// And add a new query to get all members across gyms:
-$all_members_query = "SELECT 
-    g.gym_id,
-    g.gym_name,
-    u.id as user_id, 
-    CONCAT(u.first_name, ' ', u.last_name) as member_name,
-    m.start_date,
-    m.end_date,
-    p.plan_name,
-    p.price,
-    CASE 
-        WHEN m.end_date >= CURDATE() THEN 'Active' 
-        ELSE 'Inactive' 
-    END as status
-    FROM gym_members m
-    JOIN users u ON m.user_id = u.id
-    JOIN membership_plans p ON m.plan_id = p.plan_id
-    JOIN gyms g ON m.gym_id = g.gym_id
-    WHERE g.status = 'approved'
-    ORDER BY g.gym_name, status, m.start_date DESC";
-
-$all_members_result = $db_connection->query($all_members_query);
 ?>
 
 <!DOCTYPE html>
@@ -220,83 +146,86 @@ $all_members_result = $db_connection->query($all_members_query);
                 <h3>Member Growth</h3>
                 <canvas id="memberChart"></canvas>
             </div>
-        <div class="members-section" data-type="members">
-            <div class="section-header">
-                <h3>Member List</h3>
-                <div class="filter-controls">
-                    <select id="memberStatusFilter" class="status-filter">
-                        <option value="all">All Members</option>
-                        <option value="active">Active Only</option>
-                        <option value="inactive">Inactive Only</option>
-                    </select>
-                    
-                    <div class="date-filters">
-                        <div class="date-filter">
-                            <label for="startDateFilter">From:</label>
-                            <input type="date" id="startDateFilter" class="date-input">
+            <div class="members-section" data-type="members">
+                <div class="section-header">
+                    <h3>Member List</h3>
+                    <div class="filter-controls">
+                        <select id="memberStatusFilter" class="status-filter">
+                            <option value="all">All Members</option>
+                            <option value="active">Active Only</option>
+                            <option value="inactive">Inactive Only</option>
+                        </select>
+                        
+                        <div class="date-filters">
+                            <div class="date-filter">
+                                <label for="startDateFilter">From:</label>
+                                <input type="date" id="startDateFilter" class="date-input">
+                            </div>
+                            <div class="date-filter">
+                                <label for="endDateFilter">To:</label>
+                                <input type="date" id="endDateFilter" class="date-input">
+                            </div>
+                            <button id="resetFilters" class="reset-btn">Reset</button>
                         </div>
-                        <div class="date-filter">
-                            <label for="endDateFilter">To:</label>
-                            <input type="date" id="endDateFilter" class="date-input">
-                        </div>
-                        <button id="resetFilters" class="reset-btn">Reset</button>
                     </div>
                 </div>
-            </div>
-            
-            <div class="member-stats">
-                <div class="stat-pill active">
-                    <span class="label">Active Members:</span>
-                    <span class="value"><?php echo number_format($member_counts['active_count']); ?></span>
+                
+                <div class="member-stats">
+                    <div class="stat-pill active">
+                        <span class="label">Active Members:</span>
+                        <span class="value"><?php echo number_format($member_counts['active_count']); ?></span>
+                    </div>
+                    <div class="stat-pill inactive">
+                        <span class="label">Inactive Members:</span>
+                        <span class="value"><?php echo number_format($member_counts['inactive_count']); ?></span>
+                    </div>
+                    <div class="stat-pill total">
+                        <span class="label">Total:</span>
+                        <span class="value"><?php echo number_format($member_counts['active_count'] + $member_counts['inactive_count']); ?></span>
+                    </div>
                 </div>
-                <div class="stat-pill inactive">
-                    <span class="label">Inactive Members:</span>
-                    <span class="value"><?php echo number_format($member_counts['inactive_count']); ?></span>
-                </div>
-                <div class="stat-pill total">
-                    <span class="label">Total:</span>
-                    <span class="value"><?php echo number_format($member_counts['active_count'] + $member_counts['inactive_count']); ?></span>
-                </div>
-            </div>
-            
-            <div class="members-table-container">
-                <table id="membersTable" class="members-table">
-                    <thead>
-                        <tr>
-                            <th>Name</th>
-                            <th>Membership Plan</th>
-                            <th>Start Date</th>
-                            <th>End Date</th>
-                            <th>Status</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php if ($members_list->num_rows > 0): ?>
-                            <?php while($member = $members_list->fetch_assoc()): ?>
-                                <tr class="member-row <?php echo strtolower($member['status']); ?>" 
-                                    data-start-date="<?php echo $member['start_date']; ?>"
-                                    data-end-date="<?php echo $member['end_date']; ?>"
-                                    data-status="<?php echo strtolower($member['status']); ?>">
-                                    <td><?php echo htmlspecialchars($member['member_name']); ?></td>
-                                    <td><?php echo htmlspecialchars($member['plan_name']); ?></td>
-                                    <td><?php echo date('M d, Y', strtotime($member['start_date'])); ?></td>
-                                    <td><?php echo date('M d, Y', strtotime($member['end_date'])); ?></td>
-                                    <td>
-                                        <span class="status-badge <?php echo strtolower($member['status']); ?>">
-                                            <?php echo $member['status']; ?>
-                                        </span>
-                                    </td>
-                                </tr>
-                            <?php endwhile; ?>
-                        <?php else: ?>
+                
+                <div class="members-table-container">
+                    <table id="membersTable" class="members-table">
+                        <thead>
                             <tr>
-                                <td colspan="5" class="no-data">No members found for this gym.</td>
+                                <th>Name</th>
+                                <th>Registration Date</th>
+                                <th>Membership Plan</th>
+                                <th>Start Date</th>
+                                <th>End Date</th>
+                                <th>Status</th>
                             </tr>
-                        <?php endif; ?>
-                    </tbody>
-                </table>
+                        </thead>
+                        <tbody>
+                            <?php if ($members_list->num_rows > 0): ?>
+                                <?php while($member = $members_list->fetch_assoc()): ?>
+                                    <tr class="member-row <?php echo strtolower($member['status']); ?>" 
+                                        data-reg-date="<?php echo $member['reg_date']; ?>"
+                                        data-start-date="<?php echo $member['start_date']; ?>"
+                                        data-end-date="<?php echo $member['end_date']; ?>"
+                                        data-status="<?php echo strtolower($member['status']); ?>">
+                                        <td><?php echo htmlspecialchars($member['member_name']); ?></td>
+                                        <td><?php echo date('M d, Y', strtotime($member['reg_date'])); ?></td>
+                                        <td><?php echo htmlspecialchars($member['plan_name']); ?></td>
+                                        <td><?php echo date('M d, Y', strtotime($member['start_date'])); ?></td>
+                                        <td><?php echo date('M d, Y', strtotime($member['end_date'])); ?></td>
+                                        <td>
+                                            <span class="status-badge <?php echo strtolower($member['status']); ?>">
+                                                <?php echo $member['status']; ?>
+                                            </span>
+                                        </td>
+                                    </tr>
+                                <?php endwhile; ?>
+                            <?php else: ?>
+                                <tr>
+                                    <td colspan="6" class="no-data">No members found for this gym.</td>
+                                </tr>
+                            <?php endif; ?>
+                        </tbody>
+                    </table>
+                </div>
             </div>
-        </div>
 
         <style>
         /* Member Section Styles */
@@ -445,6 +374,362 @@ $all_members_result = $db_connection->query($all_members_query);
             display: none;
         }
         </style>
+        
+        <div class="members-container">
+            <h2 class="section-title">
+                <i class="fas fa-users"></i> Gym Members
+            </h2>
+            
+            <div class="member-stats-wrapper">
+                <div class="member-stat-card active">
+                    <div class="stat-icon"><i class="fas fa-user-check"></i></div>
+                    <div class="stat-content">
+                        <h3>Active Members</h3>
+                        <p class="stat-number" id="active-count"><?php echo number_format($member_counts['active_count']); ?></p>
+                    </div>
+                </div>
+                
+                <div class="member-stat-card inactive">
+                    <div class="stat-icon"><i class="fas fa-user-times"></i></div>
+                    <div class="stat-content">
+                        <h3>Inactive Members</h3>
+                        <p class="stat-number" id="inactive-count"><?php echo number_format($member_counts['inactive_count']); ?></p>
+                    </div>
+                </div>
+                
+                <div class="member-stat-card total">
+                    <div class="stat-icon"><i class="fas fa-users"></i></div>
+                    <div class="stat-content">
+                        <h3>Total Members</h3>
+                        <p class="stat-number" id="total-count"><?php echo number_format($member_counts['active_count'] + $member_counts['inactive_count']); ?></p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="member-filter-panel">
+                <div class="filter-header">
+                    <h3><i class="fas fa-filter"></i> Filter Members</h3>
+                </div>
+                <div class="filter-options">
+                    <div class="filter-group">
+                        <label for="memberStatusFilter">Status:</label>
+                        <select id="memberStatusFilter" class="filter-select">
+                            <option value="all">All Members</option>
+                            <option value="active">Active Only</option>
+                            <option value="inactive">Inactive Only</option>
+                        </select>
+                    </div>
+                    
+                    <div class="filter-group">
+                        <label for="startDateFilter">From:</label>
+                        <input type="date" id="startDateFilter" class="filter-date">
+                    </div>
+                    
+                    <div class="filter-group">
+                        <label for="endDateFilter">To:</label>
+                        <input type="date" id="endDateFilter" class="filter-date">
+                    </div>
+                    
+                    <button id="resetFilters" class="reset-btn">
+                        <i class="fas fa-redo-alt"></i> Reset
+                    </button>
+                </div>
+            </div>
+            
+            <div class="members-table-wrapper">
+                <table id="membersTable" class="members-table">
+                    <thead>
+                        <tr>
+                            <th>Member Name</th>
+                            <th>Registration Date</th>
+                            <th>Membership Plan</th>
+                            <th>Start Date</th>
+                            <th>End Date</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php if ($members_list->num_rows > 0): ?>
+                            <?php while($member = $members_list->fetch_assoc()): ?>
+                                <tr class="member-row <?php echo strtolower($member['status']); ?>" 
+                                    data-reg-date="<?php echo $member['reg_date']; ?>"
+                                    data-start-date="<?php echo $member['start_date']; ?>"
+                                    data-end-date="<?php echo $member['end_date']; ?>"
+                                    data-status="<?php echo strtolower($member['status']); ?>">
+                                    <td><?php echo htmlspecialchars($member['member_name']); ?></td>
+                                    <td><?php echo date('M d, Y', strtotime($member['reg_date'])); ?></td>
+                                    <td><?php echo htmlspecialchars($member['plan_name']); ?></td>
+                                    <td><?php echo date('M d, Y', strtotime($member['start_date'])); ?></td>
+                                    <td><?php echo date('M d, Y', strtotime($member['end_date'])); ?></td>
+                                    <td>
+                                        <span class="status-badge <?php echo strtolower($member['status']); ?>">
+                                            <?php echo $member['status']; ?>
+                                        </span>
+                                    </td>
+                                </tr>
+                            <?php endwhile; ?>
+                        <?php else: ?>
+                            <tr>
+                                <td colspan="6" class="no-data">No members found for this gym.</td>
+                            </tr>
+                        <?php endif; ?>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <style>
+        /* Member Section Styles for gym_analytics.php */
+        .members-container {
+            background: white;
+            border-radius: 10px;
+            padding: 25px;
+            margin-top: 30px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .section-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1.8rem;
+            color: #333;
+            margin-top: 0;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #f0f0f0;
+            padding-bottom: 15px;
+        }
+
+        .section-title i {
+            color: #4CAF50;
+        }
+
+        .member-stats-wrapper {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 25px;
+        }
+
+        .member-stat-card {
+            display: flex;
+            align-items: center;
+            padding: 20px;
+            border-radius: 8px;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .member-stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .member-stat-card.active {
+            background-color: rgba(76, 175, 80, 0.1);
+            border-left: 4px solid #4CAF50;
+        }
+
+        .member-stat-card.inactive {
+            background-color: rgba(244, 67, 54, 0.1);
+            border-left: 4px solid #F44336;
+        }
+
+        .member-stat-card.total {
+            background-color: rgba(33, 150, 243, 0.1);
+            border-left: 4px solid #2196F3;
+        }
+
+        .stat-icon {
+            font-size: 28px;
+            margin-right: 20px;
+        }
+
+        .member-stat-card.active .stat-icon {
+            color: #4CAF50;
+        }
+
+        .member-stat-card.inactive .stat-icon {
+            color: #F44336;
+        }
+
+        .member-stat-card.total .stat-icon {
+            color: #2196F3;
+        }
+
+        .stat-content h3 {
+            margin: 0 0 5px 0;
+            font-size: 16px;
+            color: #555;
+        }
+
+        .stat-number {
+            font-size: 24px;
+            font-weight: bold;
+            margin: 0;
+        }
+
+        .member-filter-panel {
+            background: #f8f9fa;
+            border-radius: 8px;
+            margin-bottom: 25px;
+            border: 1px solid #eee;
+            overflow: hidden;
+        }
+
+        .filter-header {
+            padding: 15px 20px;
+            background: #f1f3f5;
+            border-bottom: 1px solid #eee;
+        }
+
+        .filter-header h3 {
+            margin: 0;
+            font-size: 16px;
+            color: #555;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .filter-header h3 i {
+            color: #4CAF50;
+        }
+
+        .filter-options {
+            padding: 20px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            align-items: flex-end;
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .filter-group label {
+            font-size: 14px;
+            color: #666;
+            font-weight: 500;
+        }
+
+        .filter-select, .filter-date {
+            min-width: 180px;
+            padding: 10px 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+
+        .filter-select:focus, .filter-date:focus {
+            outline: none;
+            border-color: #4CAF50;
+            box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.1);
+        }
+
+        .reset-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 20px;
+            background: #f1f1f1;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s;
+            margin-left: auto;
+        }
+
+        .reset-btn:hover {
+            background: #e9e9e9;
+        }
+
+        .members-table-wrapper {
+            border: 1px solid #eee;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .members-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .members-table th {
+            background: #f8f9fa;
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+            color: #444;
+            border-bottom: 2px solid #eee;
+        }
+
+        .members-table td {
+            padding: 15px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .members-table tr:hover {
+            background: #f9f9f9;
+        }
+
+        .members-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 50px;
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        .status-badge.active {
+            background-color: rgba(76, 175, 80, 0.1);
+            color: #4CAF50;
+            border: 1px solid rgba(76, 175, 80, 0.2);
+        }
+
+        .status-badge.inactive {
+            background-color: rgba(244, 67, 54, 0.1);
+            color: #F44336;
+            border: 1px solid rgba(244, 67, 54, 0.2);
+        }
+
+        .no-data {
+            text-align: center;
+            padding: 30px;
+            color: #666;
+            font-style: italic;
+        }
+
+        @media (max-width: 768px) {
+            .filter-options {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .filter-group {
+                width: 100%;
+            }
+            
+            .reset-btn {
+                width: 100%;
+                justify-content: center;
+                margin-top: 10px;
+                margin-left: 0;
+            }
+            
+            .member-stats-wrapper {
+                grid-template-columns: 1fr;
+            }
+        }
+        </style>
+
 
             <div class="chart-container" data-type="revenue">
                 <h3>Monthly Revenue</h3>
@@ -1154,122 +1439,122 @@ $all_members_result = $db_connection->query($all_members_query);
                 }
             }, 500);
         }
-        // Member filtering logic
+        // Member filtering for gym_analytics.php
         const statusFilter = document.getElementById('memberStatusFilter');
         const startDateFilter = document.getElementById('startDateFilter');
         const endDateFilter = document.getElementById('endDateFilter');
         const resetFiltersBtn = document.getElementById('resetFilters');
         const membersTable = document.getElementById('membersTable');
-        
-        if (statusFilter && membersTable) {
-            // Set default dates (last 6 months to today)
-            const today = new Date();
-            const sixMonthsAgo = new Date();
-            sixMonthsAgo.setMonth(today.getMonth() - 6);
             
-            // Format dates for input fields
-            startDateFilter.value = formatDateForInput(sixMonthsAgo);
-            endDateFilter.value = formatDateForInput(today);
-            
-            // Apply initial filtering
-            applyFilters();
-            
-            // Add event listeners
-            statusFilter.addEventListener('change', applyFilters);
-            startDateFilter.addEventListener('change', applyFilters);
-            endDateFilter.addEventListener('change', applyFilters);
-            resetFiltersBtn.addEventListener('click', resetFilters);
-            
-            // Include member filtering in the PDF export
-            const downloadPdfBtn = document.getElementById('downloadPdfBtn');
-            if (downloadPdfBtn) {
-                const originalGeneratePDF = downloadPdfBtn.onclick;
-                downloadPdfBtn.onclick = function() {
-                    // Make sure visible members are reflected in PDF
-                    updateVisibleMembersForPDF();
-                    // Then call the original function
-                    if (typeof originalGeneratePDF === 'function') {
-                        originalGeneratePDF();
-                    }
-                };
+            if (statusFilter && membersTable) {
+                // Set default dates (last 6 months to today)
+                const today = new Date();
+                const sixMonthsAgo = new Date();
+                sixMonthsAgo.setMonth(today.getMonth() - 6);
+                
+                // Format dates for input fields
+                startDateFilter.value = formatDateForInput(sixMonthsAgo);
+                endDateFilter.value = formatDateForInput(today);
+                
+                // Apply initial filtering
+                applyFilters();
+                
+                // Add event listeners
+                statusFilter.addEventListener('change', applyFilters);
+                startDateFilter.addEventListener('change', applyFilters);
+                endDateFilter.addEventListener('change', applyFilters);
+                resetFiltersBtn.addEventListener('click', resetFilters);
             }
-        }
-        
-        function formatDateForInput(date) {
-            const year = date.getFullYear();
-            const month = String(date.getMonth() + 1).padStart(2, '0');
-            const day = String(date.getDate()).padStart(2, '0');
-            return `${year}-${month}-${day}`;
-        }
-        
-        function resetFilters() {
-            statusFilter.value = 'all';
-            const today = new Date();
-            const sixMonthsAgo = new Date();
-            sixMonthsAgo.setMonth(today.getMonth() - 6);
             
-            startDateFilter.value = formatDateForInput(sixMonthsAgo);
-            endDateFilter.value = formatDateForInput(today);
+            function formatDateForInput(date) {
+                const year = date.getFullYear();
+                const month = String(date.getMonth() + 1).padStart(2, '0');
+                const day = String(date.getDate()).padStart(2, '0');
+                return `${year}-${month}-${day}`;
+            }
             
-            applyFilters();
-        }
-        
-        function applyFilters() {
-            const statusValue = statusFilter.value;
-            const startDate = startDateFilter.value ? new Date(startDateFilter.value) : null;
-            const endDate = endDateFilter.value ? new Date(endDateFilter.value) : null;
+            function resetFilters() {
+                statusFilter.value = 'all';
+                const today = new Date();
+                const sixMonthsAgo = new Date();
+                sixMonthsAgo.setMonth(today.getMonth() - 6);
+                
+                startDateFilter.value = formatDateForInput(sixMonthsAgo);
+                endDateFilter.value = formatDateForInput(today);
+                
+                applyFilters();
+            }
             
-            const rows = membersTable.querySelectorAll('tbody tr.member-row');
-            let visibleCount = 0;
-            
-            rows.forEach(row => {
-                const rowStatus = row.getAttribute('data-status');
-                const rowStartDate = row.getAttribute('data-start-date') ? new Date(row.getAttribute('data-start-date')) : null;
+            function applyFilters() {
+                const statusValue = statusFilter.value;
+                const startDate = startDateFilter.value ? new Date(startDateFilter.value) : null;
+                const endDate = endDateFilter.value ? new Date(endDateFilter.value) : null;
                 
-                let visible = true;
+                const rows = membersTable.querySelectorAll('tbody tr.member-row');
+                let activeCount = 0;
+                let inactiveCount = 0;
+                let totalVisible = 0;
                 
-                // Apply status filter
-                if (statusValue !== 'all' && rowStatus !== statusValue) {
-                    visible = false;
-                }
+                rows.forEach(row => {
+                    const rowStatus = row.getAttribute('data-status');
+                    const regDate = row.getAttribute('data-reg-date') ? new Date(row.getAttribute('data-reg-date')) : null;
+                    
+                    let visible = true;
+                    
+                    // Apply status filter
+                    if (statusValue !== 'all' && rowStatus !== statusValue) {
+                        visible = false;
+                    }
+                    
+                    // Apply date filters to registration date
+                    if (visible && startDate && regDate && regDate < startDate) {
+                        visible = false;
+                    }
+                    
+                    if (visible && endDate && regDate && regDate > endDate) {
+                        visible = false;
+                    }
+                    
+                    // Show/hide row
+                    row.style.display = visible ? '' : 'none';
+                    
+                    // Update counters
+                    if (visible) {
+                        totalVisible++;
+                        if (rowStatus === 'active') {
+                            activeCount++;
+                        } else if (rowStatus === 'inactive') {
+                            inactiveCount++;
+                        }
+                    }
+                });
                 
-                // Apply date filters
-                if (visible && startDate && rowStartDate && rowStartDate < startDate) {
-                    visible = false;
-                }
+                // Update the count displays
+                const activeCountElem = document.querySelector('.stat-pill.active .value');
+                const inactiveCountElem = document.querySelector('.stat-pill.inactive .value');
+                const totalCountElem = document.querySelector('.stat-pill.total .value');
                 
-                if (visible && endDate && rowStartDate && rowStartDate > endDate) {
-                    visible = false;
-                }
+                if (activeCountElem) activeCountElem.textContent = activeCount;
+                if (inactiveCountElem) inactiveCountElem.textContent = inactiveCount;
+                if (totalCountElem) totalCountElem.textContent = totalVisible;
                 
-                // Show/hide row
-                row.style.display = visible ? '' : 'none';
-                
-                if (visible) {
-                    visibleCount++;
-                }
-            });
-            
-            // Show "No data" message if no visible rows
-            const noDataRow = membersTable.querySelector('.no-data');
-            if (visibleCount === 0 && !noDataRow) {
-                const tbody = membersTable.querySelector('tbody');
-                const tr = document.createElement('tr');
-                tr.className = 'no-data-row';
-                const td = document.createElement('td');
-                td.className = 'no-data';
-                td.setAttribute('colspan', '5');
-                td.textContent = 'No members match the selected filters.';
-                tr.appendChild(td);
-                tbody.appendChild(tr);
-            } else if (visibleCount > 0) {
+                // Show/hide no data message
                 const noDataRow = membersTable.querySelector('.no-data-row');
-                if (noDataRow) {
+                if (totalVisible === 0 && !noDataRow) {
+                    const tbody = membersTable.querySelector('tbody');
+                    const tr = document.createElement('tr');
+                    tr.className = 'no-data-row';
+                    const td = document.createElement('td');
+                    td.className = 'no-data';
+                    td.setAttribute('colspan', '6');
+                    td.textContent = 'No members match the selected filters.';
+                    tr.appendChild(td);
+                    tbody.appendChild(tr);
+                } else if (totalVisible > 0 && noDataRow) {
                     noDataRow.remove();
                 }
             }
-        }
-        
+                
         function updateVisibleMembersForPDF() {
             // This function sets a data attribute to track which members are currently visible
             // The PDF generation code can then use this to include only filtered members

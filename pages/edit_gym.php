@@ -113,7 +113,19 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['update_gym'])) {
                 if (isset($equipment_images[$index])) {
                     // Delete the file from AWS if using AWS
                     if (USE_AWS && $awsManager) {
-                        $awsManager->deleteFile($equipment_images[$index]);
+                        $image_path = $equipment_images[$index];
+                        $delete_result = $awsManager->deleteFile($image_path);
+                        if ($delete_result) {
+                            error_log("Successfully deleted image from S3: " . $image_path);
+                        } else {
+                            error_log("Failed to delete image from S3: " . $image_path);
+                        }
+                    } else {
+                        // For local storage, delete the file if it exists
+                        $image_path = $equipment_images[$index];
+                        if (file_exists($image_path)) {
+                            unlink($image_path);
+                        }
                     }
                     // Remove from the array
                     unset($equipment_images[$index]);
@@ -505,6 +517,8 @@ if (!empty($gym['equipment_images'])) {
                 
                 // Hide the image container
                 button.closest('.equipment-item').style.display = 'none';
+                
+                console.log("Marked image at index " + index + " for removal");
             }
         }
         

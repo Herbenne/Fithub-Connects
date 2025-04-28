@@ -12,6 +12,8 @@ if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'superadmin') {
 $overall_stats_query = "SELECT 
     COUNT(DISTINCT g.gym_id) as total_gyms,
     COUNT(DISTINCT m.user_id) as total_members,
+    SUM(CASE WHEN m.end_date >= CURDATE() THEN 1 ELSE 0 END) as active_members,
+    SUM(CASE WHEN m.end_date < CURDATE() THEN 1 ELSE 0 END) as inactive_members,
     COUNT(DISTINCT r.review_id) as total_reviews,
     COALESCE(AVG(r.rating), 0) as overall_rating,
     SUM(p.price) as total_revenue
@@ -35,6 +37,29 @@ $gyms_query = "SELECT g.*,
     WHERE g.status = 'approved'
     GROUP BY g.gym_id";
 $gyms_result = $db_connection->query($gyms_query);
+
+// And add a comprehensive query to get all members across gyms:
+$all_members_query = "SELECT 
+    g.gym_id,
+    g.gym_name,
+    u.id as user_id, 
+    CONCAT(u.first_name, ' ', u.last_name) as member_name,
+    u.reg_date,
+    m.start_date,
+    m.end_date,
+    p.plan_name,
+    p.price,
+    CASE 
+        WHEN m.end_date >= CURDATE() THEN 'Active' 
+        ELSE 'Inactive' 
+    END as status
+    FROM gym_members m
+    JOIN users u ON m.user_id = u.id
+    JOIN membership_plans p ON m.plan_id = p.plan_id
+    JOIN gyms g ON m.gym_id = g.gym_id
+    WHERE g.status = 'approved'
+    ORDER BY g.gym_name, status, m.start_date DESC";
+$all_members_result = $db_connection->query($all_members_query);
 ?>
 
 <!DOCTYPE html>
@@ -148,13 +173,42 @@ $gyms_result = $db_connection->query($gyms_query);
         </section>
 
         <section class="all-members-section" data-type="members">
-            <div class="section-header">
-                <h2><i class="fas fa-users"></i> Platform Members</h2>
-                <div class="filter-dropdown">
-                    <button class="member-filter-btn"><i class="fas fa-filter"></i> Filter Members</button>
-                    <div class="member-filter-menu">
+            <h2><i class="fas fa-users"></i> Platform Members</h2>
+            
+            <div class="members-stats-cards">
+                <div class="member-stat-card active">
+                    <div class="stat-icon"><i class="fas fa-user-check"></i></div>
+                    <div class="stat-info">
+                        <span class="stat-label">Active Members</span>
+                        <span class="stat-value"><?php echo number_format($overall_stats['active_members']); ?></span>
+                    </div>
+                </div>
+                
+                <div class="member-stat-card inactive">
+                    <div class="stat-icon"><i class="fas fa-user-clock"></i></div>
+                    <div class="stat-info">
+                        <span class="stat-label">Inactive Members</span>
+                        <span class="stat-value"><?php echo number_format($overall_stats['inactive_members']); ?></span>
+                    </div>
+                </div>
+                
+                <div class="member-stat-card total">
+                    <div class="stat-icon"><i class="fas fa-users"></i></div>
+                    <div class="stat-info">
+                        <span class="stat-label">Total Members</span>
+                        <span class="stat-value"><?php echo number_format($overall_stats['total_members']); ?></span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="filter-card">
+                <div class="filter-header">
+                    <h3>Filter Members</h3>
+                </div>
+                <div class="filter-body">
+                    <div class="filter-row">
                         <div class="filter-group">
-                            <label>Status:</label>
+                            <label>Member Status:</label>
                             <div class="checkbox-group">
                                 <div class="checkbox-item">
                                     <input type="checkbox" id="filter-active-members" checked>
@@ -166,22 +220,20 @@ $gyms_result = $db_connection->query($gyms_query);
                                 </div>
                             </div>
                         </div>
+                        
                         <div class="filter-group">
-                            <label>Date Range:</label>
-                            <div class="date-inputs">
-                                <div class="date-field">
-                                    <label for="member-start-date">From:</label>
-                                    <input type="date" id="member-start-date">
-                                </div>
-                                <div class="date-field">
-                                    <label for="member-end-date">To:</label>
-                                    <input type="date" id="member-end-date">
-                                </div>
-                            </div>
+                            <label for="member-start-date">Start Date:</label>
+                            <input type="date" id="member-start-date" class="date-input">
                         </div>
+                        
                         <div class="filter-group">
-                            <label>Gym:</label>
-                            <select id="gym-filter">
+                            <label for="member-end-date">End Date:</label>
+                            <input type="date" id="member-end-date" class="date-input">
+                        </div>
+                        
+                        <div class="filter-group">
+                            <label for="gym-filter">Gym:</label>
+                            <select id="gym-filter" class="status-filter">
                                 <option value="all">All Gyms</option>
                                 <?php
                                 // Reset the pointer for gyms result
@@ -193,45 +245,22 @@ $gyms_result = $db_connection->query($gyms_query);
                                 <?php endwhile; ?>
                             </select>
                         </div>
-                        <button id="reset-member-filters" class="reset-filters-btn">
-                            Reset Filters
+                        
+                        <button id="reset-member-filters" class="reset-filter-btn">
+                            <i class="fas fa-sync-alt"></i> Reset Filters
                         </button>
                     </div>
                 </div>
             </div>
-
-            <div class="member-stats-summary">
-                <div class="stat-box active">
-                    <div class="stat-icon"><i class="fas fa-user-check"></i></div>
-                    <div class="stat-content">
-                        <h3>Active Members</h3>
-                        <p class="stat-number"><?php echo number_format($overall_stats['active_members']); ?></p>
-                    </div>
-                </div>
-                <div class="stat-box inactive">
-                    <div class="stat-icon"><i class="fas fa-user-times"></i></div>
-                    <div class="stat-content">
-                        <h3>Inactive Members</h3>
-                        <p class="stat-number"><?php echo number_format($overall_stats['inactive_members']); ?></p>
-                    </div>
-                </div>
-                <div class="stat-box total">
-                    <div class="stat-icon"><i class="fas fa-users"></i></div>
-                    <div class="stat-content">
-                        <h3>Total Members</h3>
-                        <p class="stat-number"><?php echo number_format($overall_stats['total_members']); ?></p>
-                    </div>
-                </div>
-            </div>
-
-            <div class="all-members-table-container">
-                <table id="allMembersTable" class="all-members-table">
+            
+            <div class="table-container">
+                <table id="allMembersTable" class="data-table">
                     <thead>
                         <tr>
                             <th>Gym</th>
-                            <th>Member Name</th>
+                            <th>Full Name</th>
+                            <th>Registration Date</th>
                             <th>Membership Plan</th>
-                            <th>Amount</th>
                             <th>Start Date</th>
                             <th>End Date</th>
                             <th>Status</th>
@@ -247,8 +276,8 @@ $gyms_result = $db_connection->query($gyms_query);
                                     data-status="<?php echo strtolower($member['status']); ?>">
                                     <td><?php echo htmlspecialchars($member['gym_name']); ?></td>
                                     <td><?php echo htmlspecialchars($member['member_name']); ?></td>
+                                    <td><?php echo date('M d, Y', strtotime($member['start_date'])); ?></td>
                                     <td><?php echo htmlspecialchars($member['plan_name']); ?></td>
-                                    <td>₱<?php echo number_format($member['price'], 2); ?></td>
                                     <td><?php echo date('M d, Y', strtotime($member['start_date'])); ?></td>
                                     <td><?php echo date('M d, Y', strtotime($member['end_date'])); ?></td>
                                     <td>
@@ -267,6 +296,435 @@ $gyms_result = $db_connection->query($gyms_query);
                 </table>
             </div>
         </section>
+
+        <section class="platform-members-section" data-type="members">
+            <div class="section-header">
+                <h2><i class="fas fa-users"></i> Platform Members</h2>
+                <button id="toggleMembersBtn" class="toggle-btn">
+                    <i class="fas fa-filter"></i> Filter Members
+                </button>
+            </div>
+            
+            <div class="members-stats-cards">
+                <div class="member-stat-card active">
+                    <div class="stat-icon"><i class="fas fa-user-check"></i></div>
+                    <div class="stat-info">
+                        <span class="stat-label">Active Members</span>
+                        <span class="stat-value" id="active-members-count"><?php echo number_format($overall_stats['active_members']); ?></span>
+                    </div>
+                </div>
+                
+                <div class="member-stat-card inactive">
+                    <div class="stat-icon"><i class="fas fa-user-times"></i></div>
+                    <div class="stat-info">
+                        <span class="stat-label">Inactive Members</span>
+                        <span class="stat-value" id="inactive-members-count"><?php echo number_format($overall_stats['inactive_members']); ?></span>
+                    </div>
+                </div>
+                
+                <div class="member-stat-card total">
+                    <div class="stat-icon"><i class="fas fa-users"></i></div>
+                    <div class="stat-info">
+                        <span class="stat-label">Total Members</span>
+                        <span class="stat-value" id="total-members-count"><?php echo number_format($overall_stats['total_members']); ?></span>
+                    </div>
+                </div>
+            </div>
+            
+            <div id="membersFilterCard" class="filter-card" style="display: none;">
+                <div class="filter-header">
+                    <h3><i class="fas fa-filter"></i> Filter Options</h3>
+                </div>
+                <div class="filter-body">
+                    <div class="filter-row">
+                        <div class="filter-group">
+                            <label>Status:</label>
+                            <div class="checkbox-group">
+                                <div class="checkbox-item">
+                                    <input type="checkbox" id="filter-active-members" checked>
+                                    <label for="filter-active-members">Active Members</label>
+                                </div>
+                                <div class="checkbox-item">
+                                    <input type="checkbox" id="filter-inactive-members" checked>
+                                    <label for="filter-inactive-members">Inactive Members</label>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="filter-group">
+                            <label for="member-start-date">Registration From:</label>
+                            <input type="date" id="member-start-date" class="date-input">
+                        </div>
+                        
+                        <div class="filter-group">
+                            <label for="member-end-date">Registration To:</label>
+                            <input type="date" id="member-end-date" class="date-input">
+                        </div>
+                        
+                        <div class="filter-group">
+                            <label for="gym-filter">Gym:</label>
+                            <select id="gym-filter" class="select-input">
+                                <option value="all">All Gyms</option>
+                                <?php
+                                // Reset the pointer for gyms result
+                                $gyms_result->data_seek(0);
+                                while ($gym = $gyms_result->fetch_assoc()): ?>
+                                    <option value="<?php echo $gym['gym_id']; ?>">
+                                        <?php echo htmlspecialchars($gym['gym_name']); ?>
+                                    </option>
+                                <?php endwhile; ?>
+                            </select>
+                        </div>
+                        
+                        <button id="reset-member-filters" class="reset-filter-btn">
+                            <i class="fas fa-sync-alt"></i> Reset Filters
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="members-table-container">
+                <table id="allMembersTable" class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Gym</th>
+                            <th>Member Name</th>
+                            <th>Registration Date</th>
+                            <th>Plan</th>
+                            <th>Start Date</th>
+                            <th>End Date</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php if ($all_members_result && $all_members_result->num_rows > 0): ?>
+                            <?php while($member = $all_members_result->fetch_assoc()): ?>
+                                <tr class="member-row <?php echo strtolower($member['status']); ?>" 
+                                    data-gym-id="<?php echo $member['gym_id']; ?>"
+                                    data-reg-date="<?php echo $member['reg_date']; ?>"
+                                    data-start-date="<?php echo $member['start_date']; ?>"
+                                    data-end-date="<?php echo $member['end_date']; ?>"
+                                    data-status="<?php echo strtolower($member['status']); ?>">
+                                    <td><?php echo htmlspecialchars($member['gym_name']); ?></td>
+                                    <td><?php echo htmlspecialchars($member['member_name']); ?></td>
+                                    <td><?php echo date('M d, Y', strtotime($member['reg_date'])); ?></td>
+                                    <td><?php echo htmlspecialchars($member['plan_name']); ?></td>
+                                    <td><?php echo date('M d, Y', strtotime($member['start_date'])); ?></td>
+                                    <td><?php echo date('M d, Y', strtotime($member['end_date'])); ?></td>
+                                    <td>
+                                        <span class="status-badge <?php echo strtolower($member['status']); ?>">
+                                            <?php echo $member['status']; ?>
+                                        </span>
+                                    </td>
+                                </tr>
+                            <?php endwhile; ?>
+                        <?php else: ?>
+                            <tr>
+                                <td colspan="7" class="no-data">No member data available.</td>
+                            </tr>
+                        <?php endif; ?>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <style>
+        /* Platform Members Section Styles */
+        .platform-members-section {
+            background: white;
+            border-radius: 10px;
+            padding: 25px;
+            margin-top: 30px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            border-bottom: 2px solid #f0f0f0;
+            padding-bottom: 15px;
+        }
+
+        .section-header h2 {
+            margin: 0;
+            font-size: 1.8rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .section-header h2 i {
+            color: #4CAF50;
+        }
+
+        .toggle-btn {
+            padding: 8px 16px;
+            background: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 500;
+            transition: background 0.3s;
+        }
+
+        .toggle-btn:hover {
+            background: #3d8b40;
+        }
+
+        .members-stats-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 25px;
+        }
+
+        .member-stat-card {
+            display: flex;
+            align-items: center;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .member-stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .member-stat-card.active {
+            background-color: rgba(76, 175, 80, 0.1);
+            border-left: 5px solid #4CAF50;
+        }
+
+        .member-stat-card.inactive {
+            background-color: rgba(244, 67, 54, 0.1);
+            border-left: 5px solid #F44336;
+        }
+
+        .member-stat-card.total {
+            background-color: rgba(33, 150, 243, 0.1);
+            border-left: 5px solid #2196F3;
+        }
+
+        .stat-icon {
+            font-size: 28px;
+            margin-right: 20px;
+        }
+
+        .member-stat-card.active .stat-icon {
+            color: #4CAF50;
+        }
+
+        .member-stat-card.inactive .stat-icon {
+            color: #F44336;
+        }
+
+        .member-stat-card.total .stat-icon {
+            color: #2196F3;
+        }
+
+        .stat-info {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .stat-label {
+            font-size: 16px;
+            color: #666;
+        }
+
+        .stat-value {
+            font-size: 28px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .filter-card {
+            background: #f8f9fa;
+            border-radius: 10px;
+            margin-bottom: 25px;
+            border: 1px solid #eee;
+            overflow: hidden;
+        }
+
+        .filter-header {
+            padding: 15px 20px;
+            background-color: #f1f3f5;
+            border-bottom: 1px solid #eee;
+        }
+
+        .filter-header h3 {
+            margin: 0;
+            font-size: 16px;
+            color: #555;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .filter-header h3 i {
+            color: #4CAF50;
+        }
+
+        .filter-body {
+            padding: 20px;
+        }
+
+        .filter-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .filter-group label {
+            font-size: 14px;
+            color: #666;
+            font-weight: 500;
+        }
+
+        .checkbox-group {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .date-input, .select-input {
+            padding: 10px 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+            width: 100%;
+        }
+
+        .date-input:focus, .select-input:focus {
+            outline: none;
+            border-color: #4CAF50;
+            box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.1);
+        }
+
+        .reset-filter-btn {
+            padding: 10px 15px;
+            background: #f1f1f1;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            font-weight: 500;
+            transition: all 0.3s;
+            width: 100%;
+            margin-top: 10px;
+        }
+
+        .reset-filter-btn:hover {
+            background: #e9e9e9;
+        }
+
+        .members-table-container {
+            border: 1px solid #eee;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .data-table th {
+            background-color: #f8f9fa;
+            font-weight: 600;
+            color: #555;
+            text-align: left;
+            padding: 15px;
+            border-bottom: 2px solid #eee;
+            position: sticky;
+            top: 0;
+        }
+
+        .data-table td {
+            padding: 15px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .data-table tbody tr:hover {
+            background-color: #f8f9fa;
+        }
+
+        .data-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        .status-badge.active {
+            background-color: rgba(76, 175, 80, 0.1);
+            color: #4CAF50;
+            border: 1px solid rgba(76, 175, 80, 0.2);
+        }
+
+        .status-badge.inactive {
+            background-color: rgba(244, 67, 54, 0.1);
+            color: #F44336;
+            border: 1px solid rgba(244, 67, 54, 0.2);
+        }
+
+        .no-data {
+            text-align: center;
+            color: #666;
+            padding: 30px;
+            font-style: italic;
+        }
+
+        /* Ensure this section is hidden when filters are applied */
+        .platform-members-section[data-hidden="true"] {
+            display: none;
+        }
+
+        @media (max-width: 992px) {
+            .filter-row {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .members-stats-cards {
+                grid-template-columns: 1fr;
+            }
+            
+            .filter-row {
+                grid-template-columns: 1fr;
+            }
+        }
+        </style>
 
         <style>
         /* All Members Section Styles */
@@ -1178,7 +1636,21 @@ $gyms_result = $db_connection->query($gyms_query);
                 }, 500);
             }
 
-            // Member filtering logic for all gyms
+            // Toggle filter card visibility
+            const toggleBtn = document.getElementById('toggleMembersBtn');
+            const filterCard = document.getElementById('membersFilterCard');
+            
+            toggleBtn.addEventListener('click', function() {
+                if (filterCard.style.display === 'none') {
+                    filterCard.style.display = 'block';
+                    toggleBtn.innerHTML = '<i class="fas fa-times"></i> Hide Filters';
+                } else {
+                    filterCard.style.display = 'none';
+                    toggleBtn.innerHTML = '<i class="fas fa-filter"></i> Filter Members';
+                }
+            });
+
+            // Member filtering for all gyms
             const activeFilter = document.getElementById('filter-active-members');
             const inactiveFilter = document.getElementById('filter-inactive-members');
             const startDateFilter = document.getElementById('member-start-date');
@@ -1187,7 +1659,7 @@ $gyms_result = $db_connection->query($gyms_query);
             const resetFilterBtn = document.getElementById('reset-member-filters');
             const membersTable = document.getElementById('allMembersTable');
             
-            if (membersTable) {
+            if (activeFilter && inactiveFilter && membersTable) {
                 // Set default dates (last 12 months to today)
                 const today = new Date();
                 const twelveMonthsAgo = new Date();
@@ -1217,23 +1689,6 @@ $gyms_result = $db_connection->query($gyms_query);
                             memberSection.setAttribute('data-hidden', !this.checked);
                         }
                     });
-                }
-                
-                // Update PDF generation to include filtered members
-                const downloadPdfBtn = document.getElementById('downloadPdfBtn');
-                if (downloadPdfBtn) {
-                    const originalOnclick = downloadPdfBtn.onclick;
-                    downloadPdfBtn.onclick = function() {
-                        // Update filtered members data for PDF
-                        updateVisibleMembersForPDF();
-                        
-                        // Then call original function
-                        if (typeof originalOnclick === 'function') {
-                            originalOnclick.call(this);
-                        } else if (typeof generatePDF === 'function') {
-                            generatePDF();
-                        }
-                    };
                 }
             }
             
@@ -1274,7 +1729,7 @@ $gyms_result = $db_connection->query($gyms_query);
                 rows.forEach(row => {
                     const rowStatus = row.getAttribute('data-status');
                     const rowGymId = row.getAttribute('data-gym-id');
-                    const rowStartDate = row.getAttribute('data-start-date') ? new Date(row.getAttribute('data-start-date')) : null;
+                    const regDate = row.getAttribute('data-reg-date') ? new Date(row.getAttribute('data-reg-date')) : null;
                     
                     let visible = true;
                     
@@ -1290,17 +1745,18 @@ $gyms_result = $db_connection->query($gyms_query);
                     }
                     
                     // Apply date filters
-                    if (visible && startDate && rowStartDate && rowStartDate < startDate) {
+                    if (visible && startDate && regDate && regDate < startDate) {
                         visible = false;
                     }
                     
-                    if (visible && endDate && rowStartDate && rowStartDate > endDate) {
+                    if (visible && endDate && regDate && regDate > endDate) {
                         visible = false;
                     }
                     
                     // Show/hide row
                     row.style.display = visible ? '' : 'none';
                     
+                    // Update counters
                     if (visible) {
                         visibleCount++;
                         if (rowStatus === 'active') {
@@ -1312,7 +1768,13 @@ $gyms_result = $db_connection->query($gyms_query);
                 });
                 
                 // Update the visible count displays
-                updateMemberCountDisplay(activeCount, inactiveCount, visibleCount);
+                const activeCountElem = document.querySelector('.stat-box.active .stat-number');
+                const inactiveCountElem = document.querySelector('.stat-box.inactive .stat-number');
+                const totalCountElem = document.querySelector('.stat-box.total .stat-number');
+                
+                if (activeCountElem) activeCountElem.textContent = activeCount;
+                if (inactiveCountElem) inactiveCountElem.textContent = inactiveCount;
+                if (totalCountElem) totalCountElem.textContent = visibleCount;
                 
                 // Show "No data" message if no visible rows
                 const noDataRow = membersTable.querySelector('.no-data-row');
@@ -1329,57 +1791,24 @@ $gyms_result = $db_connection->query($gyms_query);
                 } else if (visibleCount > 0 && noDataRow) {
                     noDataRow.remove();
                 }
-            }
-            
-            function updateMemberCountDisplay(activeCount, inactiveCount, totalCount) {
-                // Update the stats boxes with filtered counts
-                const activeCountElem = document.querySelector('.stat-box.active .stat-number');
-                const inactiveCountElem = document.querySelector('.stat-box.inactive .stat-number');
-                const totalCountElem = document.querySelector('.stat-box.total .stat-number');
                 
-                if (activeCountElem) {
-                    activeCountElem.textContent = activeCount.toLocaleString();
-                }
-                
-                if (inactiveCountElem) {
-                    inactiveCountElem.textContent = inactiveCount.toLocaleString();
-                }
-                
-                if (totalCountElem) {
-                    totalCountElem.textContent = totalCount.toLocaleString();
-                }
-            }
-            
-            function updateVisibleMembersForPDF() {
-                // Mark visible members for PDF inclusion
-                const rows = membersTable.querySelectorAll('tbody tr.member-row');
-                
-                // Store the filtered counts for PDF generation
+                // Store filtered data for PDF export
                 window.filteredMemberCounts = {
-                    active: 0,
-                    inactive: 0,
-                    total: 0,
+                    active: activeCount,
+                    inactive: inactiveCount,
+                    total: visibleCount,
                     byGym: {}
                 };
                 
-                rows.forEach(row => {
-                    const isVisible = row.style.display !== 'none';
-                    row.setAttribute('data-visible-for-pdf', isVisible ? 'true' : 'false');
+                // Track gym-specific breakdowns for the PDF
+                if (visibleCount > 0) {
+                    const visibleRows = Array.from(rows).filter(row => row.style.display !== 'none');
                     
-                    if (isVisible) {
-                        const status = row.getAttribute('data-status');
+                    visibleRows.forEach(row => {
                         const gymId = row.getAttribute('data-gym-id');
-                        const gymName = row.cells[0].textContent;
+                        const gymName = row.cells[0].textContent.trim();
+                        const status = row.getAttribute('data-status');
                         
-                        window.filteredMemberCounts.total++;
-                        
-                        if (status === 'active') {
-                            window.filteredMemberCounts.active++;
-                        } else if (status === 'inactive') {
-                            window.filteredMemberCounts.inactive++;
-                        }
-                        
-                        // Track by gym
                         if (!window.filteredMemberCounts.byGym[gymId]) {
                             window.filteredMemberCounts.byGym[gymId] = {
                                 name: gymName,
@@ -1396,8 +1825,8 @@ $gyms_result = $db_connection->query($gyms_query);
                         } else if (status === 'inactive') {
                             window.filteredMemberCounts.byGym[gymId].inactive++;
                         }
-                    }
-                });
+                    });
+                }
             }
         });
         </script>
