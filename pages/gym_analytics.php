@@ -653,6 +653,27 @@ $members_list = $stmt->get_result();
     .chart-container[data-hidden="true"] {
         display: none;
     }
+
+        /* Fix for hidden sections */
+    .members-section[data-hidden="true"],
+    .all-members-section[data-hidden="true"],
+    .chart-container[data-hidden="true"],
+    .metric-card[data-hidden="true"],
+    .stat-card[data-hidden="true"],
+    .gym-card[data-hidden="true"] {
+        display: none !important;
+    }
+
+    /* Chart error styling */
+    .chart-error {
+        padding: 20px;
+        background-color: #fff3cd;
+        border: 1px solid #ffeeba;
+        color: #856404;
+        border-radius: 5px;
+        text-align: center;
+        margin: 20px 0;
+    }
     </style>
 
     <!-- PDF Generation Scripts -->
@@ -735,477 +756,291 @@ $members_list = $stmt->get_result();
         }]
     };
 
-    // Create charts
-    new Chart(document.getElementById('memberChart'), {
-        type: 'line',
-        data: memberData,
-        options: {
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    ticks: {
-                        stepSize: 1
-                    }
-                }
-            },
-            responsive: true,
-            maintainAspectRatio: false
-        }
-    });
-
-    new Chart(document.getElementById('revenueChart'), {
-        type: 'bar',
-        data: revenueData,
-        options: {
-            scales: {
-                y: {
-                    beginAtZero: true
-                }
-            },
-            responsive: true,
-            maintainAspectRatio: false
-        }
-    });
-
-    new Chart(document.getElementById('ratingChart'), {
-        type: 'doughnut',
-        data: ratingData,
-        options: {
-            responsive: true,
-            maintainAspectRatio: false
-        }
-    });
-
     document.addEventListener('DOMContentLoaded', function() {
-        function cleanTextForPDF(text, type) {
-            if (!text) return "";
-            
-            let cleanedText = text;
-            
-            // Handle different types of values
-            if (type === 'rating') {
-                // Remove any unexpected characters from rating
-                cleanedText = text.replace(/\+P/g, '').replace(/±/g, '').replace(/⭐/g, '').trim();
-                
-                // Make sure it just shows the number with up to one decimal place
-                const ratingNumber = parseFloat(cleanedText);
-                if (!isNaN(ratingNumber)) {
-                    cleanedText = ratingNumber.toFixed(1);
-                }
-                
-                // Return just the number - no emoji or extra text
-                return cleanedText;
-            } 
-            else if (type === 'revenue') {
-                // Remove any currency symbols and clean up
-                cleanedText = text.replace(/[₱±]/g, '').replace(/\s+/g, '').trim();
-                
-                // Parse and format the number properly
-                const numericValue = parseFloat(cleanedText.replace(/,/g, ''));
-                if (!isNaN(numericValue)) {
-                    // Format with commas and 2 decimal places
-                    cleanedText = numericValue.toLocaleString('en-US', {
-                        minimumFractionDigits: 2,
-                        maximumFractionDigits: 2
-                    });
-                    
-                    // Add PHP prefix
-                    return "PHP " + cleanedText;
-                }
-                
-                // If parsing failed, just return original with PHP
-                return "PHP " + cleanedText;
-            }
-            
-            return cleanedText;
+        // Initialize charts
+        initializeCharts();
+        
+        // Initialize filter functionality
+        initializeFilters();
+        
+        // Set up PDF export button
+        const downloadPdfBtn = document.getElementById('downloadPdfBtn');
+        if (downloadPdfBtn) {
+            downloadPdfBtn.addEventListener('click', generatePDF);
         }
         
-        const downloadPdfBtn = document.getElementById('downloadPdfBtn');
+        // Initialize member filtering
+        initializeMemberFiltering();
+    });
+
+    function initializeCharts() {
+        // Create charts - using the global variables defined in your existing PHP code
         
+        // Member Growth Chart
+        const memberChartCanvas = document.getElementById('memberChart');
+        if (memberChartCanvas) {
+            try {
+                new Chart(memberChartCanvas, {
+                    type: 'line',
+                    data: memberData,
+                    options: {
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: {
+                                    stepSize: 1
+                                }
+                            }
+                        },
+                        responsive: true,
+                        maintainAspectRatio: false
+                    }
+                });
+            } catch (e) {
+                console.error("Error initializing member chart:", e);
+                memberChartCanvas.parentNode.innerHTML = '<div class="chart-error">Error loading chart. Please try refreshing the page.</div>';
+            }
+        }
+
+        // Revenue Chart
+        const revenueChartCanvas = document.getElementById('revenueChart');
+        if (revenueChartCanvas) {
+            try {
+                new Chart(revenueChartCanvas, {
+                    type: 'bar',
+                    data: revenueData,
+                    options: {
+                        scales: {
+                            y: {
+                                beginAtZero: true
+                            }
+                        },
+                        responsive: true,
+                        maintainAspectRatio: false
+                    }
+                });
+            } catch (e) {
+                console.error("Error initializing revenue chart:", e);
+                revenueChartCanvas.parentNode.innerHTML = '<div class="chart-error">Error loading chart. Please try refreshing the page.</div>';
+            }
+        }
+
+        // Rating Chart
+        const ratingChartCanvas = document.getElementById('ratingChart');
+        if (ratingChartCanvas) {
+            try {
+                new Chart(ratingChartCanvas, {
+                    type: 'doughnut',
+                    data: ratingData,
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false
+                    }
+                });
+            } catch (e) {
+                console.error("Error initializing rating chart:", e);
+                ratingChartCanvas.parentNode.innerHTML = '<div class="chart-error">Error loading chart. Please try refreshing the page.</div>';
+            }
+        }
+    }
+
+    function initializeFilters() {
         // Filter checkboxes
         const includeMembers = document.getElementById('include-members');
         const includeRevenue = document.getElementById('include-revenue');
         const includeRatings = document.getElementById('include-ratings');
         
-        // Initialize filters to ensure data appears immediately
-        function initializeFilters() {
-            // Make sure all checkboxes are checked by default
+        // Initialize
+        function setInitialFilters() {
             [includeMembers, includeRevenue, includeRatings].forEach(checkbox => {
-                checkbox.checked = true;
+                if (checkbox) checkbox.checked = true;
             });
-            
-            // Apply filters to make all data visible
             applyFilters();
         }
         
-        // Apply filters to the view
+        // Apply filters
         function applyFilters() {
             // Filter charts
             const chartContainers = document.querySelectorAll('.chart-container');
             chartContainers.forEach(chart => {
                 const type = chart.getAttribute('data-type');
                 
-                if (type === 'members') {
+                if (type === 'members' && includeMembers) {
                     chart.setAttribute('data-hidden', !includeMembers.checked);
-                } else if (type === 'revenue') {
+                } else if (type === 'revenue' && includeRevenue) {
                     chart.setAttribute('data-hidden', !includeRevenue.checked);
-                } else if (type === 'ratings') {
+                } else if (type === 'ratings' && includeRatings) {
                     chart.setAttribute('data-hidden', !includeRatings.checked);
                 }
             });
+            
+            // Filter member section
+            if (includeMembers) {
+                const memberSection = document.querySelector('.members-section');
+                if (memberSection) {
+                    memberSection.setAttribute('data-hidden', !includeMembers.checked);
+                }
+            }
         }
-        
-        // Call initialize on page load
-        initializeFilters();
         
         // Add filter change listeners
-        [includeMembers, includeRevenue, includeRatings].forEach(checkbox => {
-            checkbox.addEventListener('change', applyFilters);
-        });
+        if (includeMembers) includeMembers.addEventListener('change', applyFilters);
+        if (includeRevenue) includeRevenue.addEventListener('change', applyFilters);
+        if (includeRatings) includeRatings.addEventListener('change', applyFilters);
         
-        if (downloadPdfBtn) {
-            downloadPdfBtn.addEventListener('click', generatePDF);
-        }
+        // Initialize
+        setInitialFilters();
+    }
+
+    function generatePDF() {
+        // Create loading overlay
+        const loadingOverlay = document.createElement('div');
+        loadingOverlay.className = 'loading-overlay';
         
-        function generatePDF() {
-            // Make sure filters are properly initialized
-            initializeFilters();
-            
-            // Create loading overlay
-            const loadingOverlay = document.createElement('div');
-            loadingOverlay.className = 'loading-overlay';
-            
-            const spinner = document.createElement('div');
-            spinner.className = 'spinner';
-            
-            const loadingText = document.createElement('div');
-            loadingText.className = 'loading-text';
-            loadingText.innerText = 'Generating PDF...';
-            
-            loadingOverlay.appendChild(spinner);
-            loadingOverlay.appendChild(loadingText);
-            document.body.appendChild(loadingOverlay);
-            
-            // Use setTimeout to allow the loading indicator to appear
-            setTimeout(function() {
+        const spinner = document.createElement('div');
+        spinner.className = 'spinner';
+        
+        const loadingText = document.createElement('div');
+        loadingText.className = 'loading-text';
+        loadingText.innerText = 'Generating PDF...';
+        
+        loadingOverlay.appendChild(spinner);
+        loadingOverlay.appendChild(loadingText);
+        document.body.appendChild(loadingOverlay);
+        
+        // Use setTimeout to allow the loading indicator to appear
+        setTimeout(function() {
+            try {
                 const { jsPDF } = window.jspdf;
                 const doc = new jsPDF('p', 'mm', 'a4');
-                
-                // Define fonts for proper symbol display
-                const pdfFonts = {
-                    normal: 'Helvetica',
-                    bold: 'Helvetica-Bold'
-                };
                 
                 // Get gym info
                 const gymName = document.querySelector('h2').innerText.replace('Analytics for ', '');
                 const date = new Date().toLocaleDateString();
                 
-                // Collect data for summary
-                const summaryStats = {
-                    members: 0,
-                    revenue: 0,
-                    rating: 0
-                };
-                
-                // Try to extract data from charts
-                try {
-                    // Member data from chart
-                    const memberChart = document.getElementById('memberChart');
-                    if (memberChart && memberChart.chart) {
-                        const memberData = memberChart.chart.data.datasets[0].data;
-                        summaryStats.members = memberData.reduce((a, b) => a + b, 0);
-                    }
-                    
-                    // Revenue data from chart
-                    const revenueChart = document.getElementById('revenueChart');
-                    if (revenueChart && revenueChart.chart) {
-                        const revenueData = revenueChart.chart.data.datasets[0].data;
-                        summaryStats.revenue = revenueData.reduce((a, b) => a + b, 0);
-                    }
-                    
-                    // Rating data from chart
-                    const ratingChart = document.getElementById('ratingChart');
-                    if (ratingChart && ratingChart.chart) {
-                        const ratingData = ratingChart.chart.data.datasets[0].data;
-                        // Calculate average rating
-                        let totalReviews = ratingData.reduce((a, b) => a + b, 0);
-                        let weightedSum = 0;
-                        for (let i = 0; i < ratingData.length; i++) {
-                            weightedSum += (i + 1) * ratingData[i];
-                        }
-                        if (totalReviews > 0) {
-                            summaryStats.rating = (weightedSum / totalReviews).toFixed(1);
-                        }
-                    }
-                } catch (e) {
-                    console.log("Error extracting data for summary:", e);
-                }
-                
                 // Set up PDF
-                doc.setFont(pdfFonts.bold);
+                doc.setFont('Helvetica-Bold');
                 doc.setFontSize(22);
                 doc.text(`${gymName} - Analytics Report`, 105, 20, { align: 'center' });
                 
-                doc.setFont(pdfFonts.normal);
+                doc.setFont('Helvetica');
                 doc.setFontSize(12);
                 doc.text(`Generated on: ${date}`, 105, 30, { align: 'center' });
                 
                 // Add filter information
+                const includeMembers = document.getElementById('include-members');
+                const includeRatings = document.getElementById('include-ratings');
+                const includeRevenue = document.getElementById('include-revenue');
+                
                 doc.setFontSize(10);
                 doc.text('Filters applied:', 20, 40);
                 const filterText = [];
-                if (includeMembers.checked) filterText.push('Members');
-                if (includeRevenue.checked) filterText.push('Revenue');
-                if (includeRatings.checked) filterText.push('Ratings');
+                if (includeMembers && includeMembers.checked) filterText.push('Members');
+                if (includeRatings && includeRatings.checked) filterText.push('Ratings');
+                if (includeRevenue && includeRevenue.checked) filterText.push('Revenue');
                 doc.text(`Included: ${filterText.join(', ')}`, 20, 45);
                 
-                let currentY = 55;
-                
-                // Process charts based on filters
+                // Process charts
                 const visibleChartContainers = document.querySelectorAll('.chart-container[data-hidden="false"]');
-
-                if (visibleChartContainers.length > 0) {
-                    // Function to process charts one by one
-                    const processChart = (index) => {
-                        if (index >= visibleChartContainers.length) {
-                            // All charts processed, add summary page
-                            addSummaryPage();
-                            return;
-                        }
-                        
-                        const chart = visibleChartContainers[index];
-                        const title = chart.querySelector('h3').innerText;
-                        
-                        // Always start a new page for each chart
-                        doc.addPage();
-                        currentY = 20;
-                        
-                        // Add chart title
-                        doc.setFont(pdfFonts.bold);
-                        doc.setFontSize(14);
-                        doc.text(title, 105, currentY, { align: 'center' });
-                        currentY += 15;
-                        
-                        // Capture chart canvas
-                        const canvas = chart.querySelector('canvas');
-                        
+                
+                // Create a queue of promises for chart processing
+                const chartPromises = [];
+                
+                visibleChartContainers.forEach((chart, index) => {
+                    const title = chart.querySelector('h3').innerText;
+                    const canvas = chart.querySelector('canvas');
+                    
+                    if (!canvas) {
+                        console.error('Canvas not found in chart container');
+                        return;
+                    }
+                    
+                    const chartPromise = new Promise((resolve) => {
                         html2canvas(canvas, {
-                            scale: 2, // Better quality
+                            scale: 2,
                             backgroundColor: null,
                             logging: false
                         }).then(canvas => {
-                            // Add to PDF - center the chart horizontally
-                            const imgData = canvas.toDataURL('image/png');
-                            const imgWidth = 160; // Slightly narrower than before
-                            const imgHeight = canvas.height * imgWidth / canvas.width;
-                            
-                            // Calculate left position to center the chart
-                            const leftPos = (210 - imgWidth) / 2;
-                            
-                            doc.addImage(imgData, 'PNG', leftPos, currentY, imgWidth, imgHeight);
-                            
-                            // Process next chart
-                            processChart(index + 1);
+                            resolve({
+                                title: title,
+                                imgData: canvas.toDataURL('image/png'),
+                                width: canvas.width,
+                                height: canvas.height,
+                                index: index
+                            });
+                        }).catch(error => {
+                            console.error('Error capturing chart:', error);
+                            resolve(null); // Resolve with null to continue processing other charts
                         });
-                    };
+                    });
                     
-                    // Start processing charts
-                    processChart(0);
-                } else {
-                    // No charts to process, add summary page
-                    addSummaryPage();
-                }
+                    chartPromises.push(chartPromise);
+                });
                 
-                function addSummaryPage() {
+                // Process all charts in parallel
+                Promise.all(chartPromises).then(chartResults => {
+                    // Remove null results
+                    const validCharts = chartResults.filter(result => result !== null);
+                    
+                    // Add charts to PDF, one per page
+                    validCharts.forEach(chart => {
+                        doc.addPage();
+                        let currentY = 20;
+                        
+                        // Add chart title
+                        doc.setFont('Helvetica-Bold');
+                        doc.setFontSize(14);
+                        doc.text(chart.title, 105, currentY, { align: 'center' });
+                        currentY += 15;
+                        
+                        // Calculate image dimensions
+                        const imgWidth = 160;
+                        const imgHeight = chart.height * imgWidth / chart.width;
+                        
+                        // Center horizontally
+                        const leftPos = (210 - imgWidth) / 2;
+                        
+                        // Add chart image
+                        doc.addImage(chart.imgData, 'PNG', leftPos, currentY, imgWidth, imgHeight);
+                    });
+                    
                     // Add summary page
                     doc.addPage();
-                    doc.setFont(pdfFonts.bold);
+                    doc.setFont('Helvetica-Bold');
                     doc.setFontSize(16);
                     doc.text("Analytics Summary", 105, 20, { align: 'center' });
                     
-                    doc.setFont(pdfFonts.normal);
+                    doc.setFont('Helvetica');
                     doc.setFontSize(12);
-                    let summaryY = 40;
                     
-                    // Create a paragraph summary based on collected stats
-                    let summary = `This report presents the analytics data for ${gymName}. `;
+                    // Get filtered member counts
+                    const memberCounts = window.filteredMemberCounts || {
+                        active: document.querySelector('.member-stat-card.active .stat-value')?.textContent || '0',
+                        inactive: document.querySelector('.member-stat-card.inactive .stat-value')?.textContent || '0',
+                        total: document.querySelector('.member-stat-card.total .stat-value')?.textContent || '0'
+                    };
                     
-                    if (includeMembers.checked) {
-                        summary += `The gym has been tracking membership growth over time. `;
-                        // Add member stats from filtered view if available
-                        if (window.filteredMemberCounts) {
-                            summary += `There are currently ${window.filteredMemberCounts.active} active members and ${window.filteredMemberCounts.inactive} inactive members, for a total of ${window.filteredMemberCounts.total} members. `;
-                        } else if (summaryStats.members > 0) {
-                            summary += `A total of ${summaryStats.members} members have been recorded in the analyzed period. `;
-                        }
+                    // Create summary text
+                    let summaryText = `This report presents analytics data for ${gymName}. `;
+                    summaryText += `The gym currently has ${memberCounts.active} active members and ${memberCounts.inactive} inactive members, `;
+                    summaryText += `for a total of ${memberCounts.total} members. `;
+                    
+                    // Add chart-specific summary
+                    if (includeRevenue && includeRevenue.checked) {
+                        summaryText += "The report includes financial performance data through revenue tracking. ";
                     }
                     
-                    if (includeRevenue.checked) {
-                        summary += `Revenue tracking shows the financial performance of the gym. `;
-                        if (summaryStats.revenue > 0) {
-                            // Clean revenue value for summary
-                            const cleanRevenue = cleanTextForPDF(summaryStats.revenue.toString(), 'revenue');
-                            summary += `The gym has generated ${cleanRevenue} in revenue during the analyzed period. `;
-                        }
+                    if (includeRatings && includeRatings.checked) {
+                        summaryText += "Customer satisfaction is measured through rating distribution analysis. ";
                     }
                     
-                    if (includeRatings.checked) {
-                        summary += `Customer satisfaction is measured through ratings. `;
-                        if (summaryStats.rating > 0) {
-                            // Clean rating value for summary
-                            const cleanRating = cleanTextForPDF(summaryStats.rating.toString(), 'rating');
-                            summary += `The gym has an average rating of ${cleanRating} out of 5 stars. `;
-                            
-                            const ratingValue = parseFloat(cleanRating);
-                            if (ratingValue >= 4) {
-                                summary += "This indicates excellent customer satisfaction. ";
-                            } else if (ratingValue >= 3) {
-                                summary += "This shows good customer satisfaction with room for improvement. ";
-                            } else {
-                                summary += "This suggests significant areas for improvement in customer satisfaction. ";
-                            }
-                        }
-                    }
+                    summaryText += `\n\nThis report was generated on ${date} and provides valuable insights for gym management. `;
+                    summaryText += "The data can be used to identify trends, make data-driven decisions, and develop strategies ";
+                    summaryText += "for improving membership growth, revenue generation, and customer satisfaction.";
                     
-                    summary += `\n\nThis report was generated on ${date} and provides valuable insights for gym management. `;
-                    summary += "The data can be used to identify trends, make data-driven decisions, and develop strategies ";
-                    summary += "for improving membership growth, revenue generation, and customer satisfaction.";
-                    
-                    // Add the summary paragraph to the PDF with proper line breaks
-                    const splitText = doc.splitTextToSize(summary, 170);
-                    doc.text(splitText, 20, summaryY);
-                    
-                    // Add member section to PDF if visible
-                    if (includeMembers.checked) {
-                        // Get current Y position after summary text
-                        summaryY += (splitText.length * 6) + 15;
-                        
-                        // Check if we need a new page for member data
-                        if (summaryY > 220) {
-                            doc.addPage();
-                            summaryY = 40;
-                        }
-                        
-                        // Add member statistics header
-                        doc.setFont(pdfFonts.bold);
-                        doc.setFontSize(14);
-                        doc.text("Member Statistics", 20, summaryY);
-                        summaryY += 10;
-                        
-                        doc.setFont(pdfFonts.normal);
-                        doc.setFontSize(12);
-                        
-                        // Add active/inactive counts
-                        if (window.filteredMemberCounts) {
-                            doc.text(`Active Members: ${window.filteredMemberCounts.active}`, 25, summaryY);
-                            summaryY += 8;
-                            doc.text(`Inactive Members: ${window.filteredMemberCounts.inactive}`, 25, summaryY);
-                            summaryY += 8;
-                            doc.text(`Total Members: ${window.filteredMemberCounts.total}`, 25, summaryY);
-                            summaryY += 15;
-                        }
-                        
-                        // Add filtered members table if there are visible members
-                        const visibleMemberRows = membersTable.querySelectorAll('tbody tr.member-row[data-visible-for-pdf="true"]');
-                        if (visibleMemberRows.length > 0) {
-                            // Check if we need a new page for the table
-                            if (summaryY > 180) {
-                                doc.addPage();
-                                summaryY = 40;
-                            }
-                            
-                            // Add table header
-                            doc.setFont(pdfFonts.bold);
-                            doc.setFontSize(12);
-                            doc.text("Member List (Filtered View)", 20, summaryY);
-                            summaryY += 10;
-                            
-                            // Define table columns
-                            const columns = ["Name", "Plan", "Start Date", "End Date", "Status"];
-                            const columnWidths = [50, 35, 35, 35, 25];
-                            
-                            // Draw table header
-                            let xPos = 20;
-                            doc.setFillColor(240, 240, 240);
-                            doc.rect(xPos, summaryY - 5, 180, 10, 'F');
-                            
-                            columns.forEach((column, index) => {
-                                doc.text(column, xPos, summaryY);
-                                xPos += columnWidths[index];
-                            });
-                            
-                            summaryY += 8;
-                            
-                            // Draw table rows (max 15 rows per page)
-                            let rowCount = 0;
-                            const maxRowsPerPage = 25;
-                            
-                            visibleMemberRows.forEach((row) => {
-                                // Check if we need a new page
-                                if (rowCount >= maxRowsPerPage) {
-                                    doc.addPage();
-                                    summaryY = 20;
-                                    
-                                    // Redraw header on new page
-                                    xPos = 20;
-                                    doc.setFont(pdfFonts.bold);
-                                    doc.setFillColor(240, 240, 240);
-                                    doc.rect(xPos, summaryY - 5, 180, 10, 'F');
-                                    
-                                    columns.forEach((column, index) => {
-                                        doc.text(column, xPos, summaryY);
-                                        xPos += columnWidths[index];
-                                    });
-                                    
-                                    summaryY += 8;
-                                    rowCount = 0;
-                                }
-                                
-                                // Get cell values
-                                const name = row.cells[0].textContent.trim();
-                                const plan = row.cells[1].textContent.trim();
-                                const startDate = row.cells[2].textContent.trim();
-                                const endDate = row.cells[3].textContent.trim();
-                                const status = row.cells[4].textContent.trim();
-                                
-                                // Draw row
-                                xPos = 20;
-                                doc.setFont(pdfFonts.normal);
-                                
-                                // Add alternating row background
-                                if (rowCount % 2 === 1) {
-                                    doc.setFillColor(247, 247, 247);
-                                    doc.rect(xPos, summaryY - 5, 180, 10, 'F');
-                                }
-                                
-                                doc.text(name.length > 25 ? name.substring(0, 22) + '...' : name, xPos, summaryY);
-                                xPos += columnWidths[0];
-                                
-                                doc.text(plan.length > 15 ? plan.substring(0, 12) + '...' : plan, xPos, summaryY);
-                                xPos += columnWidths[1];
-                                
-                                doc.text(startDate, xPos, summaryY);
-                                xPos += columnWidths[2];
-                                
-                                doc.text(endDate, xPos, summaryY);
-                                xPos += columnWidths[3];
-                                
-                                // Set color based on status
-                                if (status.toLowerCase().includes('active')) {
-                                    doc.setTextColor(76, 175, 80); // Green for active
-                                } else {
-                                    doc.setTextColor(244, 67, 54); // Red for inactive
-                                }
-                                
-                                doc.text(status, xPos, summaryY);
-                                doc.setTextColor(0); // Reset to black
-                                
-                                summaryY += 10;
-                                rowCount++;
-                            });
-                        }
-                    }
+                    // Add summary text with proper line wrapping
+                    const splitText = doc.splitTextToSize(summaryText, 170);
+                    doc.text(splitText, 20, 40);
                     
                     // Add footer with page numbers
                     const pageCount = doc.getNumberOfPages();
@@ -1216,255 +1051,78 @@ $members_list = $stmt->get_result();
                         doc.text(`${gymName} Analytics Report - Page ${i} of ${pageCount}`, 105, 285, { align: 'center' });
                     }
                     
+                    // Remove loading overlay and save PDF
                     document.body.removeChild(loadingOverlay);
-                    const filterSuffix = filterText.join('_');
-                    const filename = `${gymName.replace(/\s+/g, '_')}_Analytics_${filterSuffix}_${date.replace(/\//g, '-')}.pdf`;
+                    
+                    // Generate filename with gym name and date
+                    const filename = `${gymName.replace(/\s+/g, '_')}_Analytics_${date.replace(/\//g, '-')}.pdf`;
                     doc.save(filename);
-                }
-            }, 500);
-        }
-        // Member filtering for gym_analytics.php
-        const statusFilter = document.getElementById('memberStatusFilter');
-        const startDateFilter = document.getElementById('startDateFilter');
-        const endDateFilter = document.getElementById('endDateFilter');
-        const resetFiltersBtn = document.getElementById('resetFilters');
+                }).catch(error => {
+                    console.error('Error processing charts:', error);
+                    document.body.removeChild(loadingOverlay);
+                    alert('Error generating PDF. Please try again.');
+                });
+            } catch (error) {
+                console.error('Error generating PDF:', error);
+                document.body.removeChild(loadingOverlay);
+                alert('Error generating PDF. Please try again.');
+            }
+        }, 500);
+    }
+
+    function initializeMemberFiltering() {
+        // Member filtering
+        const activeFilter = document.getElementById('filter-active-members');
+        const inactiveFilter = document.getElementById('filter-inactive-members');
+        const startDateInput = document.getElementById('start-date-filter');
+        const endDateInput = document.getElementById('end-date-filter');
+        const resetBtn = document.getElementById('reset-filters');
         const membersTable = document.getElementById('membersTable');
-            
-            if (statusFilter && membersTable) {
-                // Set default dates (last 6 months to today)
-                const today = new Date();
-                const sixMonthsAgo = new Date();
-                sixMonthsAgo.setMonth(today.getMonth() - 6);
-                
-                // Format dates for input fields
-                startDateFilter.value = formatDateForInput(sixMonthsAgo);
-                endDateFilter.value = formatDateForInput(today);
-                
-                // Apply initial filtering
-                applyFilters();
-                
-                // Add event listeners
-                statusFilter.addEventListener('change', applyFilters);
-                startDateFilter.addEventListener('change', applyFilters);
-                endDateFilter.addEventListener('change', applyFilters);
-                resetFiltersBtn.addEventListener('click', resetFilters);
-            }
-            
-            function formatDateForInput(date) {
-                const year = date.getFullYear();
-                const month = String(date.getMonth() + 1).padStart(2, '0');
-                const day = String(date.getDate()).padStart(2, '0');
-                return `${year}-${month}-${day}`;
-            }
-            
-            function resetFilters() {
-                statusFilter.value = 'all';
-                const today = new Date();
-                const sixMonthsAgo = new Date();
-                sixMonthsAgo.setMonth(today.getMonth() - 6);
-                
-                startDateFilter.value = formatDateForInput(sixMonthsAgo);
-                endDateFilter.value = formatDateForInput(today);
-                
-                applyFilters();
-            }
-            
-            function applyFilters() {
-                const statusValue = statusFilter.value;
-                const startDate = startDateFilter.value ? new Date(startDateFilter.value) : null;
-                const endDate = endDateFilter.value ? new Date(endDateFilter.value) : null;
-                
-                const rows = membersTable.querySelectorAll('tbody tr.member-row');
-                let activeCount = 0;
-                let inactiveCount = 0;
-                let totalVisible = 0;
-                
-                rows.forEach(row => {
-                    const rowStatus = row.getAttribute('data-status');
-                    const regDate = row.getAttribute('data-reg-date') ? new Date(row.getAttribute('data-reg-date')) : null;
-                    
-                    let visible = true;
-                    
-                    // Apply status filter
-                    if (statusValue !== 'all' && rowStatus !== statusValue) {
-                        visible = false;
-                    }
-                    
-                    // Apply date filters to registration date
-                    if (visible && startDate && regDate && regDate < startDate) {
-                        visible = false;
-                    }
-                    
-                    if (visible && endDate && regDate && regDate > endDate) {
-                        visible = false;
-                    }
-                    
-                    // Show/hide row
-                    row.style.display = visible ? '' : 'none';
-                    
-                    // Update counters
-                    if (visible) {
-                        totalVisible++;
-                        if (rowStatus === 'active') {
-                            activeCount++;
-                        } else if (rowStatus === 'inactive') {
-                            inactiveCount++;
-                        }
-                    }
-                });
-                
-                // Update the count displays
-                const activeCountElem = document.querySelector('.stat-pill.active .value');
-                const inactiveCountElem = document.querySelector('.stat-pill.inactive .value');
-                const totalCountElem = document.querySelector('.stat-pill.total .value');
-                
-                if (activeCountElem) activeCountElem.textContent = activeCount;
-                if (inactiveCountElem) inactiveCountElem.textContent = inactiveCount;
-                if (totalCountElem) totalCountElem.textContent = totalVisible;
-                
-                // Show/hide no data message
-                const noDataRow = membersTable.querySelector('.no-data-row');
-                if (totalVisible === 0 && !noDataRow) {
-                    const tbody = membersTable.querySelector('tbody');
-                    const tr = document.createElement('tr');
-                    tr.className = 'no-data-row';
-                    const td = document.createElement('td');
-                    td.className = 'no-data';
-                    td.setAttribute('colspan', '6');
-                    td.textContent = 'No members match the selected filters.';
-                    tr.appendChild(td);
-                    tbody.appendChild(tr);
-                } else if (totalVisible > 0 && noDataRow) {
-                    noDataRow.remove();
-                }
-            }
-                
-        function updateVisibleMembersForPDF() {
-            // This function sets a data attribute to track which members are currently visible
-            // The PDF generation code can then use this to include only filtered members
-            const rows = membersTable.querySelectorAll('tbody tr.member-row');
-            rows.forEach(row => {
-                const isVisible = row.style.display !== 'none';
-                row.setAttribute('data-visible-for-pdf', isVisible ? 'true' : 'false');
-            });
-        }
-
-    const downloadPdfBtn = document.getElementById('downloadPdfBtn');
-            if (downloadPdfBtn) {
-                // Remove any existing event listeners first
-                const newBtn = downloadPdfBtn.cloneNode(true);
-                downloadPdfBtn.parentNode.replaceChild(newBtn, downloadPdfBtn);
-                
-                // Add the correct event listener
-                newBtn.addEventListener('click', function() {
-                    if (typeof generatePDF === 'function') {
-                        generatePDF();
-                    }
-                });
-            }
-            
-            // Initialize member filtering
-            initializeMemberFiltering();
-        });
-
-        // Member filtering functionality
-        function initializeMemberFiltering() {
-            // For gym_analytics.php and gym_detailed_analytics.php
-            const statusFilter = document.querySelectorAll('#memberStatusFilter, #filter-active-members, #filter-inactive-members');
-            const startDateInput = document.querySelectorAll('#startDateFilter, #start-date-filter, #member-start-date');
-            const endDateInput = document.querySelectorAll('#endDateFilter, #end-date-filter, #member-end-date');
-            const resetBtn = document.querySelectorAll('#resetFilters, #reset-filters, #reset-member-filters');
-            
-            // Set initial date range (past 12 months)
-            const today = new Date();
-            const twelveMonthsAgo = new Date();
-            twelveMonthsAgo.setMonth(today.getMonth() - 12);
-            
-            const dateInputs = [...startDateInput, ...endDateInput].filter(el => el);
-            dateInputs.forEach(input => {
-                if (input.id.includes('start')) {
-                    input.value = formatDateForInput(twelveMonthsAgo);
-                } else {
-                    input.value = formatDateForInput(today);
-                }
-            });
-            
-            // Add event listeners to all filter elements
-            statusFilter.forEach(filter => {
-                if (filter) {
-                    filter.addEventListener('change', applyFilters);
-                }
-            });
-            
-            dateInputs.forEach(input => {
-                if (input) {
-                    input.addEventListener('change', applyFilters);
-                }
-            });
-            
-            resetBtn.forEach(btn => {
-                if (btn) {
-                    btn.addEventListener('click', resetFilters);
-                }
-            });
-            
-            // Apply initial filtering
-            applyFilters();
-        }
-
-        // Helper function to format date for input fields
+        
+        if (!membersTable) return;
+        
+        // Set initial date range (past 12 months to today)
+        const today = new Date();
+        const twelveMonthsAgo = new Date();
+        twelveMonthsAgo.setMonth(today.getMonth() - 12);
+        
+        // Format dates for input fields
+        if (startDateInput) startDateInput.value = formatDateForInput(twelveMonthsAgo);
+        if (endDateInput) endDateInput.value = formatDateForInput(today);
+        
+        // Add event listeners
+        if (activeFilter) activeFilter.addEventListener('change', applyFilters);
+        if (inactiveFilter) inactiveFilter.addEventListener('change', applyFilters);
+        if (startDateInput) startDateInput.addEventListener('change', applyFilters);
+        if (endDateInput) endDateInput.addEventListener('change', applyFilters);
+        if (resetBtn) resetBtn.addEventListener('click', resetFilters);
+        
+        // Apply initial filtering
+        applyFilters();
+        
         function formatDateForInput(date) {
             const year = date.getFullYear();
             const month = String(date.getMonth() + 1).padStart(2, '0');
             const day = String(date.getDate()).padStart(2, '0');
             return `${year}-${month}-${day}`;
         }
-
-        // Apply filters function - works for both dropdown and checkbox approaches
+        
+        function resetFilters() {
+            if (activeFilter) activeFilter.checked = true;
+            if (inactiveFilter) inactiveFilter.checked = true;
+            
+            if (startDateInput) startDateInput.value = formatDateForInput(twelveMonthsAgo);
+            if (endDateInput) endDateInput.value = formatDateForInput(today);
+            
+            applyFilters();
+        }
+        
         function applyFilters() {
-            // Get the members table - different pages may use different table IDs
-            const membersTable = document.querySelector('#membersTable, #allMembersTable');
-            if (!membersTable) return;
+            const showActive = activeFilter ? activeFilter.checked : true;
+            const showInactive = inactiveFilter ? inactiveFilter.checked : true;
+            const startDate = startDateInput && startDateInput.value ? new Date(startDateInput.value) : null;
+            const endDate = endDateInput && endDateInput.value ? new Date(endDateInput.value) : null;
             
-            // Determine filter state based on available controls
-            let showActive = true;
-            let showInactive = true;
-            let startDate = null;
-            let endDate = null;
-            let gymId = 'all';
-            
-            // Check for status dropdown
-            const statusDropdown = document.getElementById('memberStatusFilter');
-            if (statusDropdown) {
-                const statusValue = statusDropdown.value;
-                showActive = statusValue === 'all' || statusValue === 'active';
-                showInactive = statusValue === 'all' || statusValue === 'inactive';
-            }
-            
-            // Check for status checkboxes
-            const activeCheck = document.getElementById('filter-active-members');
-            const inactiveCheck = document.getElementById('filter-inactive-members');
-            if (activeCheck) showActive = activeCheck.checked;
-            if (inactiveCheck) showInactive = inactiveCheck.checked;
-            
-            // Get date filters - try different possible IDs
-            const startInput = document.querySelector('#startDateFilter, #start-date-filter, #member-start-date');
-            const endInput = document.querySelector('#endDateFilter, #end-date-filter, #member-end-date');
-            
-            if (startInput && startInput.value) {
-                startDate = new Date(startInput.value);
-            }
-            if (endInput && endInput.value) {
-                endDate = new Date(endInput.value);
-            }
-            
-            // Check for gym filter (specific to all_gyms_analytics.php)
-            const gymFilter = document.getElementById('gym-filter');
-            if (gymFilter) {
-                gymId = gymFilter.value;
-            }
-            
-            // Apply filters to the rows
             const rows = membersTable.querySelectorAll('tbody tr.member-row');
             let activeCount = 0;
             let inactiveCount = 0;
@@ -1472,8 +1130,7 @@ $members_list = $stmt->get_result();
             
             rows.forEach(row => {
                 const rowStatus = row.getAttribute('data-status');
-                const rowGymId = row.getAttribute('data-gym-id'); // May be null for gym-specific pages
-                const regDate = row.getAttribute('data-reg-date') ? new Date(row.getAttribute('data-reg-date')) : null;
+                const startDateValue = row.getAttribute('data-start-date') ? new Date(row.getAttribute('data-start-date')) : null;
                 
                 let visible = true;
                 
@@ -1482,24 +1139,19 @@ $members_list = $stmt->get_result();
                     visible = false;
                 }
                 
-                // Apply gym filter if available
-                if (visible && gymId !== 'all' && rowGymId && rowGymId !== gymId) {
+                // Apply date filters
+                if (visible && startDate && startDateValue && startDateValue < startDate) {
                     visible = false;
                 }
                 
-                // Apply date range filter
-                if (visible && startDate && regDate && regDate < startDate) {
-                    visible = false;
-                }
-                
-                if (visible && endDate && regDate && regDate > endDate) {
+                if (visible && endDate && startDateValue && startDateValue > endDate) {
                     visible = false;
                 }
                 
                 // Show/hide row
                 row.style.display = visible ? '' : 'none';
                 
-                // Update counters for visible rows
+                // Update counters
                 if (visible) {
                     totalCount++;
                     if (rowStatus === 'active') {
@@ -1510,146 +1162,42 @@ $members_list = $stmt->get_result();
                 }
             });
             
-            // Update count displays (handle different display elements across pages)
-            updateFilteredCounts(activeCount, inactiveCount, totalCount);
+            // Update the visible count displays
+            updateCount('.member-stat-card.active .stat-value', activeCount);
+            updateCount('.member-stat-card.inactive .stat-value', inactiveCount);
+            updateCount('.member-stat-card.total .stat-value', totalCount);
             
             // Show no-data message if no visible rows
-            displayNoDataMessage(totalCount, membersTable);
+            const noDataRow = membersTable.querySelector('.no-data-row');
+            if (totalCount === 0 && !noDataRow) {
+                const tbody = membersTable.querySelector('tbody');
+                const tr = document.createElement('tr');
+                tr.className = 'no-data-row';
+                const td = document.createElement('td');
+                td.className = 'no-data';
+                td.setAttribute('colspan', '6');
+                td.textContent = 'No members match the selected filters.';
+                tr.appendChild(td);
+                tbody.appendChild(tr);
+            } else if (totalCount > 0 && noDataRow) {
+                noDataRow.remove();
+            }
             
             // Store filtered data for PDF export
-            storeFilteredData(activeCount, inactiveCount, totalCount, rows);
-        }
-
-        // Reset filters to default values
-        function resetFilters() {
-            // Reset status filters
-            const statusDropdown = document.getElementById('memberStatusFilter');
-            if (statusDropdown) statusDropdown.value = 'all';
-            
-            const activeCheck = document.getElementById('filter-active-members');
-            const inactiveCheck = document.getElementById('filter-inactive-members');
-            if (activeCheck) activeCheck.checked = true;
-            if (inactiveCheck) inactiveCheck.checked = true;
-            
-            // Reset date inputs
-            const today = new Date();
-            const twelveMonthsAgo = new Date();
-            twelveMonthsAgo.setMonth(today.getMonth() - 12);
-            
-            const startInput = document.querySelector('#startDateFilter, #start-date-filter, #member-start-date');
-            const endInput = document.querySelector('#endDateFilter, #end-date-filter, #member-end-date');
-            
-            if (startInput) startInput.value = formatDateForInput(twelveMonthsAgo);
-            if (endInput) endInput.value = formatDateForInput(today);
-            
-            // Reset gym filter if present
-            const gymFilter = document.getElementById('gym-filter');
-            if (gymFilter) gymFilter.value = 'all';
-            
-            // Apply the reset filters
-            applyFilters();
-        }
-
-        // Update count displays across all possible element types
-        function updateFilteredCounts(activeCount, inactiveCount, totalCount) {
-            // Try different element selectors used across the various pages
-            
-            // Active count
-            updateElement('.member-stat-card.active .stat-value', activeCount);
-            updateElement('.stat-pill.active .value', activeCount);
-            updateElement('#active-members-count', activeCount);
-            updateElement('#active-count', activeCount);
-            
-            // Inactive count
-            updateElement('.member-stat-card.inactive .stat-value', inactiveCount);
-            updateElement('.stat-pill.inactive .value', inactiveCount);
-            updateElement('#inactive-members-count', inactiveCount);
-            updateElement('#inactive-count', inactiveCount);
-            
-            // Total count
-            updateElement('.member-stat-card.total .stat-value', totalCount);
-            updateElement('.stat-pill.total .value', totalCount);
-            updateElement('#total-members-count', totalCount);
-            updateElement('#total-count', totalCount);
-        }
-
-        // Helper to update element text if element exists
-        function updateElement(selector, value) {
-            const element = document.querySelector(selector);
-            if (element) {
-                element.textContent = value;
-            }
-        }
-
-        // Show no data message if needed
-        function displayNoDataMessage(visibleCount, table) {
-            // Remove existing message if any
-            const existingMessage = table.querySelector('.no-data-row');
-            if (existingMessage) {
-                existingMessage.remove();
-            }
-            
-            // Add message if no visible rows
-            if (visibleCount === 0) {
-                const tbody = table.querySelector('tbody');
-                if (tbody) {
-                    const tr = document.createElement('tr');
-                    tr.className = 'no-data-row';
-                    
-                    const td = document.createElement('td');
-                    // Get number of columns from thead
-                    const colCount = table.querySelector('thead tr th')?.length || 6;
-                    td.setAttribute('colspan', colCount);
-                    td.className = 'no-data';
-                    td.textContent = 'No members match the selected filters.';
-                    
-                    tr.appendChild(td);
-                    tbody.appendChild(tr);
-                }
-            }
-        }
-
-        // Store filtered data for PDF export
-        function storeFilteredData(activeCount, inactiveCount, totalCount, rows) {
-            // Create global object to store filtered counts for PDF
             window.filteredMemberCounts = {
                 active: activeCount,
                 inactive: inactiveCount,
-                total: totalCount,
-                byGym: {}
+                total: totalCount
             };
-            
-            // If we have gym data, track it for the PDF
-            const gymColumn = document.querySelector('#allMembersTable thead th:first-child');
-            if (gymColumn && gymColumn.textContent.includes('Gym')) {
-                // Process visible rows to group by gym
-                Array.from(rows).forEach(row => {
-                    if (row.style.display !== 'none') {
-                        const gymName = row.cells[0].textContent.trim();
-                        const gymId = row.getAttribute('data-gym-id') || gymName; // Use ID if available, otherwise name
-                        const status = row.getAttribute('data-status');
-                        
-                        if (!window.filteredMemberCounts.byGym[gymId]) {
-                            window.filteredMemberCounts.byGym[gymId] = {
-                                name: gymName,
-                                active: 0,
-                                inactive: 0,
-                                total: 0
-                            };
-                        }
-                        
-                        window.filteredMemberCounts.byGym[gymId].total++;
-                        
-                        if (status === 'active') {
-                            window.filteredMemberCounts.byGym[gymId].active++;
-                        } else if (status === 'inactive') {
-                            window.filteredMemberCounts.byGym[gymId].inactive++;
-                        }
-                    }
-                });
-            }
         }
-
+        
+        function updateCount(selector, value) {
+            const elements = document.querySelectorAll(selector);
+            elements.forEach(el => {
+                if (el) el.textContent = value;
+            });
+        }
+    }
     </script>
 </body>
 </html>
