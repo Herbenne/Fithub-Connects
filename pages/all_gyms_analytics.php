@@ -1328,133 +1328,287 @@ $all_members_result = $db_connection->query($all_members_query);
                     }
 
                     // Then add a member breakdown section to the PDF
-                    if (includeMembers.checked) {
-                        // Add a members section title
+                    if (includeMembers && includeMembers.checked) {
+                        // Add a new page
                         doc.addPage();
                         doc.setFont(pdfFonts.bold);
                         doc.setFontSize(16);
-                        doc.text('Platform Members Overview', 20, 20);
-                        currentY = 30;
+                        doc.text('Platform Members Overview', 105, 20, { align: 'center' });
+                        currentY = 40;
                         
+                        // Get member counts - either from filtered view or original data
+                        const activeCount = document.getElementById('active-members-count')?.textContent || overall_stats['active_members'];
+                        const inactiveCount = document.getElementById('inactive-members-count')?.textContent || overall_stats['inactive_members'];
+                        const totalCount = document.getElementById('total-members-count')?.textContent || overall_stats['total_members'];
+                        
+                        // Add member stats
                         doc.setFont(pdfFonts.normal);
                         doc.setFontSize(12);
                         
-                        // Add member statistics
-                        const activeCount = window.filteredMemberCounts ? window.filteredMemberCounts.active : parseInt(overall_stats['active_members']);
-                        const inactiveCount = window.filteredMemberCounts ? window.filteredMemberCounts.inactive : parseInt(overall_stats['inactive_members']);
-                        const totalCount = activeCount + inactiveCount;
+                        doc.text(`Active Members: ${activeCount}`, 20, currentY);
+                        currentY += 10;
+                        doc.text(`Inactive Members: ${inactiveCount}`, 20, currentY);
+                        currentY += 10;
+                        doc.text(`Total Members: ${totalCount}`, 20, currentY);
+                        currentY += 20;
                         
-                        doc.text(`Active Members: ${activeCount.toLocaleString()}`, 20, currentY);
-                        currentY += 8;
-                        doc.text(`Inactive Members: ${inactiveCount.toLocaleString()}`, 20, currentY);
-                        currentY += 8;
-                        doc.text(`Total Members: ${totalCount.toLocaleString()}`, 20, currentY);
-                        currentY += 15;
+                        // Add gym breakdown
+                        doc.setFont(pdfFonts.bold);
+                        doc.text('Membership Distribution by Gym', 20, currentY);
+                        currentY += 10;
                         
-                        // Add gym-by-gym member breakdown if detailed info is available
+                        // Set up table for gym membership breakdown
+                        const columns = ["Gym Name", "Active", "Inactive", "Total"];
+                        const columnWidths = [100, 25, 25, 25];
+                        
+                        // Draw table header
+                        let xPos = 20;
+                        doc.setFillColor(240, 240, 240);
+                        doc.rect(xPos, currentY - 5, 175, 10, 'F');
+                        
+                        columns.forEach((column, index) => {
+                            doc.text(column, xPos, currentY);
+                            xPos += columnWidths[index];
+                        });
+                        
+                        currentY += 10;
+                        
+                        // Get gym breakdown either from filtered data or fresh data
+                        let gymMemberData = [];
+                        
                         if (window.filteredMemberCounts && window.filteredMemberCounts.byGym) {
-                            doc.setFont(pdfFonts.bold);
-                            doc.setFontSize(14);
-                            doc.text('Membership Distribution by Gym', 20, currentY);
-                            currentY += 10;
-                            
-                            // Create a table header
-                            const columns = ["Gym Name", "Active", "Inactive", "Total"];
-                            const columnWidths = [100, 25, 25, 25];
-                            
-                            // Draw table header
-                            let xPos = 20;
-                            doc.setFillColor(240, 240, 240);
-                            doc.rect(xPos, currentY - 8, 175, 12, 'F');
-                            
-                            columns.forEach((column, index) => {
-                                doc.text(column, xPos, currentY);
-                                xPos += columnWidths[index];
+                            // Use filtered data if available
+                            Object.keys(window.filteredMemberCounts.byGym).forEach(gymId => {
+                                gymMemberData.push(window.filteredMemberCounts.byGym[gymId]);
                             });
-                            
-                            currentY += 12;
-                            doc.setFont(pdfFonts.normal);
-                            
-                            // Draw each gym's member stats
-                            Object.keys(window.filteredMemberCounts.byGym).forEach((gymId, index) => {
-                                const gymData = window.filteredMemberCounts.byGym[gymId];
-                                
-                                // Check if we need a new page
-                                if (currentY > 270) {
-                                    doc.addPage();
-                                    currentY = 20;
-                                    
-                                    // Redraw header
-                                    doc.setFont(pdfFonts.bold);
-                                    doc.text('Membership Distribution by Gym (Continued)', 20, currentY);
-                                    currentY += 10;
-                                    
-                                    // Redraw table header
-                                    xPos = 20;
-                                    doc.setFillColor(240, 240, 240);
-                                    doc.rect(xPos, currentY - 8, 175, 12, 'F');
-                                    
-                                    columns.forEach((column, index) => {
-                                        doc.text(column, xPos, currentY);
-                                        xPos += columnWidths[index];
-                                    });
-                                    
-                                    currentY += 12;
-                                    doc.setFont(pdfFonts.normal);
-                                }
-                                
-                                // Add alternating row background
-                                if (index % 2 === 1) {
-                                    doc.setFillColor(247, 247, 247);
-                                    doc.rect(20, currentY - 8, 175, 12, 'F');
-                                }
-                                
-                                // Draw gym data
-                                xPos = 20;
-                                
-                                // Truncate long gym names
-                                const gymName = gymData.name.length > 45 ? gymData.name.substring(0, 42) + '...' : gymData.name;
-                                
-                                doc.text(gymName, xPos, currentY);
-                                xPos += columnWidths[0];
-                                
-                                doc.text(gymData.active.toString(), xPos, currentY);
-                                xPos += columnWidths[1];
-                                
-                                doc.text(gymData.inactive.toString(), xPos, currentY);
-                                xPos += columnWidths[2];
-                                
-                                doc.text(gymData.total.toString(), xPos, currentY);
-                                
-                                currentY += 12;
-                            });
-                        }
-                    }
-                    
-                    // Add a summary page at the end
-                    doc.addPage();
-                    doc.setFont(pdfFonts.bold);
-                    doc.setFontSize(16);
-                    doc.text("Analytics Summary", 105, 20, { align: 'center' });
-                    
-                    doc.setFont(pdfFonts.normal);
-                    doc.setFontSize(12);
-                    let summaryY = 40;
-                    
-                    // Create a paragraph summary based on collected stats
-                    let summary = `This report presents a comprehensive overview of the FitHub platform performance. `;
-
-                    if (summaryStats.totalGyms) {
-                        summary += `The platform currently hosts ${summaryStats.totalGyms} registered gyms. `;
-                    }
-
-                    if (summaryStats.totalMembers) {
-                        // Include filtered members if available
-                        if (window.filteredMemberCounts) {
-                            summary += `There are ${window.filteredMemberCounts.active} active members and ${window.filteredMemberCounts.inactive} inactive members, for a total of ${window.filteredMemberCounts.total} members across all gyms. `;
                         } else {
-                            summary += `There are ${summaryStats.totalMembers} active members across all gyms. `;
+                            // Otherwise, collect from the table
+                            const memberTable = document.getElementById('allMembersTable');
+                            if (memberTable) {
+                                const rows = memberTable.querySelectorAll('tbody tr.member-row');
+                                const gymData = {};
+                                
+                                rows.forEach(row => {
+                                    if (row.style.display !== 'none') {
+                                        const gymName = row.cells[0].textContent.trim();
+                                        const status = row.getAttribute('data-status');
+                                        
+                                        if (!gymData[gymName]) {
+                                            gymData[gymName] = {
+                                                name: gymName,
+                                                active: 0,
+                                                inactive: 0,
+                                                total: 0
+                                            };
+                                        }
+                                        
+                                        gymData[gymName].total++;
+                                        
+                                        if (status === 'active') {
+                                            gymData[gymName].active++;
+                                        } else if (status === 'inactive') {
+                                            gymData[gymName].inactive++;
+                                        }
+                                    }
+                                });
+                                
+                                gymMemberData = Object.values(gymData);
+                            }
                         }
+                        
+                        // Draw rows
+                        doc.setFont(pdfFonts.normal);
+                        let rowIndex = 0;
+                        
+                        gymMemberData.forEach(gym => {
+                            // Check if we need a new page
+                            if (currentY > 270) {
+                                doc.addPage();
+                                currentY = 20;
+                                
+                                // Redraw header for the new page
+                                doc.setFont(pdfFonts.bold);
+                                doc.text('Membership Distribution by Gym (Continued)', 20, currentY);
+                                currentY += 10;
+                                
+                                // Redraw table header
+                                xPos = 20;
+                                doc.setFillColor(240, 240, 240);
+                                doc.rect(xPos, currentY - 5, 175, 10, 'F');
+                                
+                                columns.forEach((column, index) => {
+                                    doc.text(column, xPos, currentY);
+                                    xPos += columnWidths[index];
+                                });
+                                
+                                currentY += 10;
+                                doc.setFont(pdfFonts.normal);
+                                rowIndex = 0;
+                            }
+                            
+                            // Add alternating row background
+                            if (rowIndex % 2 === 1) {
+                                doc.setFillColor(245, 245, 245);
+                                doc.rect(20, currentY - 5, 175, 10, 'F');
+                            }
+                            
+                            // Add gym data
+                            xPos = 20;
+                            
+                            // Gym name (truncate if too long)
+                            const gymName = gym.name.length > 45 ? gym.name.substring(0, 42) + '...' : gym.name;
+                            doc.text(gymName, xPos, currentY);
+                            xPos += columnWidths[0];
+                            
+                            // Active count
+                            doc.text(gym.active.toString(), xPos, currentY);
+                            xPos += columnWidths[1];
+                            
+                            // Inactive count
+                            doc.text(gym.inactive.toString(), xPos, currentY);
+                            xPos += columnWidths[2];
+                            
+                            // Total count
+                            doc.text(gym.total.toString(), xPos, currentY);
+                            
+                            currentY += 10;
+                            rowIndex++;
+                        });
+                        
+                        // Add member list table
+                        currentY += 10;
+                        if (currentY > 240) {
+                            doc.addPage();
+                            currentY = 20;
+                        }
+                        
+                        // Get member rows from table
+                        const memberTable = document.getElementById('allMembersTable');
+                        if (memberTable) {
+                            const visibleRows = Array.from(memberTable.querySelectorAll('tbody tr.member-row'))
+                                .filter(row => row.style.display !== 'none');
+                            
+                            if (visibleRows.length > 0) {
+                                // Add table header
+                                doc.setFont(pdfFonts.bold);
+                                doc.text('Member List (Filtered View)', 105, currentY, { align: 'center' });
+                                currentY += 15;
+                                
+                                // Set up table columns
+                                const memberColumns = ["Gym", "Name", "Registration", "Plan", "Status"];
+                                const memberColWidths = [50, 50, 35, 30, 20];
+                                
+                                // Draw table header
+                                xPos = 15;
+                                doc.setFillColor(240, 240, 240);
+                                doc.rect(xPos, currentY - 5, 185, 10, 'F');
+                                
+                                memberColumns.forEach((column, index) => {
+                                    doc.text(column, xPos + 2, currentY);
+                                    xPos += memberColWidths[index];
+                                });
+                                
+                                currentY += 10;
+                                doc.setFont(pdfFonts.normal);
+                                
+                                // Draw table rows
+                                let rowCount = 0;
+                                const rowsPerPage = 25;
+                                
+                                // Maximum rows to show to avoid excessive length
+                                const maxRows = Math.min(visibleRows.length, 100);
+                                
+                                for (let i = 0; i < maxRows; i++) {
+                                    const row = visibleRows[i];
+                                    
+                                    // Check if we need a new page
+                                    if (rowCount >= rowsPerPage) {
+                                        doc.addPage();
+                                        currentY = 20;
+                                        
+                                        // Redraw header on new page
+                                        doc.setFont(pdfFonts.bold);
+                                        doc.text("Member List (Continued)", 105, currentY, { align: 'center' });
+                                        currentY += 15;
+                                        
+                                        // Redraw table header
+                                        xPos = 15;
+                                        doc.setFillColor(240, 240, 240);
+                                        doc.rect(xPos, currentY - 5, 185, 10, 'F');
+                                        
+                                        memberColumns.forEach((column, colIndex) => {
+                                            doc.text(column, xPos + 2, currentY);
+                                            xPos += memberColWidths[colIndex];
+                                        });
+                                        
+                                        currentY += 10;
+                                        doc.setFont(pdfFonts.normal);
+                                        rowCount = 0;
+                                    }
+                                    
+                                    // Add alternating row background
+                                    if (rowCount % 2 === 1) {
+                                        doc.setFillColor(245, 245, 245);
+                                        doc.rect(15, currentY - 5, 185, 10, 'F');
+                                    }
+                                    
+                                    // Extract cell data
+                                    const gymName = row.cells[0].textContent.trim();
+                                    const memberName = row.cells[1].textContent.trim();
+                                    const regDate = row.cells[2].textContent.trim();
+                                    const plan = row.cells[3].textContent.trim();
+                                    const status = row.cells[6].textContent.trim();
+                                    
+                                    // Draw cell data
+                                    xPos = 15;
+                                    
+                                    // Gym Name (truncate if too long)
+                                    doc.text(gymName.length > 22 ? gymName.substring(0, 19) + '...' : gymName, xPos + 2, currentY);
+                                    xPos += memberColWidths[0];
+                                    
+                                    // Member Name (truncate if too long)
+                                    doc.text(memberName.length > 22 ? memberName.substring(0, 19) + '...' : memberName, xPos + 2, currentY);
+                                    xPos += memberColWidths[1];
+                                    
+                                    // Registration Date
+                                    doc.text(regDate, xPos + 2, currentY);
+                                    xPos += memberColWidths[2];
+                                    
+                                    // Plan (truncate if too long)
+                                    doc.text(plan.length > 12 ? plan.substring(0, 9) + '...' : plan, xPos + 2, currentY);
+                                    xPos += memberColWidths[3];
+                                    
+                                    // Status
+                                    if (status.toLowerCase().includes('active')) {
+                                        doc.setTextColor(76, 175, 80); // Green
+                                    } else {
+                                        doc.setTextColor(244, 67, 54); // Red
+                                    }
+                                    doc.text(status, xPos + 2, currentY);
+                                    doc.setTextColor(0); // Reset to black
+                                    
+                                    currentY += 10;
+                                    rowCount++;
+                                }
+                                
+                                // Add note if there are more members than shown
+                                if (visibleRows.length > maxRows) {
+                                    currentY += 5;
+                                    doc.text(`Note: Showing ${maxRows} of ${visibleRows.length} members.`, 20, currentY);
+                                }
+                            }
+                        }
+                    }
+
+                    // Update the summary text to include member stats
+                    if (includeMembers && includeMembers.checked) {
+                        // Get filtered member counts for summary
+                        const activeCount = document.getElementById('active-members-count')?.textContent || overall_stats['active_members'];
+                        const inactiveCount = document.getElementById('inactive-members-count')?.textContent || overall_stats['inactive_members'];
+                        const totalCount = document.getElementById('total-members-count')?.textContent || overall_stats['total_members'];
+                        
+                        // Add to summary text
+                        summary += `There are ${activeCount} active members and ${inactiveCount} inactive members, for a total of ${totalCount} members across all gyms. `;
                     }
                     
                     if (summaryStats.avgRating) {
@@ -1697,7 +1851,308 @@ $all_members_result = $db_connection->query($all_members_query);
                     });
                 }
             }
+
+        const downloadPdfBtn = document.getElementById('downloadPdfBtn');
+            if (downloadPdfBtn) {
+                // Remove any existing event listeners first
+                const newBtn = downloadPdfBtn.cloneNode(true);
+                downloadPdfBtn.parentNode.replaceChild(newBtn, downloadPdfBtn);
+                
+                // Add the correct event listener
+                newBtn.addEventListener('click', function() {
+                    if (typeof generatePDF === 'function') {
+                        generatePDF();
+                    }
+                });
+            }
+            
+            // Initialize member filtering
+            initializeMemberFiltering();
         });
+
+        // Member filtering functionality
+        function initializeMemberFiltering() {
+            // For gym_analytics.php and gym_detailed_analytics.php
+            const statusFilter = document.querySelectorAll('#memberStatusFilter, #filter-active-members, #filter-inactive-members');
+            const startDateInput = document.querySelectorAll('#startDateFilter, #start-date-filter, #member-start-date');
+            const endDateInput = document.querySelectorAll('#endDateFilter, #end-date-filter, #member-end-date');
+            const resetBtn = document.querySelectorAll('#resetFilters, #reset-filters, #reset-member-filters');
+            
+            // Set initial date range (past 12 months)
+            const today = new Date();
+            const twelveMonthsAgo = new Date();
+            twelveMonthsAgo.setMonth(today.getMonth() - 12);
+            
+            const dateInputs = [...startDateInput, ...endDateInput].filter(el => el);
+            dateInputs.forEach(input => {
+                if (input.id.includes('start')) {
+                    input.value = formatDateForInput(twelveMonthsAgo);
+                } else {
+                    input.value = formatDateForInput(today);
+                }
+            });
+            
+            // Add event listeners to all filter elements
+            statusFilter.forEach(filter => {
+                if (filter) {
+                    filter.addEventListener('change', applyFilters);
+                }
+            });
+            
+            dateInputs.forEach(input => {
+                if (input) {
+                    input.addEventListener('change', applyFilters);
+                }
+            });
+            
+            resetBtn.forEach(btn => {
+                if (btn) {
+                    btn.addEventListener('click', resetFilters);
+                }
+            });
+            
+            // Apply initial filtering
+            applyFilters();
+        }
+
+        // Helper function to format date for input fields
+        function formatDateForInput(date) {
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
+
+        // Apply filters function - works for both dropdown and checkbox approaches
+        function applyFilters() {
+            // Get the members table - different pages may use different table IDs
+            const membersTable = document.querySelector('#membersTable, #allMembersTable');
+            if (!membersTable) return;
+            
+            // Determine filter state based on available controls
+            let showActive = true;
+            let showInactive = true;
+            let startDate = null;
+            let endDate = null;
+            let gymId = 'all';
+            
+            // Check for status dropdown
+            const statusDropdown = document.getElementById('memberStatusFilter');
+            if (statusDropdown) {
+                const statusValue = statusDropdown.value;
+                showActive = statusValue === 'all' || statusValue === 'active';
+                showInactive = statusValue === 'all' || statusValue === 'inactive';
+            }
+            
+            // Check for status checkboxes
+            const activeCheck = document.getElementById('filter-active-members');
+            const inactiveCheck = document.getElementById('filter-inactive-members');
+            if (activeCheck) showActive = activeCheck.checked;
+            if (inactiveCheck) showInactive = inactiveCheck.checked;
+            
+            // Get date filters - try different possible IDs
+            const startInput = document.querySelector('#startDateFilter, #start-date-filter, #member-start-date');
+            const endInput = document.querySelector('#endDateFilter, #end-date-filter, #member-end-date');
+            
+            if (startInput && startInput.value) {
+                startDate = new Date(startInput.value);
+            }
+            if (endInput && endInput.value) {
+                endDate = new Date(endInput.value);
+            }
+            
+            // Check for gym filter (specific to all_gyms_analytics.php)
+            const gymFilter = document.getElementById('gym-filter');
+            if (gymFilter) {
+                gymId = gymFilter.value;
+            }
+            
+            // Apply filters to the rows
+            const rows = membersTable.querySelectorAll('tbody tr.member-row');
+            let activeCount = 0;
+            let inactiveCount = 0;
+            let totalCount = 0;
+            
+            rows.forEach(row => {
+                const rowStatus = row.getAttribute('data-status');
+                const rowGymId = row.getAttribute('data-gym-id'); // May be null for gym-specific pages
+                const regDate = row.getAttribute('data-reg-date') ? new Date(row.getAttribute('data-reg-date')) : null;
+                
+                let visible = true;
+                
+                // Apply status filter
+                if ((rowStatus === 'active' && !showActive) || (rowStatus === 'inactive' && !showInactive)) {
+                    visible = false;
+                }
+                
+                // Apply gym filter if available
+                if (visible && gymId !== 'all' && rowGymId && rowGymId !== gymId) {
+                    visible = false;
+                }
+                
+                // Apply date range filter
+                if (visible && startDate && regDate && regDate < startDate) {
+                    visible = false;
+                }
+                
+                if (visible && endDate && regDate && regDate > endDate) {
+                    visible = false;
+                }
+                
+                // Show/hide row
+                row.style.display = visible ? '' : 'none';
+                
+                // Update counters for visible rows
+                if (visible) {
+                    totalCount++;
+                    if (rowStatus === 'active') {
+                        activeCount++;
+                    } else if (rowStatus === 'inactive') {
+                        inactiveCount++;
+                    }
+                }
+            });
+            
+            // Update count displays (handle different display elements across pages)
+            updateFilteredCounts(activeCount, inactiveCount, totalCount);
+            
+            // Show no-data message if no visible rows
+            displayNoDataMessage(totalCount, membersTable);
+            
+            // Store filtered data for PDF export
+            storeFilteredData(activeCount, inactiveCount, totalCount, rows);
+        }
+
+        // Reset filters to default values
+        function resetFilters() {
+            // Reset status filters
+            const statusDropdown = document.getElementById('memberStatusFilter');
+            if (statusDropdown) statusDropdown.value = 'all';
+            
+            const activeCheck = document.getElementById('filter-active-members');
+            const inactiveCheck = document.getElementById('filter-inactive-members');
+            if (activeCheck) activeCheck.checked = true;
+            if (inactiveCheck) inactiveCheck.checked = true;
+            
+            // Reset date inputs
+            const today = new Date();
+            const twelveMonthsAgo = new Date();
+            twelveMonthsAgo.setMonth(today.getMonth() - 12);
+            
+            const startInput = document.querySelector('#startDateFilter, #start-date-filter, #member-start-date');
+            const endInput = document.querySelector('#endDateFilter, #end-date-filter, #member-end-date');
+            
+            if (startInput) startInput.value = formatDateForInput(twelveMonthsAgo);
+            if (endInput) endInput.value = formatDateForInput(today);
+            
+            // Reset gym filter if present
+            const gymFilter = document.getElementById('gym-filter');
+            if (gymFilter) gymFilter.value = 'all';
+            
+            // Apply the reset filters
+            applyFilters();
+        }
+
+        // Update count displays across all possible element types
+        function updateFilteredCounts(activeCount, inactiveCount, totalCount) {
+            // Try different element selectors used across the various pages
+            
+            // Active count
+            updateElement('.member-stat-card.active .stat-value', activeCount);
+            updateElement('.stat-pill.active .value', activeCount);
+            updateElement('#active-members-count', activeCount);
+            updateElement('#active-count', activeCount);
+            
+            // Inactive count
+            updateElement('.member-stat-card.inactive .stat-value', inactiveCount);
+            updateElement('.stat-pill.inactive .value', inactiveCount);
+            updateElement('#inactive-members-count', inactiveCount);
+            updateElement('#inactive-count', inactiveCount);
+            
+            // Total count
+            updateElement('.member-stat-card.total .stat-value', totalCount);
+            updateElement('.stat-pill.total .value', totalCount);
+            updateElement('#total-members-count', totalCount);
+            updateElement('#total-count', totalCount);
+        }
+
+        // Helper to update element text if element exists
+        function updateElement(selector, value) {
+            const element = document.querySelector(selector);
+            if (element) {
+                element.textContent = value;
+            }
+        }
+
+        // Show no data message if needed
+        function displayNoDataMessage(visibleCount, table) {
+            // Remove existing message if any
+            const existingMessage = table.querySelector('.no-data-row');
+            if (existingMessage) {
+                existingMessage.remove();
+            }
+            
+            // Add message if no visible rows
+            if (visibleCount === 0) {
+                const tbody = table.querySelector('tbody');
+                if (tbody) {
+                    const tr = document.createElement('tr');
+                    tr.className = 'no-data-row';
+                    
+                    const td = document.createElement('td');
+                    // Get number of columns from thead
+                    const colCount = table.querySelector('thead tr th')?.length || 6;
+                    td.setAttribute('colspan', colCount);
+                    td.className = 'no-data';
+                    td.textContent = 'No members match the selected filters.';
+                    
+                    tr.appendChild(td);
+                    tbody.appendChild(tr);
+                }
+            }
+        }
+
+        // Store filtered data for PDF export
+        function storeFilteredData(activeCount, inactiveCount, totalCount, rows) {
+            // Create global object to store filtered counts for PDF
+            window.filteredMemberCounts = {
+                active: activeCount,
+                inactive: inactiveCount,
+                total: totalCount,
+                byGym: {}
+            };
+            
+            // If we have gym data, track it for the PDF
+            const gymColumn = document.querySelector('#allMembersTable thead th:first-child');
+            if (gymColumn && gymColumn.textContent.includes('Gym')) {
+                // Process visible rows to group by gym
+                Array.from(rows).forEach(row => {
+                    if (row.style.display !== 'none') {
+                        const gymName = row.cells[0].textContent.trim();
+                        const gymId = row.getAttribute('data-gym-id') || gymName; // Use ID if available, otherwise name
+                        const status = row.getAttribute('data-status');
+                        
+                        if (!window.filteredMemberCounts.byGym[gymId]) {
+                            window.filteredMemberCounts.byGym[gymId] = {
+                                name: gymName,
+                                active: 0,
+                                inactive: 0,
+                                total: 0
+                            };
+                        }
+                        
+                        window.filteredMemberCounts.byGym[gymId].total++;
+                        
+                        if (status === 'active') {
+                            window.filteredMemberCounts.byGym[gymId].active++;
+                        } else if (status === 'inactive') {
+                            window.filteredMemberCounts.byGym[gymId].inactive++;
+                        }
+                    }
+                });
+            }
+        }
+
         </script>
     </body>
 </html>
