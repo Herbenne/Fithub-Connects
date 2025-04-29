@@ -325,7 +325,7 @@ $all_members_result = $db_connection->query($all_members_query);
         }
 
         .section-header h2 i {
-            color: #4CAF50;
+            color: #ffb22c;
         }
 
         .toggle-btn {
@@ -350,6 +350,7 @@ $all_members_result = $db_connection->query($all_members_query);
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
             gap: 20px;
+            margin-top: 25px;
             margin-bottom: 25px;
         }
 
@@ -613,7 +614,7 @@ $all_members_result = $db_connection->query($all_members_query);
         }
 
         .all-members-section h2 i {
-            color: #4CAF50;
+            color: #ffb22c;
         }
 
         .member-filter-btn {
