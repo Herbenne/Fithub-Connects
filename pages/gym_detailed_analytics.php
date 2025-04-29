@@ -214,9 +214,8 @@ $rating_stats = $stmt->get_result();
                 <h3>Rating Distribution</h3>
                 <canvas id="ratingChart"></canvas>
             </div>
-        </section>
 
-        <div class="members-section" data-type="members">
+            <div class="members-section" data-type="members">
                 <h2 class="section-title"><i class="fas fa-users"></i> Platform Members</h2>
                 
                 <div class="member-stats-cards">
@@ -582,6 +581,8 @@ $rating_stats = $stmt->get_result();
             }
             </style>
     </div>
+        </section>
+
 
     <style>
     .analytics-container {
