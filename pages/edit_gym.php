@@ -62,7 +62,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['update_gym'])) {
                 if ($new_thumbnail) {
                     // If there was an old thumbnail, delete it
                     if (!empty($gym_thumbnail)) {
-                        $awsManager->deleteFile($gym_thumbnail);
+                        $delete_result = $awsManager->deleteFile($gym_thumbnail);
+                        error_log("Delete thumbnail result: " . ($delete_result ? "Success" : "Failed") . " - " . $gym_thumbnail);
                     }
                     $gym_thumbnail = $new_thumbnail;
                 } else {
@@ -78,8 +79,41 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['update_gym'])) {
             }
         }
 
-        // Handle multiple equipment images upload
+        // Parse existing equipment images
         $equipment_images = json_decode($gym['equipment_images'] ?? "[]", true);
+
+        // Handle equipment image removals - do this BEFORE adding new images
+        if (isset($_POST['remove_equipment']) && is_array($_POST['remove_equipment'])) {
+            foreach ($_POST['remove_equipment'] as $index) {
+                if (isset($equipment_images[$index])) {
+                    // Log the file that's being deleted
+                    error_log("Attempting to delete image: " . $equipment_images[$index]);
+                    
+                    // Delete the file from AWS if using AWS
+                    if (USE_AWS && $awsManager) {
+                        $delete_result = $awsManager->deleteFile($equipment_images[$index]);
+                        if ($delete_result) {
+                            error_log("Successfully deleted image from S3: " . $equipment_images[$index]);
+                        } else {
+                            error_log("Failed to delete image from S3: " . $equipment_images[$index]);
+                        }
+                    } else {
+                        // For local storage, delete the file if it exists
+                        $local_path = $equipment_images[$index];
+                        if (file_exists($local_path)) {
+                            unlink($local_path);
+                        }
+                    }
+                    
+                    // Remove from the array
+                    unset($equipment_images[$index]);
+                }
+            }
+            // Re-index array after removals
+            $equipment_images = array_values($equipment_images);
+        }
+
+        // Handle multiple equipment images upload
         if (!empty($_FILES['equipment_images']['name'][0])) {
             foreach ($_FILES['equipment_images']['tmp_name'] as $key => $tmp_name) {
                 if ($_FILES['equipment_images']['error'][$key] === UPLOAD_ERR_OK) {
@@ -105,34 +139,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['update_gym'])) {
                     }
                 }
             }
-        }
-        
-        // Handle equipment image removals
-        if (isset($_POST['remove_equipment']) && is_array($_POST['remove_equipment'])) {
-            foreach ($_POST['remove_equipment'] as $index) {
-                if (isset($equipment_images[$index])) {
-                    // Delete the file from AWS if using AWS
-                    if (USE_AWS && $awsManager) {
-                        $image_path = $equipment_images[$index];
-                        $delete_result = $awsManager->deleteFile($image_path);
-                        if ($delete_result) {
-                            error_log("Successfully deleted image from S3: " . $image_path);
-                        } else {
-                            error_log("Failed to delete image from S3: " . $image_path);
-                        }
-                    } else {
-                        // For local storage, delete the file if it exists
-                        $image_path = $equipment_images[$index];
-                        if (file_exists($image_path)) {
-                            unlink($image_path);
-                        }
-                    }
-                    // Remove from the array
-                    unset($equipment_images[$index]);
-                }
-            }
-            // Re-index array
-            $equipment_images = array_values($equipment_images);
         }
 
         // Update gym details
@@ -337,7 +343,7 @@ if (!empty($gym['equipment_images'])) {
         
         .equipment-upload:hover, .equipment-upload.highlight {
             background-color: #eaeaea;
-            border-color: #4CAF50;
+            border-color: #ffb22c;
         }
         
         .equipment-preview {
@@ -345,6 +351,11 @@ if (!empty($gym['equipment_images'])) {
             flex-wrap: wrap;
             gap: 15px;
             margin-top: 15px;
+        }
+        
+        .equipment-preview.active {
+            padding-top: 15px;
+            border-top: 1px dashed #ccc;
         }
         
         .submit-btn, .cancel-btn {
@@ -360,12 +371,12 @@ if (!empty($gym['equipment_images'])) {
         }
         
         .submit-btn {
-            background-color: #4CAF50;
-            color: white;
+            background-color: #ffb22c;
+            color: #000;
         }
         
         .submit-btn:hover {
-            background-color: #3d8b40;
+            background-color: #e59f26;
         }
         
         .cancel-btn {
@@ -381,13 +392,12 @@ if (!empty($gym['equipment_images'])) {
 </head>
 <body>
     <div class="container">
-            <div class="header-section">
-                <a href="dashboard.php" class="back-btn">
-                    <i class="fas fa-arrow-left"></i> Back to Dashboard
-                </a>
-            </div>
+        <div class="header-section">
+            <a href="dashboard.php" class="back-btn">
+                <i class="fas fa-arrow-left"></i> Back to Dashboard
+            </a>
+        </div>
 
-    <div class="container">
         <div class="edit-gym-section">
             <h2>Edit Gym Details</h2>
             
@@ -502,376 +512,286 @@ if (!empty($gym['equipment_images'])) {
     </div>
 
     <script>
-        document.getElementById('gymForm').addEventListener('submit', function() {
-            document.getElementById('loadingIndicator').style.display = 'block';
-        });
-        
-        function removeImage(button, index) {
-            if (confirm('Are you sure you want to remove this image?')) {
-                // Create a hidden input to track removed images
-                const input = document.createElement('input');
-                input.type = 'hidden';
-                input.name = 'remove_equipment[]';
-                input.value = index;
-                document.getElementById('gymForm').appendChild(input);
-                
-                // Hide the image container
-                button.closest('.equipment-item').style.display = 'none';
-                
-                console.log("Marked image at index " + index + " for removal");
-            }
-        }
-        
-        // Handle thumbnail drag and drop functionality
-        const thumbnailDropArea = document.getElementById('thumbnailDropArea');
-        const thumbnailInput = document.getElementById('gym_thumbnail');
-        
-        // Trigger file input when clicking on the drop area
-        thumbnailDropArea.addEventListener('click', () => {
-            thumbnailInput.click();
-        });
-        
-        // Prevent default drag behaviors for thumbnail
-        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-            thumbnailDropArea.addEventListener(eventName, preventDefaults, false);
-        });
-        
-        // Highlight thumbnail drop area when dragging over it
-        ['dragenter', 'dragover'].forEach(eventName => {
-            thumbnailDropArea.addEventListener(eventName, () => {
-                thumbnailDropArea.classList.add('highlight');
-            }, false);
-        });
-        
-        ['dragleave', 'drop'].forEach(eventName => {
-            thumbnailDropArea.addEventListener(eventName, () => {
-                thumbnailDropArea.classList.remove('highlight');
-            }, false);
-        });
-        
-        // Handle dropped files for thumbnail
-        thumbnailDropArea.addEventListener('drop', (e) => {
-            const dt = e.dataTransfer;
-            const files = dt.files;
+    document.getElementById('gymForm').addEventListener('submit', function() {
+        document.getElementById('loadingIndicator').style.display = 'block';
+    });
+    
+    function removeImage(button, index) {
+        if (confirm('Are you sure you want to remove this image?')) {
+            // Create a hidden input to track removed images
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = 'remove_equipment[]';
+            input.value = index;
+            document.getElementById('gymForm').appendChild(input);
             
-            if (files.length > 0) {
-                // Only take the first file
-                thumbnailInput.files = files;
-                
-                // Check file size (2MB limit)
-                if (files[0].size > 2 * 1024 * 1024) {
-                    alert('File ' + files[0].name + ' exceeds the 2MB size limit.');
-                    return;
-                }
-            }
+            // Hide the image container
+            button.closest('.equipment-item').style.display = 'none';
+            console.log("Marked image at index " + index + " for removal");
+        }
+    }
+    
+    // Handle thumbnail drag and drop functionality
+    const thumbnailDropArea = document.getElementById('thumbnailDropArea');
+    const thumbnailInput = document.getElementById('gym_thumbnail');
+    
+    // Trigger file input when clicking on the drop area
+    thumbnailDropArea.addEventListener('click', () => {
+        thumbnailInput.click();
+    });
+    
+    // Prevent default drag behaviors for thumbnail
+    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+        thumbnailDropArea.addEventListener(eventName, preventDefaults, false);
+    });
+    
+    function preventDefaults(e) {
+        e.preventDefault();
+        e.stopPropagation();
+    }
+    
+    // Highlight thumbnail drop area when dragging over it
+    ['dragenter', 'dragover'].forEach(eventName => {
+        thumbnailDropArea.addEventListener(eventName, () => {
+            thumbnailDropArea.classList.add('highlight');
         }, false);
+    });
+    
+    ['dragleave', 'drop'].forEach(eventName => {
+        thumbnailDropArea.addEventListener(eventName, () => {
+            thumbnailDropArea.classList.remove('highlight');
+        }, false);
+    });
+    
+    // Handle dropped files for thumbnail
+    thumbnailDropArea.addEventListener('drop', (e) => {
+        const dt = e.dataTransfer;
+        const files = dt.files;
         
-        // Additional JavaScript for drag and drop functionality
-        const dropArea = document.getElementById('dropArea');
-        const fileInput = document.getElementById('equipment_images');
-        const previewArea = document.getElementById('equipmentPreview');
-        
-        // Trigger file input when clicking on the drop area
-        dropArea.addEventListener('click', () => {
-            fileInput.click();
-        });
-        
-        // Prevent default drag behaviors
-        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-            dropArea.addEventListener(eventName, preventDefaults, false);
-        });
-        
-        function preventDefaults(e) {
-            e.preventDefault();
-            e.stopPropagation();
-        }
-        
-        // Highlight drop area when dragging over it
-        ['dragenter', 'dragover'].forEach(eventName => {
-            dropArea.addEventListener(eventName, highlight, false);
-        });
-        
-        ['dragleave', 'drop'].forEach(eventName => {
-            dropArea.addEventListener(eventName, unhighlight, false);
-        });
-        
-        function highlight() {
-            dropArea.classList.add('highlight');
-        }
-        
-        function unhighlight() {
-            dropArea.classList.remove('highlight');
-        }
-        
-        // Handle dropped files
-        dropArea.addEventListener('drop', handleDrop, false);
-        
-        function handleDrop(e) {
-            const dt = e.dataTransfer;
-            const files = dt.files;
-            fileInput.files = files;
-            handleFiles(files);
-        }
-        
-        // Handle selected files (both from drop and file input)
-        fileInput.addEventListener('change', function() {
-            handleFiles(this.files);
-        });
-        
-        function handleFiles(files) {
-            // Limit files to 5
-            const filesToProcess = Array.from(files).slice(0, 5);
+        if (files.length > 0) {
+            // Only take the first file
+            thumbnailInput.files = files;
             
-            filesToProcess.forEach(file => {
-                // Check file size (2MB limit)
-                if (file.size > 2 * 1024 * 1024) {
-                    alert('File ' + file.name + ' exceeds the 2MB size limit.');
-                    return;
-                }
-                
-                // Preview image
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    const preview = document.createElement('div');
-                    preview.className = 'equipment-item';
-                    preview.innerHTML = `
-                        <img src="${e.target.result}" alt="Preview">
-                        <button type="button" class="remove-image">
-                            <i class="fas fa-times"></i>
-                        </button>
-                    `;
-                    
-                    // Add remove functionality for preview
-                    preview.querySelector('.remove-image').addEventListener('click', function() {
-                        preview.remove();
-                    });
-                    
-                    previewArea.appendChild(preview);
-                }
-                reader.readAsDataURL(file);
-            });
-        }
-
-    <script>
-        document.getElementById('gymForm').addEventListener('submit', function() {
-            document.getElementById('loadingIndicator').style.display = 'block';
-        });
-        
-        function removeImage(button, index) {
-            if (confirm('Are you sure you want to remove this image?')) {
-                // Create a hidden input to track removed images
-                const input = document.createElement('input');
-                input.type = 'hidden';
-                input.name = 'remove_equipment[]';
-                input.value = index;
-                document.getElementById('gymForm').appendChild(input);
-                
-                // Hide the image container
-                button.closest('.equipment-item').style.display = 'none';
+            // Check file size (2MB limit)
+            if (files[0].size > 2 * 1024 * 1024) {
+                alert('File ' + files[0].name + ' exceeds the 2MB size limit.');
+                return;
             }
-        }
-        
-        // Additional JavaScript for drag and drop functionality
-        const dropArea = document.getElementById('dropArea');
-        const fileInput = document.getElementById('equipment_images');
-        const previewArea = document.getElementById('equipmentPreview');
-        
-        // Trigger file input when clicking on the drop area
-        dropArea.addEventListener('click', () => {
-            fileInput.click();
-        });
-        
-        // Prevent default drag behaviors
-        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-            dropArea.addEventListener(eventName, preventDefaults, false);
-        });
-        
-        function preventDefaults(e) {
-            e.preventDefault();
-            e.stopPropagation();
-        }
-        
-        // Highlight drop area when dragging over it
-        ['dragenter', 'dragover'].forEach(eventName => {
-            dropArea.addEventListener(eventName, highlight, false);
-        });
-        
-        ['dragleave', 'drop'].forEach(eventName => {
-            dropArea.addEventListener(eventName, unhighlight, false);
-        });
-        
-        function highlight() {
-            dropArea.classList.add('highlight');
-        }
-        
-        function unhighlight() {
-            dropArea.classList.remove('highlight');
-        }
-        
-        // Handle dropped files
-        dropArea.addEventListener('drop', handleDrop, false);
-        
-        function handleDrop(e) {
-            const dt = e.dataTransfer;
-            const files = dt.files;
-            fileInput.files = files;
-            handleFiles(files);
-        }
-        
-        // Handle selected files (both from drop and file input)
-        fileInput.addEventListener('change', function() {
-            handleFiles(this.files);
-        });
-        
-        function handleFiles(files) {
-            // Limit files to 5
-            const filesToProcess = Array.from(files).slice(0, 5);
             
-            filesToProcess.forEach(file => {
-                // Check file size (2MB limit)
-                if (file.size > 2 * 1024 * 1024) {
-                    alert('File ' + file.name + ' exceeds the 2MB size limit.');
-                    return;
-                }
-                
-                // Preview image
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    const preview = document.createElement('div');
-                    preview.className = 'equipment-item';
-                    preview.innerHTML = `
-                        <img src="${e.target.result}" alt="Preview">
-                        <button type="button" class="remove-image">
-                            <i class="fas fa-times"></i>
-                        </button>
-                    `;
-                    
-                    // Add remove functionality for preview
-                    preview.querySelector('.remove-image').addEventListener('click', function() {
-                        preview.remove();
-                    });
-                    
-                    previewArea.appendChild(preview);
-                }
-                reader.readAsDataURL(file);
-            });
-        }
-
-        document.addEventListener('DOMContentLoaded', function() {
-        // Handle file input change for equipment images
-        const equipmentInput = document.getElementById('equipment_images');
-        const previewContainer = document.getElementById('equipmentPreview');
-        
-        if (equipmentInput && previewContainer) {
-            equipmentInput.addEventListener('change', function(e) {
-                const files = e.target.files;
-                
-                if (files.length > 0) {
-                    // Add active class to show preview section
-                    previewContainer.classList.add('active');
-                    
-                    // Clear previous previews
-                    previewContainer.innerHTML = '';
-                    
-                    // Limit to max 5 images
-                    const maxImages = 5;
-                    const filesToProcess = Math.min(files.length, maxImages);
-                    
-                    if (files.length > maxImages) {
-                        alert(`Only the first ${maxImages} images will be uploaded. You selected ${files.length} images.`);
-                    }
-                    
-                    // Create previews for selected files
-                    Array.from(files).slice(0, maxImages).forEach((file, index) => {
-                        createImagePreview(file, index, previewContainer);
-                    });
-                }
-            });
-        }
-        
-        // Function to create image preview
-        function createImagePreview(file, index, container) {
+            // Show preview of the thumbnail
             const reader = new FileReader();
-            
             reader.onload = function(e) {
-                const previewItem = document.createElement('div');
-                previewItem.className = 'equipment-item';
+                let thumbnailDisplay = document.querySelector('.current-thumbnail');
+                
+                // If no thumbnail display exists, create one
+                if (!thumbnailDisplay) {
+                    thumbnailDisplay = document.createElement('div');
+                    thumbnailDisplay.className = 'current-thumbnail';
+                    
+                    const img = document.createElement('img');
+                    const span = document.createElement('span');
+                    span.textContent = 'New thumbnail';
+                    
+                    thumbnailDisplay.appendChild(img);
+                    thumbnailDisplay.appendChild(document.createElement('br'));
+                    thumbnailDisplay.appendChild(span);
+                    
+                    const uploadDiv = document.getElementById('thumbnailDropArea');
+                    uploadDiv.parentNode.insertBefore(thumbnailDisplay, uploadDiv.nextSibling);
+                }
+                
+                const img = thumbnailDisplay.querySelector('img');
+                img.src = e.target.result;
+                img.alt = 'New thumbnail';
+                
+                const span = thumbnailDisplay.querySelector('span');
+                span.textContent = 'New thumbnail';
+            };
+            reader.readAsDataURL(files[0]);
+        }
+    }, false);
+    
+    // Additional JavaScript for equipment image drag and drop functionality
+    const dropArea = document.getElementById('dropArea');
+    const fileInput = document.getElementById('equipment_images');
+    const previewArea = document.getElementById('equipmentPreview');
+    
+    // Trigger file input when clicking on the drop area
+    dropArea.addEventListener('click', () => {
+        fileInput.click();
+    });
+    
+    // Prevent default drag behaviors
+    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+        dropArea.addEventListener(eventName, preventDefaults, false);
+    });
+    
+    // Highlight drop area when dragging over it
+    ['dragenter', 'dragover'].forEach(eventName => {
+        dropArea.addEventListener(eventName, highlight, false);
+    });
+    
+    ['dragleave', 'drop'].forEach(eventName => {
+        dropArea.addEventListener(eventName, unhighlight, false);
+    });
+    
+    function highlight() {
+        dropArea.classList.add('highlight');
+    }
+    
+    function unhighlight() {
+        dropArea.classList.remove('highlight');
+    }
+    
+    // Handle dropped files
+    dropArea.addEventListener('drop', function(e) {
+        const dt = e.dataTransfer;
+        const files = dt.files;
+        fileInput.files = files;
+        
+        // Clear previous previews
+        previewArea.innerHTML = '';
+        previewArea.classList.add('active');
+        
+        // Limit to 5 files
+        const maxFiles = 5;
+        const filesToProcess = Math.min(files.length, maxFiles);
+        
+        if (files.length > maxFiles) {
+            alert(`Only the first ${maxFiles} images will be uploaded. You selected ${files.length} images.`);
+        }
+        
+        Array.from(files).slice(0, maxFiles).forEach((file, index) => {
+            // Check file size (2MB limit)
+            if (file.size > 2 * 1024 * 1024) {
+                alert(`File ${file.name} exceeds the 2MB size limit.`);
+                return;
+            }
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const preview = document.createElement('div');
+                preview.className = 'equipment-item';
                 
                 const img = document.createElement('img');
                 img.src = e.target.result;
                 img.alt = `Equipment preview ${index + 1}`;
                 
-                const removeBtn = document.createElement('button');
-                removeBtn.className = 'remove-btn';
-                removeBtn.innerHTML = '<i class="fas fa-times"></i>';
-                removeBtn.onclick = function() {
-                    previewItem.remove();
-                    // Check if all items removed
-                    if (container.children.length === 0) {
-                        container.classList.remove('active');
+                const removeButton = document.createElement('button');
+                removeButton.type = 'button';
+                removeButton.className = 'remove-image';
+                removeButton.innerHTML = '<i class="fas fa-times"></i>';
+                removeButton.onclick = function() {
+                    preview.remove();
+                    // Check if all previews removed
+                    if (previewArea.children.length === 0) {
+                        previewArea.classList.remove('active');
                     }
                 };
                 
-                previewItem.appendChild(img);
-                previewItem.appendChild(removeBtn);
-                container.appendChild(previewItem);
+                preview.appendChild(img);
+                preview.appendChild(removeButton);
+                previewArea.appendChild(preview);
             };
-            
             reader.readAsDataURL(file);
-        }
-        
-        // Handle removing existing images
-        const removeButtons = document.querySelectorAll('.remove-image');
-        
-        removeButtons.forEach(button => {
-            button.addEventListener('click', function() {
-                if (confirm('Are you sure you want to remove this image?')) {
-                    const item = this.closest('.equipment-item');
-                    const index = Array.from(item.parentNode.children).indexOf(item);
-                    
-                    // Create hidden input to track removed images
-                    const input = document.createElement('input');
-                    input.type = 'hidden';
-                    input.name = 'remove_equipment[]';
-                    input.value = index;
-                    document.querySelector('form').appendChild(input);
-                    
-                    // Hide the item
-                    item.style.display = 'none';
-                }
-            });
         });
+    }, false);
+    
+    // Handle selected files
+    fileInput.addEventListener('change', function(e) {
+        const files = e.target.files;
         
-        // Make equipment upload area clickable
-        const uploadArea = document.querySelector('.equipment-upload');
-        if (uploadArea && equipmentInput) {
-            uploadArea.addEventListener('click', function() {
-                equipmentInput.click();
-            });
+        if (files.length > 0) {
+            // Clear previous previews
+            previewArea.innerHTML = '';
+            previewArea.classList.add('active');
             
-            // Add drag and drop functionality
-            uploadArea.addEventListener('dragover', function(e) {
-                e.preventDefault();
-                this.classList.add('highlight');
-            });
+            // Limit to 5 files
+            const maxFiles = 5;
+            const filesToProcess = Math.min(files.length, maxFiles);
             
-            uploadArea.addEventListener('dragleave', function() {
-                this.classList.remove('highlight');
-            });
+            if (files.length > maxFiles) {
+                alert(`Only the first ${maxFiles} images will be uploaded. You selected ${files.length} images.`);
+            }
             
-            uploadArea.addEventListener('drop', function(e) {
-                e.preventDefault();
-                this.classList.remove('highlight');
-                
-                // Trigger file input with dropped files
-                if (e.dataTransfer.files.length > 0) {
-                    equipmentInput.files = e.dataTransfer.files;
-                    
-                    // Trigger change event manually
-                    const changeEvent = new Event('change', { bubbles: true });
-                    equipmentInput.dispatchEvent(changeEvent);
+            Array.from(files).slice(0, maxFiles).forEach((file, index) => {
+                // Check file size (2MB limit)
+                if (file.size > 2 * 1024 * 1024) {
+                    alert(`File ${file.name} exceeds the 2MB size limit.`);
+                    return;
                 }
+                
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const preview = document.createElement('div');
+                    preview.className = 'equipment-item';
+                    
+                    const img = document.createElement('img');
+                    img.src = e.target.result;
+                    img.alt = `Equipment preview ${index + 1}`;
+                    
+                    const removeButton = document.createElement('button');
+                    removeButton.type = 'button';
+                    removeButton.className = 'remove-image';
+                    removeButton.innerHTML = '<i class="fas fa-times"></i>';
+                    removeButton.onclick = function() {
+                        preview.remove();
+                        // Check if all previews removed
+                        if (previewArea.children.length === 0) {
+                            previewArea.classList.remove('active');
+                        }
+                    };
+                    
+                    preview.appendChild(img);
+                    preview.appendChild(removeButton);
+                    previewArea.appendChild(preview);
+                };
+                reader.readAsDataURL(file);
             });
+        }
+    });
+    
+    // Handle thumbnail file selection and preview
+    thumbnailInput.addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (file) {
+            // Check file size (2MB limit)
+            if (file.size > 2 * 1024 * 1024) {
+                alert('File ' + file.name + ' exceeds the 2MB size limit.');
+                this.value = '';
+                return;
+            }
+            
+            // Display preview
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                let thumbnailDisplay = document.querySelector('.current-thumbnail');
+                
+                // If no thumbnail display exists, create one
+                if (!thumbnailDisplay) {
+                    thumbnailDisplay = document.createElement('div');
+                    thumbnailDisplay.className = 'current-thumbnail';
+                    
+                    const img = document.createElement('img');
+                    const span = document.createElement('span');
+                    span.textContent = 'New thumbnail';
+                    
+                    thumbnailDisplay.appendChild(img);
+                    thumbnailDisplay.appendChild(document.createElement('br'));
+                    thumbnailDisplay.appendChild(span);
+                    
+                    const uploadDiv = document.getElementById('thumbnailDropArea');
+                    uploadDiv.parentNode.insertBefore(thumbnailDisplay, uploadDiv.nextSibling);
+                }
+                
+                const img = thumbnailDisplay.querySelector('img');
+                img.src = e.target.result;
+                img.alt = 'New thumbnail';
+                
+                const span = thumbnailDisplay.querySelector('span');
+                span.textContent = 'New thumbnail';
+            };
+            reader.readAsDataURL(file);
         }
     });
     </script>
