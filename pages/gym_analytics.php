@@ -157,9 +157,7 @@ $members_list = $stmt->get_result();
                 <canvas id="ratingChart"></canvas>
             </div>
         </div>
-    </div>
-
-    <div class="members-section" data-type="members">
+        <div class="members-section" data-type="members">
                 <h2 class="section-title"><i class="fas fa-users"></i> Platform Members</h2>
                 
                 <div class="member-stats-cards">
@@ -526,6 +524,9 @@ $members_list = $stmt->get_result();
             </style>
     </div>
 
+    </div>
+
+    
     <style>
     .analytics-header {
         display: flex;
