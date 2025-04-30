@@ -1390,25 +1390,25 @@ $rating_stats = $stmt->get_result();
                            addSummaryPage(doc);
                            
                            // Add footer and save
-                           finalizeAndOpenPDF(doc, gymName, date);
+                           finalizeAndSavePDF(doc, gymName, date);
                        }).catch(error => {
                            console.error('Error processing charts:', error);
                            // If charts fail, still add members and summary
                            addMembersSection(doc);
                            addSummaryPage(doc);
-                           finalizeAndOpenPDF(doc, gymName, date);
+                           finalizeAndSavePDF(doc, gymName, date);
                        });
                    } else {
                        // No charts to process
                        addMembersSection(doc);
                        addSummaryPage(doc);
-                       finalizeAndOpenPDF(doc, gymName, date);
+                       finalizeAndSavePDF(doc, gymName, date);
                    }
                } else {
                    // Charts not included
                    addMembersSection(doc);
                    addSummaryPage(doc);
-                   finalizeAndOpenPDF(doc, gymName, date);
+                   finalizeAndSavePDF(doc, gymName, date);
                }
                
                function addMembersSection(doc) {
@@ -1627,29 +1627,23 @@ $rating_stats = $stmt->get_result();
                    doc.text(splitText, 20, 40);
                }
                
-               function finalizeAndOpenPDF(doc, gymName, date) {
-                    // Add footer with page numbers
-                    const pageCount = doc.getNumberOfPages();
-                    for (let i = 1; i <= pageCount; i++) {
-                        doc.setPage(i);
-                        doc.setFontSize(10);
-                        doc.setTextColor(150);
-                        doc.text(`${gymName} Analytics Report - Page ${i} of ${pageCount}`, 105, 285, { align: 'center' });
-                    }
-                    
-                    // Remove loading overlay
-                    document.body.removeChild(loadingOverlay);
-                    
-                    // Generate filename
-                    const filename = `${gymName.replace(/\\s+/g, '_')}_Analytics_${date.replace(/\\//g, '-')}.pdf`;
-                    
-                    // Instead of saving, create a blob and open in new tab
-                    const pdfBlob = doc.output('blob');
-                    const pdfUrl = URL.createObjectURL(pdfBlob);
-                    
-                    // Open PDF in new tab
-                    window.open(pdfUrl, '_blank');
-                }
+               function finalizeAndSavePDF(doc, gymName, date) {
+                   // Add footer with page numbers
+                   const pageCount = doc.getNumberOfPages();
+                   for (let i = 1; i <= pageCount; i++) {
+                       doc.setPage(i);
+                       doc.setFontSize(10);
+                       doc.setTextColor(150);
+                       doc.text(`${gymName} Analytics Report - Page ${i} of ${pageCount}`, 105, 285, { align: 'center' });
+                   }
+                   
+                   // Remove loading overlay and save
+                   document.body.removeChild(loadingOverlay);
+                   
+                   // Generate filename
+                   const filename = `${gymName.replace(/\s+/g, '_')}_Analytics_${date.replace(/\//g, '-')}.pdf`;
+                   doc.save(filename);
+               }
            } catch (error) {
                console.error('Error generating PDF:', error);
                document.body.removeChild(loadingOverlay);
