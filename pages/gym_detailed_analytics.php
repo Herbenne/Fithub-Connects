@@ -772,20 +772,29 @@ $rating_stats = $stmt->get_result();
     </div>
 
     <script>
+    window.chartsInitialized = false;
+    
     document.addEventListener('DOMContentLoaded', function() {
-        // Initialize charts first
+    console.log("DOM loaded, charts initialized:", window.chartsInitialized);
+    
+    // Only initialize charts once
+    if (!window.chartsInitialized) {
+        console.log("Initializing charts");
         initializeCharts();
-        
-        // Then initialize filtering and PDF functionality
-        initializeFilters();
-        initializeMemberFiltering();
-        
-        // Set up PDF export button
-        const downloadPdfBtn = document.getElementById('downloadPdfBtn');
-        if (downloadPdfBtn) {
-            downloadPdfBtn.addEventListener('click', generatePDF);
-        }
-    });
+        window.chartsInitialized = true;
+    }
+    
+    // Then initialize filtering and PDF functionality
+    initializeFilters();
+    initializeMemberFiltering();
+    
+    // Set up PDF export button
+    const downloadPdfBtn = document.getElementById('downloadPdfBtn');
+    if (downloadPdfBtn) {
+        downloadPdfBtn.removeEventListener('click', generatePDF);
+        downloadPdfBtn.addEventListener('click', generatePDF);
+    }
+});
 
     function initializeCharts() {
         // Member Growth Chart
@@ -1326,7 +1335,7 @@ $rating_stats = $stmt->get_result();
 
                     // Added spacing between rows
                     currentY += rowHeight + 2;
-                    
+
                    const includeMembers = document.getElementById('include-members');
                    if (!(includeMembers && includeMembers.checked)) return;
                    
