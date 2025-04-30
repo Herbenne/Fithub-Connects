@@ -1032,7 +1032,7 @@ $all_members_result = $db_connection->query($all_members_query);
         display: none;
     }
 
-    /* Fix for hidden sections */
+    /* Fix for hidden sections and chart display */
     .members-section[data-hidden="true"],
     .all-members-section[data-hidden="true"],
     .chart-container[data-hidden="true"],
@@ -1052,6 +1052,14 @@ $all_members_result = $db_connection->query($all_members_query);
         text-align: center;
         margin: 20px 0;
     }
+
+    /* Make sure charts have proper height */
+    .chart-container {
+        height: 300px;
+        position: relative;
+        margin-bottom: 30px;
+    }
+
     </style>
 
     <!-- PDF Generation Scripts -->
@@ -1172,6 +1180,14 @@ $all_members_result = $db_connection->query($all_members_query);
                             statCards.forEach((card) => {
                                 const label = card.querySelector('h3').innerText;
                                 let value = card.querySelector('.stat-number').innerText;
+                                
+                                // Clean up values for PDF
+                                if (label.includes('Rating')) {
+                                    value = value.replace(/[⭐+P±]/g, '').trim() + " rating";
+                                } else if (label.includes('Revenue')) {
+                                    value = "PHP " + value.replace(/[₱]/g, '').trim();
+                                }
+                                
                                 doc.text(`${label}: ${value}`, 20, currentY);
                                 currentY += 10;
                             });
@@ -1248,7 +1264,16 @@ $all_members_result = $db_connection->query($all_members_query);
                                     currentY += 5;
                                     
                                     stats.forEach((stat) => {
-                                        doc.text(`• ${stat.label}: ${stat.value}`, 30, currentY);
+                                        let value = stat.value;
+                                        
+                                        // Fix currency and rating symbols
+                                        if (stat.label.includes('Rating')) {
+                                            value = value.replace(/[⭐+P±]/g, '').trim() + " rating";
+                                        } else if (stat.label.includes('Revenue')) {
+                                            value = "PHP " + value.replace(/[₱]/g, '').trim();
+                                        }
+                                        
+                                        doc.text(`• ${stat.label}: ${value}`, 30, currentY);
                                         currentY += 5;
                                     });
                                 }
@@ -1259,6 +1284,134 @@ $all_members_result = $db_connection->query($all_members_query);
                                 
                                 currentY += 10;
                             });
+                        }
+                        
+                        // Add members section if included
+                        if (includeMembers && includeMembers.checked) {
+                            // Start a new page for members
+                            doc.addPage();
+                            
+                            doc.setFont('Helvetica-Bold');
+                            doc.setFontSize(16);
+                            doc.text('Platform Members', 105, 20, { align: 'center' });
+                            
+                            // Get member counts
+                            const memberCounts = {
+                                active: document.querySelector('.member-stat-card.active .stat-value')?.textContent || 
+                                        document.querySelector('.stat-box.active .stat-number')?.textContent || '0',
+                                inactive: document.querySelector('.member-stat-card.inactive .stat-value')?.textContent || 
+                                        document.querySelector('.stat-box.inactive .stat-number')?.textContent || '0',
+                                total: document.querySelector('.member-stat-card.total .stat-value')?.textContent || 
+                                    document.querySelector('.stat-box.total .stat-number')?.textContent || '0'
+                            };
+                            
+                            // Add member stats
+                            let memberY = 40;
+                            doc.setFont('Helvetica');
+                            doc.setFontSize(12);
+                            
+                            doc.text(`Active Members: ${memberCounts.active}`, 20, memberY);
+                            memberY += 10;
+                            doc.text(`Inactive Members: ${memberCounts.inactive}`, 20, memberY);
+                            memberY += 10;
+                            doc.text(`Total Members: ${memberCounts.total}`, 20, memberY);
+                            memberY += 20;
+                            
+                            // Add member table if it exists
+                            const membersTable = document.getElementById('allMembersTable');
+                            if (membersTable) {
+                                // Add table header
+                                doc.setFont('Helvetica-Bold');
+                                doc.text('Member List', 105, memberY, { align: 'center' });
+                                memberY += 15;
+                                
+                                // Get visible rows
+                                const visibleRows = Array.from(membersTable.querySelectorAll('tbody tr'))
+                                    .filter(row => row.style.display !== 'none' && !row.classList.contains('no-data-row') && row.classList.contains('member-row'));
+                                
+                                if (visibleRows.length > 0) {
+                                    // Get column headers
+                                    const headers = Array.from(membersTable.querySelectorAll('thead th')).map(th => th.textContent);
+                                    
+                                    // Draw table header
+                                    const startY = memberY;
+                                    const rowHeight = 10;
+                                    let colWidths = [];
+                                    
+                                    // Determine column widths based on headers
+                                    if (headers.length === 7) { // Full table with Gym column
+                                        colWidths = [30, 35, 25, 30, 25, 25, 20]; // Gym, Name, Reg Date, Plan, Start, End, Status
+                                    } else {
+                                        colWidths = [40, 30, 35, 30, 30, 25]; // Name, Reg Date, Plan, Start, End, Status
+                                    }
+                                    
+                                    // Calculate total width
+                                    const tableWidth = colWidths.reduce((sum, width) => sum + width, 0);
+                                    const leftMargin = (210 - tableWidth) / 2;
+                                    
+                                    // Draw header background
+                                    doc.setFillColor(240, 240, 240);
+                                    doc.rect(leftMargin, startY - 5, tableWidth, rowHeight, 'F');
+                                    
+                                    // Draw header text
+                                    let currentX = leftMargin;
+                                    headers.forEach((header, index) => {
+                                        if (index < colWidths.length) {
+                                            doc.text(header, currentX + 2, startY);
+                                            currentX += colWidths[index];
+                                        }
+                                    });
+                                    
+                                    // Draw rows (max 20)
+                                    let currentY = startY + rowHeight;
+                                    const maxRows = Math.min(visibleRows.length, 20);
+                                    
+                                    doc.setFont('Helvetica');
+                                    for (let i = 0; i < maxRows; i++) {
+                                        const row = visibleRows[i];
+                                        
+                                        // Add alternating row background
+                                        if (i % 2 === 1) {
+                                            doc.setFillColor(248, 248, 248);
+                                            doc.rect(leftMargin, currentY - 5, tableWidth, rowHeight, 'F');
+                                        }
+                                        
+                                        // Draw cell data
+                                        currentX = leftMargin;
+                                        for (let j = 0; j < Math.min(row.cells.length, colWidths.length); j++) {
+                                            let text = row.cells[j].textContent.trim();
+                                            
+                                            // Truncate text if too long
+                                            const maxLength = Math.floor(colWidths[j] / 2);
+                                            if (text.length > maxLength) {
+                                                text = text.substring(0, maxLength - 3) + '...';
+                                            }
+                                            
+                                            // Set color for status column (usually the last column)
+                                            if (j === row.cells.length - 1 && text.toLowerCase().includes('active')) {
+                                                doc.setTextColor(76, 175, 80); // Green
+                                            } else if (j === row.cells.length - 1 && text.toLowerCase().includes('inactive')) {
+                                                doc.setTextColor(244, 67, 54); // Red
+                                            }
+                                            
+                                            doc.text(text, currentX + 2, currentY);
+                                            doc.setTextColor(0); // Reset text color
+                                            
+                                            currentX += colWidths[j];
+                                        }
+                                        
+                                        currentY += rowHeight;
+                                    }
+                                    
+                                    // Add note if more members than shown
+                                    if (visibleRows.length > maxRows) {
+                                        currentY += 5;
+                                        doc.text(`Note: Showing ${maxRows} of ${visibleRows.length} members.`, leftMargin, currentY);
+                                    }
+                                } else {
+                                    doc.text('No members match the current filter criteria.', 105, memberY, { align: 'center' });
+                                }
+                            }
                         }
                         
                         // Add footer with page numbers

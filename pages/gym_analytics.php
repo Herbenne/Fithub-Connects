@@ -654,7 +654,7 @@ $members_list = $stmt->get_result();
         display: none;
     }
 
-        /* Fix for hidden sections */
+    /* Fix for hidden sections and chart display */
     .members-section[data-hidden="true"],
     .all-members-section[data-hidden="true"],
     .chart-container[data-hidden="true"],
@@ -674,6 +674,14 @@ $members_list = $stmt->get_result();
         text-align: center;
         margin: 20px 0;
     }
+
+    /* Make sure charts have proper height */
+    .chart-container {
+        height: 300px;
+        position: relative;
+        margin-bottom: 30px;
+    }
+
     </style>
 
     <!-- PDF Generation Scripts -->
@@ -1003,7 +1011,136 @@ $members_list = $stmt->get_result();
                         // Add chart image
                         doc.addImage(chart.imgData, 'PNG', leftPos, currentY, imgWidth, imgHeight);
                     });
-                    
+
+                    // Add members section if included and if members filter is enabled
+                    if (includeMembers && includeMembers.checked) {
+                        // Add a new page for members
+                        doc.addPage();
+                        
+                        // Add member section header
+                        doc.setFont('Helvetica-Bold');
+                        doc.setFontSize(16);
+                        doc.text("Member Statistics", 105, 20, { align: 'center' });
+                        
+                        // Get member counts
+                        const memberCounts = window.filteredMemberCounts || {
+                            active: document.querySelector('.member-stat-card.active .stat-value')?.textContent || '0',
+                            inactive: document.querySelector('.member-stat-card.inactive .stat-value')?.textContent || '0',
+                            total: document.querySelector('.member-stat-card.total .stat-value')?.textContent || '0'
+                        };
+                        
+                        // Add member stats
+                        doc.setFont('Helvetica');
+                        doc.setFontSize(12);
+                        doc.text(`Active Members: ${memberCounts.active}`, 30, 40);
+                        doc.text(`Inactive Members: ${memberCounts.inactive}`, 30, 50);
+                        doc.text(`Total Members: ${memberCounts.total}`, 30, 60);
+                        
+                        // Add member table if available
+                        const membersTable = document.getElementById('membersTable');
+                        if (membersTable) {
+                            // Add table header
+                            doc.setFont('Helvetica-Bold');
+                            doc.setFontSize(14);
+                            doc.text("Member List", 105, 80, { align: 'center' });
+                            
+                            // Get visible rows (not hidden by filter)
+                            const visibleRows = Array.from(membersTable.querySelectorAll('tbody tr.member-row'))
+                                .filter(row => row.style.display !== 'none' && !row.classList.contains('no-data-row'));
+                            
+                            if (visibleRows.length > 0) {
+                                // Define column headers and positions
+                                const headers = ["Name", "Registration Date", "Plan", "Start Date", "End Date", "Status"];
+                                const colWidths = [40, 35, 35, 30, 30, 20];
+                                const startY = 90;
+                                const rowHeight = 10;
+                                
+                                // Calculate total width and center position
+                                const tableWidth = colWidths.reduce((sum, width) => sum + width, 0);
+                                const leftMargin = (210 - tableWidth) / 2;
+                                
+                                // Draw table header
+                                let currentY = startY;
+                                doc.setFillColor(240, 240, 240);
+                                doc.rect(leftMargin, currentY - 5, tableWidth, rowHeight, 'F');
+                                
+                                let currentX = leftMargin;
+                                headers.forEach((header, index) => {
+                                    doc.text(header, currentX + 2, currentY);
+                                    currentX += colWidths[index];
+                                });
+                                
+                                currentY += rowHeight;
+                                doc.setFont('Helvetica');
+                                
+                                // Draw rows (max 20 per page)
+                                const maxRows = Math.min(visibleRows.length, 20);
+                                
+                                for (let i = 0; i < maxRows; i++) {
+                                    const row = visibleRows[i];
+                                    
+                                    // Add alternating row colors
+                                    if (i % 2 === 1) {
+                                        doc.setFillColor(248, 248, 248);
+                                        doc.rect(leftMargin, currentY - 5, tableWidth, rowHeight, 'F');
+                                    }
+                                    
+                                    // Extract data from cells
+                                    const name = row.cells[0].textContent.trim();
+                                    const regDate = row.cells[1].textContent.trim();
+                                    const plan = row.cells[2].textContent.trim();
+                                    const startDate = row.cells[3].textContent.trim();
+                                    const endDate = row.cells[4].textContent.trim();
+                                    const status = row.cells[5].textContent.trim();
+                                    
+                                    // Draw row data
+                                    currentX = leftMargin;
+                                    
+                                    // Name - truncate if too long
+                                    doc.text(name.length > 18 ? name.substring(0, 15) + '...' : name, currentX + 2, currentY);
+                                    currentX += colWidths[0];
+                                    
+                                    // Registration date
+                                    doc.text(regDate, currentX + 2, currentY);
+                                    currentX += colWidths[1];
+                                    
+                                    // Plan - truncate if too long
+                                    doc.text(plan.length > 15 ? plan.substring(0, 12) + '...' : plan, currentX + 2, currentY);
+                                    currentX += colWidths[2];
+                                    
+                                    // Start date
+                                    doc.text(startDate, currentX + 2, currentY);
+                                    currentX += colWidths[3];
+                                    
+                                    // End date
+                                    doc.text(endDate, currentX + 2, currentY);
+                                    currentX += colWidths[4];
+                                    
+                                    // Status with color
+                                    if (status.toLowerCase().includes('active')) {
+                                        doc.setTextColor(76, 175, 80); // Green
+                                    } else {
+                                        doc.setTextColor(244, 67, 54); // Red
+                                    }
+                                    
+                                    doc.text(status, currentX + 2, currentY);
+                                    doc.setTextColor(0); // Reset to black
+                                    
+                                    currentY += rowHeight;
+                                }
+                                
+                                // Add note if more members than shown
+                                if (visibleRows.length > maxRows) {
+                                    currentY += 5;
+                                    doc.text(`Note: Showing ${maxRows} of ${visibleRows.length} members.`, leftMargin, currentY);
+                                }
+                            } else {
+                                // No members visible
+                                doc.setFont('Helvetica');
+                                doc.text("No members match the current filter criteria.", 105, 100, { align: 'center' });
+                            }
+                        }
+                    }
                     // Add summary page
                     doc.addPage();
                     doc.setFont('Helvetica-Bold');

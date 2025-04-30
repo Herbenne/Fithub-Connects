@@ -115,6 +115,22 @@ $rating_stats = $stmt->get_result();
     <!-- Make sure the scripts load before the page renders -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script>
+    // Prepare chart data variables
+    <?php
+    // Convert PHP arrays to JSON for JavaScript use
+    $months_json = json_encode($months);
+    $members_json = json_encode($members);
+    $revenue_json = json_encode($revenue);
+    $ratings_json = json_encode(array_values($ratings));
+    ?>
+
+    // Global variables for charts
+    const chartMonths = <?php echo $months_json; ?>;
+    const chartMembers = <?php echo $members_json; ?>;
+    const chartRevenue = <?php echo $revenue_json; ?>;
+    const chartRatings = <?php echo $ratings_json; ?>;
+    </script>
 </head>
 <body>
     <div class="analytics-container">
@@ -456,8 +472,8 @@ $rating_stats = $stmt->get_result();
     .metric-card[data-hidden="true"] {
         display: none;
     }
-    
-    /* Fix for hidden sections */
+
+    /* Fix for hidden sections and chart display */
     .members-section[data-hidden="true"],
     .all-members-section[data-hidden="true"],
     .chart-container[data-hidden="true"],
@@ -476,6 +492,48 @@ $rating_stats = $stmt->get_result();
         border-radius: 5px;
         text-align: center;
         margin: 20px 0;
+    }
+
+    /* Make sure charts have proper height */
+    .chart-container {
+        height: 300px;
+        position: relative;
+        margin-bottom: 30px;
+    }
+
+    /* Loading overlay for PDF generation */
+    .loading-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0,0,0,0.7);
+        z-index: 9999;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        flex-direction: column;
+    }
+
+    .spinner {
+        border: 5px solid #f3f3f3;
+        border-top: 5px solid #3498db;
+        border-radius: 50%;
+        width: 50px;
+        height: 50px;
+        animation: spin 2s linear infinite;
+        margin-bottom: 20px;
+    }
+
+    .loading-text {
+        color: white;
+        font-size: 18px;
+    }
+
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
     }
     </style>
 
@@ -574,8 +632,15 @@ $rating_stats = $stmt->get_result();
         // Initialize charts first
         initializeCharts();
         
-        // Then initialize the rest of the functionality
-        initializeAnalytics();
+        // Set up PDF export button
+        const downloadPdfBtn = document.getElementById('downloadPdfBtn');
+        if (downloadPdfBtn) {
+            downloadPdfBtn.addEventListener('click', generatePDF);
+        }
+        
+        // Initialize filtering and other functionality
+        initializeFilters();
+        initializeMemberFiltering();
     });
 
     function initializeCharts() {
@@ -586,21 +651,41 @@ $rating_stats = $stmt->get_result();
                 new Chart(memberGrowthCanvas, {
                     type: 'line',
                     data: {
-                        labels: chartMonths,
+                        labels: chartMonths.map(month => {
+                            const date = new Date(month);
+                            return date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+                        }),
                         datasets: [{
                             label: 'New Members',
                             data: chartMembers,
+                            backgroundColor: 'rgba(76, 175, 80, 0.2)',
                             borderColor: '#4CAF50',
+                            borderWidth: 2,
                             tension: 0.1,
-                            fill: false
+                            fill: true
                         }]
                     },
                     options: {
                         responsive: true,
+                        maintainAspectRatio: false,
                         plugins: {
                             title: {
                                 display: true,
-                                text: 'Monthly Member Growth'
+                                text: 'Monthly Member Growth',
+                                font: {
+                                    size: 16
+                                }
+                            },
+                            legend: {
+                                position: 'top'
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: {
+                                    precision: 0
+                                }
                             }
                         }
                     }
@@ -618,19 +703,36 @@ $rating_stats = $stmt->get_result();
                 new Chart(revenueChartCanvas, {
                     type: 'bar',
                     data: {
-                        labels: chartMonths,
+                        labels: chartMonths.map(month => {
+                            const date = new Date(month);
+                            return date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+                        }),
                         datasets: [{
                             label: 'Monthly Revenue (₱)',
                             data: chartRevenue,
-                            backgroundColor: '#2196F3'
+                            backgroundColor: 'rgba(33, 150, 243, 0.2)',
+                            borderColor: 'rgba(33, 150, 243, 1)',
+                            borderWidth: 2
                         }]
                     },
                     options: {
                         responsive: true,
+                        maintainAspectRatio: false,
                         plugins: {
                             title: {
                                 display: true,
-                                text: 'Monthly Revenue'
+                                text: 'Monthly Revenue',
+                                font: {
+                                    size: 16
+                                }
+                            },
+                            legend: {
+                                position: 'top'
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true
                             }
                         }
                     }
@@ -646,26 +748,41 @@ $rating_stats = $stmt->get_result();
         if (ratingChartCanvas) {
             try {
                 new Chart(ratingChartCanvas, {
-                    type: 'pie',
+                    type: 'doughnut',
                     data: {
-                        labels: ['⭐', '⭐⭐', '⭐⭐⭐', '⭐⭐⭐⭐', '⭐⭐⭐⭐⭐'],
+                        labels: ['1 Star', '2 Stars', '3 Stars', '4 Stars', '5 Stars'],
                         datasets: [{
                             data: chartRatings,
                             backgroundColor: [
-                                '#ff9800',
-                                '#ffc107',
-                                '#ffeb3b',
-                                '#cddc39',
-                                '#8bc34a'
-                            ]
+                                'rgba(255, 99, 132, 0.2)',
+                                'rgba(255, 159, 64, 0.2)',
+                                'rgba(255, 205, 86, 0.2)',
+                                'rgba(75, 192, 192, 0.2)',
+                                'rgba(54, 162, 235, 0.2)'
+                            ],
+                            borderColor: [
+                                'rgb(255, 99, 132)',
+                                'rgb(255, 159, 64)',
+                                'rgb(255, 205, 86)',
+                                'rgb(75, 192, 192)',
+                                'rgb(54, 162, 235)'
+                            ],
+                            borderWidth: 2
                         }]
                     },
                     options: {
                         responsive: true,
+                        maintainAspectRatio: false,
                         plugins: {
                             title: {
                                 display: true,
-                                text: 'Rating Distribution'
+                                text: 'Rating Distribution',
+                                font: {
+                                    size: 16
+                                }
+                            },
+                            legend: {
+                                position: 'right'
                             }
                         }
                     }
@@ -677,7 +794,7 @@ $rating_stats = $stmt->get_result();
         }
     }
 
-    function initializeAnalytics() {
+    function initializeFilters() {
         // Initialize filter checkboxes
         const includeMembers = document.getElementById('include-members');
         const includeRatings = document.getElementById('include-ratings');
@@ -685,18 +802,12 @@ $rating_stats = $stmt->get_result();
         const includeRevenue = document.getElementById('include-revenue');
         const includeCharts = document.getElementById('include-charts');
         
-        // Initialize filters
-        function initializeFilters() {
-            // Make sure all checkboxes are checked by default
-            if (includeMembers) includeMembers.checked = true;
-            if (includeRatings) includeRatings.checked = true;
-            if (includeReviews) includeReviews.checked = true;
-            if (includeRevenue) includeRevenue.checked = true;
-            if (includeCharts) includeCharts.checked = true;
-            
-            // Apply filters
-            applyFilters();
-        }
+        // Make sure all checkboxes are checked by default
+        if (includeMembers) includeMembers.checked = true;
+        if (includeRatings) includeRatings.checked = true;
+        if (includeReviews) includeReviews.checked = true;
+        if (includeRevenue) includeRevenue.checked = true;
+        if (includeCharts) includeCharts.checked = true;
         
         // Apply filters
         function applyFilters() {
@@ -747,279 +858,8 @@ $rating_stats = $stmt->get_result();
         if (includeRevenue) includeRevenue.addEventListener('change', applyFilters);
         if (includeCharts) includeCharts.addEventListener('change', applyFilters);
         
-        // Set up PDF export button
-        const downloadPdfBtn = document.getElementById('downloadPdfBtn');
-        if (downloadPdfBtn) {
-            downloadPdfBtn.addEventListener('click', generatePDF);
-        }
-        
-        // Initialize member filtering
-        initializeMemberFiltering();
-        
-        // Call initialize filters
-        initializeFilters();
-    }
-
-    function generatePDF() {
-        // Create loading overlay
-        const loadingOverlay = document.createElement('div');
-        loadingOverlay.className = 'loading-overlay';
-        
-        const spinner = document.createElement('div');
-        spinner.className = 'spinner';
-        
-        const loadingText = document.createElement('div');
-        loadingText.className = 'loading-text';
-        loadingText.innerText = 'Generating PDF...';
-        
-        loadingOverlay.appendChild(spinner);
-        loadingOverlay.appendChild(loadingText);
-        document.body.appendChild(loadingOverlay);
-        
-        // Use setTimeout to allow the loading indicator to appear
-        setTimeout(function() {
-            try {
-                const { jsPDF } = window.jspdf;
-                const doc = new jsPDF('p', 'mm', 'a4');
-                
-                // Get gym info
-                const gymName = document.querySelector('.gym-info h2').innerText;
-                const date = new Date().toLocaleDateString();
-                const gymLocation = document.querySelector('.gym-info p').innerText.replace(/^.*?\s/, ""); // Remove icon
-                
-                // Set up PDF
-                doc.setFont('Helvetica-Bold');
-                doc.setFontSize(22);
-                doc.text(`${gymName} - Analytics Report`, 105, 20, { align: 'center' });
-                
-                doc.setFont('Helvetica');
-                doc.setFontSize(12);
-                doc.text(`Generated on: ${date}`, 105, 30, { align: 'center' });
-                doc.text(`Location: ${gymLocation}`, 105, 35, { align: 'center' });
-                
-                // Get filter info
-                const includeMembers = document.getElementById('include-members');
-                const includeRatings = document.getElementById('include-ratings');
-                const includeReviews = document.getElementById('include-reviews');
-                const includeRevenue = document.getElementById('include-revenue');
-                const includeCharts = document.getElementById('include-charts');
-                
-                // Add filter information
-                doc.setFontSize(10);
-                doc.text('Filters applied:', 20, 45);
-                const filterText = [];
-                if (includeMembers && includeMembers.checked) filterText.push('Members');
-                if (includeRatings && includeRatings.checked) filterText.push('Ratings');
-                if (includeReviews && includeReviews.checked) filterText.push('Reviews');
-                if (includeRevenue && includeRevenue.checked) filterText.push('Revenue');
-                if (includeCharts && includeCharts.checked) filterText.push('Charts');
-                doc.text(`Included: ${filterText.join(', ')}`, 20, 50);
-                
-                // Add gym key metrics
-                let currentY = 60;
-                const visibleMetricCards = document.querySelectorAll('.metric-card[data-hidden="false"]');
-                
-                if (visibleMetricCards.length > 0) {
-                    doc.setFont('Helvetica-Bold');
-                    doc.setFontSize(16);
-                    doc.text('Key Performance Metrics', 20, currentY);
-                    currentY += 10;
-                    
-                    doc.setFont('Helvetica');
-                    doc.setFontSize(12);
-                    
-                    visibleMetricCards.forEach((card) => {
-                        const label = card.querySelector('h3').innerText;
-                        let value = card.querySelector('.number').innerText;
-                        doc.text(`${label}: ${value}`, 20, currentY);
-                        currentY += 10;
-                    });
-                    
-                    currentY += 10;
-                }
-                
-                // Process charts if selected
-                if (includeCharts && includeCharts.checked) {
-                    const visibleChartContainers = document.querySelectorAll('.chart-container[data-hidden="false"]');
-                    
-                    if (visibleChartContainers.length > 0) {
-                        // Create array of promises for chart processing
-                        const chartPromises = Array.from(visibleChartContainers).map((chart, index) => {
-                            return new Promise((resolve) => {
-                                const title = chart.querySelector('h3').innerText;
-                                const canvas = chart.querySelector('canvas');
-                                
-                                if (!canvas) {
-                                    console.error('Canvas not found in chart container');
-                                    resolve(null);
-                                    return;
-                                }
-                                
-                                html2canvas(canvas, {
-                                    scale: 2,
-                                    backgroundColor: null,
-                                    logging: false
-                                }).then(canvas => {
-                                    resolve({
-                                        title: title,
-                                        imgData: canvas.toDataURL('image/png'),
-                                        width: canvas.width,
-                                        height: canvas.height,
-                                        index: index
-                                    });
-                                }).catch(error => {
-                                    console.error('Error capturing chart:', error);
-                                    resolve(null);
-                                });
-                            });
-                        });
-                        
-                        // Process all charts in parallel
-                        Promise.all(chartPromises).then(chartResults => {
-                            // Filter out null results
-                            const validCharts = chartResults.filter(result => result !== null);
-                            
-                            // Add charts to PDF
-                            validCharts.forEach(chart => {
-                                doc.addPage();
-                                doc.setFont('Helvetica-Bold');
-                                doc.setFontSize(14);
-                                doc.text(chart.title, 105, 20, { align: 'center' });
-                                
-                                // Add chart image
-                                const imgWidth = 160;
-                                const imgHeight = chart.height * imgWidth / chart.width;
-                                const leftPos = (210 - imgWidth) / 2;
-                                
-                                doc.addImage(chart.imgData, 'PNG', leftPos, 30, imgWidth, imgHeight);
-                            });
-                            
-                            // Add summary page and finish
-                            finalizePDF(doc);
-                        });
-                    } else {
-                        // No charts to process
-                        finalizePDF(doc);
-                    }
-                } else {
-                    // Charts not included
-                    finalizePDF(doc);
-                }
-            } catch (error) {
-                console.error('Error generating PDF:', error);
-                document.body.removeChild(loadingOverlay);
-                alert('Error generating PDF. Please try again.');
-            }
-        }, 500);
-        
-        function finalizePDF(doc) {
-            // Add summary page
-            doc.addPage();
-            doc.setFont('Helvetica-Bold');
-            doc.setFontSize(16);
-            doc.text("Analytics Summary", 105, 20, { align: 'center' });
-            
-            doc.setFont('Helvetica');
-            doc.setFontSize(12);
-            
-            // Get metrics
-            const gymName = document.querySelector('.gym-info h2').innerText;
-            const gymLocation = document.querySelector('.gym-info p').innerText.replace(/^.*?\s/, "");
-            const date = new Date().toLocaleDateString();
-            
-            // Get member counts
-            const memberCounts = window.filteredMemberCounts || {
-                active: document.querySelector('.member-stat-card.active .stat-value')?.textContent || '0',
-                inactive: document.querySelector('.member-stat-card.inactive .stat-value')?.textContent || '0',
-                total: document.querySelector('.member-stat-card.total .stat-value')?.textContent || '0'
-            };
-            
-            // Create summary text
-            let summaryText = `This report presents a comprehensive analysis of ${gymName} located at ${gymLocation}. `;
-            summaryText += `The gym currently has ${memberCounts.active} active members and ${memberCounts.inactive} inactive members, for a total of ${memberCounts.total} members. `;
-            
-            // Add more details based on included sections
-            const includeRatings = document.getElementById('include-ratings');
-            const includeReviews = document.getElementById('include-reviews');
-            const includeRevenue = document.getElementById('include-revenue');
-            
-            if (includeRatings && includeRatings.checked) {
-                const ratingValue = document.querySelector('.metric-card[data-type="ratings"] .number')?.textContent?.replace('⭐', '') || '0';
-                summaryText += `The average customer satisfaction rating is ${ratingValue} out of 5, `;
-                if (parseFloat(ratingValue) >= 4) {
-                    summaryText += "indicating excellent customer satisfaction. ";
-                } else if (parseFloat(ratingValue) >= 3) {
-                    summaryText += "showing good customer satisfaction. ";
-                } else {
-                    summaryText += "suggesting there are areas for improvement in customer satisfaction. ";
-                }
-            }
-            
-            if (includeReviews && includeReviews.checked) {
-                const reviewCount = document.querySelector('.metric-card[data-type="reviews"] .number')?.textContent || '0';
-                summaryText += `Based on ${reviewCount} customer reviews, `;
-            }
-            
-            if (includeRevenue && includeRevenue.checked) {
-                const revenue = document.querySelector('.metric-card[data-type="revenue"] .number')?.textContent || '₱0';
-                summaryText += `the gym has generated a total revenue of ${revenue}. `;
-            }
-            
-            summaryText += `\n\nThis report was generated on ${date} and includes `;
-            
-            const includeCharts = document.getElementById('include-charts');
-            if (includeCharts && includeCharts.checked) {
-                summaryText += "visualizations of key performance indicators through charts and graphs. ";
-            }
-            
-            summaryText += "The data provides valuable insights for gym management to make informed decisions ";
-            summaryText += "regarding membership growth strategies, pricing optimization, and service improvements.";
-            
-            // Add the summary text with line breaks
-            const splitText = doc.splitTextToSize(summaryText, 170);
-            doc.text(splitText, 20, 40);
-            
-            // Add member list if included
-            const includeMembers = document.getElementById('include-members');
-            if (includeMembers && includeMembers.checked) {
-                // Calculate next Y position
-                const summaryY = 40 + (splitText.length * 6) + 15;
-                
-                // Check if we need a new page
-                if (summaryY > 220) {
-                    doc.addPage();
-                    
-                    // Add member section header
-                    doc.setFont('Helvetica-Bold');
-                    doc.setFontSize(14);
-                    doc.text("Member Statistics", 20, 20);
-                    
-                    // Add member counts
-                    doc.setFont('Helvetica');
-                    doc.setFontSize(12);
-                    doc.text(`Active Members: ${memberCounts.active}`, 25, 35);
-                    doc.text(`Inactive Members: ${memberCounts.inactive}`, 25, 45);
-                    doc.text(`Total Members: ${memberCounts.total}`, 25, 55);
-                }
-            }
-            
-            // Add footer with page numbers
-            const pageCount = doc.getNumberOfPages();
-            for (let i = 1; i <= pageCount; i++) {
-                doc.setPage(i);
-                doc.setFontSize(10);
-                doc.setTextColor(150);
-                doc.text(`${gymName} Analytics Report - Page ${i} of ${pageCount}`, 105, 285, { align: 'center' });
-            }
-            
-            // Remove loading overlay and save
-            document.body.removeChild(loadingOverlay);
-            
-            // Generate filename
-            const filterSuffix = document.getElementById('include-members')?.checked ? '_Members' : '';
-            const filename = `${gymName.replace(/\s+/g, '_')}_Analytics${filterSuffix}_${date.replace(/\//g, '-')}.pdf`;
-            doc.save(filename);
-        }
+        // Apply initial filters
+        applyFilters();
     }
 
     function initializeMemberFiltering() {
@@ -1150,6 +990,388 @@ $rating_stats = $stmt->get_result();
             });
         }
     }
+
+    function generatePDF() {
+        // Create loading overlay
+        const loadingOverlay = document.createElement('div');
+        loadingOverlay.className = 'loading-overlay';
+        
+        const spinner = document.createElement('div');
+        spinner.className = 'spinner';
+        
+        const loadingText = document.createElement('div');
+        loadingText.className = 'loading-text';
+        loadingText.innerText = 'Generating PDF...';
+        
+        loadingOverlay.appendChild(spinner);
+        loadingOverlay.appendChild(loadingText);
+        document.body.appendChild(loadingOverlay);
+        
+        // Use setTimeout to allow the loading indicator to appear
+        setTimeout(function() {
+            try {
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF('p', 'mm', 'a4');
+                
+                // Get gym info
+                const gymName = document.querySelector('.gym-info h2').innerText;
+                const date = new Date().toLocaleDateString();
+                const gymLocation = document.querySelector('.gym-info p').innerText.replace(/^.*?\s/, ""); // Remove icon
+                
+                // Set up PDF header
+                doc.setFont('Helvetica-Bold');
+                doc.setFontSize(22);
+                doc.text(`${gymName} - Analytics Report`, 105, 20, { align: 'center' });
+                
+                doc.setFont('Helvetica');
+                doc.setFontSize(12);
+                doc.text(`Generated on: ${date}`, 105, 30, { align: 'center' });
+                doc.text(`Location: ${gymLocation}`, 105, 35, { align: 'center' });
+                
+                // Get filter info
+                const includeMembers = document.getElementById('include-members');
+                const includeRatings = document.getElementById('include-ratings');
+                const includeReviews = document.getElementById('include-reviews');
+                const includeRevenue = document.getElementById('include-revenue');
+                const includeCharts = document.getElementById('include-charts');
+                
+                // Add filter information
+                doc.setFontSize(10);
+                doc.text('Filters applied:', 20, 45);
+                const filterText = [];
+                if (includeMembers && includeMembers.checked) filterText.push('Members');
+                if (includeRatings && includeRatings.checked) filterText.push('Ratings');
+                if (includeReviews && includeReviews.checked) filterText.push('Reviews');
+                if (includeRevenue && includeRevenue.checked) filterText.push('Revenue');
+                if (includeCharts && includeCharts.checked) filterText.push('Charts');
+                doc.text(`Included: ${filterText.join(', ')}`, 20, 50);
+                
+                // Add key metrics
+                let currentY = 60;
+                const visibleMetricCards = document.querySelectorAll('.metric-card[data-hidden="false"]');
+                
+                if (visibleMetricCards.length > 0) {
+                    doc.setFont('Helvetica-Bold');
+                    doc.setFontSize(16);
+                    doc.text('Key Performance Metrics', 20, currentY);
+                    currentY += 10;
+                    
+                    doc.setFont('Helvetica');
+                    doc.setFontSize(12);
+                    
+                    visibleMetricCards.forEach((card) => {
+                        const label = card.querySelector('h3').innerText;
+                        let value = card.querySelector('.number').innerText;
+                        
+                        // Clean up values for PDF 
+                        if (label.includes('Rating')) {
+                            value = value.replace(/[⭐+P±]/g, '').trim();
+                            value = value + " rating"; // Add "rating" text instead of star emoji
+                        } else if (label.includes('Revenue')) {
+                            value = value.replace(/[₱]/g, '').trim();
+                            value = "PHP " + value; // Add PHP prefix instead of ₱ symbol
+                        }
+                        
+                        doc.text(`${label}: ${value}`, 20, currentY);
+                        currentY += 10;
+                    });
+                    
+                    currentY += 10;
+                }
+                
+                // Process charts if selected
+                if (includeCharts && includeCharts.checked) {
+                    const visibleChartContainers = document.querySelectorAll('.chart-container[data-hidden="false"]');
+                    
+                    if (visibleChartContainers.length > 0) {
+                        // Create an array of promises for chart processing
+                        const chartPromises = Array.from(visibleChartContainers).map((chart, index) => {
+                            return new Promise((resolve) => {
+                                const title = chart.querySelector('h3').innerText;
+                                const canvas = chart.querySelector('canvas');
+                                
+                                if (!canvas) {
+                                    console.error('Canvas not found in chart container');
+                                    resolve(null);
+                                    return;
+                                }
+                                
+                                html2canvas(canvas, {
+                                    scale: 2,
+                                    backgroundColor: null,
+                                    logging: false
+                                }).then(canvas => {
+                                    resolve({
+                                        title: title,
+                                        imgData: canvas.toDataURL('image/png'),
+                                        width: canvas.width,
+                                        height: canvas.height,
+                                        index: index
+                                    });
+                                }).catch(error => {
+                                    console.error('Error capturing chart:', error);
+                                    resolve(null);
+                                });
+                            });
+                        });
+                        
+                        // Process all charts in parallel
+                        Promise.all(chartPromises).then(chartResults => {
+                            // Filter out null results
+                            const validCharts = chartResults.filter(result => result !== null);
+                            
+                            // Add charts to PDF
+                            validCharts.forEach(chart => {
+                                doc.addPage();
+                                doc.setFont('Helvetica-Bold');
+                                doc.setFontSize(14);
+                                doc.text(chart.title, 105, 20, { align: 'center' });
+                                
+                                // Add chart image
+                                const imgWidth = 160;
+                                const imgHeight = chart.height * imgWidth / chart.width;
+                                const leftPos = (210 - imgWidth) / 2;
+                                
+                                doc.addImage(chart.imgData, 'PNG', leftPos, 30, imgWidth, imgHeight);
+                            });
+                            
+                            // Add a members section and summary page
+                            addMembersSection(doc);
+                            addSummaryPage(doc);
+                            
+                            // Add footer and save
+                            finalizeAndSavePDF(doc, gymName, date);
+                        });
+                    } else {
+                        // No charts to process
+                        addMembersSection(doc);
+                        addSummaryPage(doc);
+                        finalizeAndSavePDF(doc, gymName, date);
+                    }
+                } else {
+                    // Charts not included
+                    addMembersSection(doc);
+                    addSummaryPage(doc);
+                    finalizeAndSavePDF(doc, gymName, date);
+                }
+                
+                function addMembersSection(doc) {
+                    // Only add if members section is included
+                    const includeMembers = document.getElementById('include-members');
+                    if (!(includeMembers && includeMembers.checked)) return;
+                    
+                    // Add a new page for members
+                    doc.addPage();
+                    
+                    // Get member counts
+                    const memberCounts = window.filteredMemberCounts || {
+                        active: document.querySelector('.member-stat-card.active .stat-value')?.textContent || '0',
+                        inactive: document.querySelector('.member-stat-card.inactive .stat-value')?.textContent || '0',
+                        total: document.querySelector('.member-stat-card.total .stat-value')?.textContent || '0'
+                    };
+                    
+                    // Add member section header
+                    doc.setFont('Helvetica-Bold');
+                    doc.setFontSize(16);
+                    doc.text("Member Statistics", 105, 20, { align: 'center' });
+                    
+                    // Add member stats
+                    doc.setFont('Helvetica');
+                    doc.setFontSize(12);
+                    doc.text(`Active Members: ${memberCounts.active}`, 30, 40);
+                    doc.text(`Inactive Members: ${memberCounts.inactive}`, 30, 50);
+                    doc.text(`Total Members: ${memberCounts.total}`, 30, 60);
+                    
+                    // Add member table if available
+                    const membersTable = document.getElementById('membersTable');
+                    if (membersTable) {
+                        // Add table header
+                        doc.setFont('Helvetica-Bold');
+                        doc.setFontSize(14);
+                        doc.text("Member List", 105, 80, { align: 'center' });
+                        
+                        // Get visible rows (not hidden by filter)
+                        const visibleRows = Array.from(membersTable.querySelectorAll('tbody tr.member-row'))
+                            .filter(row => row.style.display !== 'none' && !row.classList.contains('no-data-row'));
+                        
+                        if (visibleRows.length > 0) {
+                            // Define column headers and positions
+                            const headers = ["Name", "Plan", "Start Date", "End Date", "Status"];
+                            const colWidths = [40, 35, 35, 35, 25];
+                            const startY = 90;
+                            const rowHeight = 10;
+                            
+                            // Draw table header
+                            let currentY = startY;
+                            doc.setFillColor(240, 240, 240);
+                            doc.rect(20, currentY - 5, 170, rowHeight, 'F');
+                            
+                            let currentX = 20;
+                            headers.forEach((header, index) => {
+                                doc.text(header, currentX + 2, currentY);
+                                currentX += colWidths[index];
+                            });
+                            
+                            currentY += rowHeight;
+                            doc.setFont('Helvetica');
+                            
+                            // Draw rows (max 20 per page)
+                            const maxRows = Math.min(visibleRows.length, 20);
+                            
+                            for (let i = 0; i < maxRows; i++) {
+                                const row = visibleRows[i];
+                                
+                                // Add alternating row colors
+                                if (i % 2 === 1) {
+                                    doc.setFillColor(248, 248, 248);
+                                    doc.rect(20, currentY - 5, 170, rowHeight, 'F');
+                                }
+                                
+                                // Extract data from cells
+                                const name = row.cells[0].textContent.trim();
+                                const plan = row.cells[2].textContent.trim();
+                                const startDate = row.cells[3].textContent.trim();
+                                const endDate = row.cells[4].textContent.trim();
+                                const status = row.cells[5].textContent.trim();
+                                
+                                // Draw row data
+                                currentX = 20;
+                                
+                                // Name - truncate if too long
+                                doc.text(name.length > 18 ? name.substring(0, 15) + '...' : name, currentX + 2, currentY);
+                                currentX += colWidths[0];
+                                
+                                // Plan - truncate if too long
+                                doc.text(plan.length > 15 ? plan.substring(0, 12) + '...' : plan, currentX + 2, currentY);
+                                currentX += colWidths[1];
+                                
+                                // Start date
+                                doc.text(startDate, currentX + 2, currentY);
+                                currentX += colWidths[2];
+                                
+                                // End date
+                                doc.text(endDate, currentX + 2, currentY);
+                                currentX += colWidths[3];
+                                
+                                // Status with color
+                                if (status.toLowerCase().includes('active')) {
+                                    doc.setTextColor(76, 175, 80); // Green
+                                } else {
+                                    doc.setTextColor(244, 67, 54); // Red
+                                }
+                                
+                                doc.text(status, currentX + 2, currentY);
+                                doc.setTextColor(0); // Reset to black
+                                
+                                currentY += rowHeight;
+                            }
+                            
+                            // Add note if more members than shown
+                            if (visibleRows.length > maxRows) {
+                                currentY += 5;
+                                doc.text(`Note: Showing ${maxRows} of ${visibleRows.length} members.`, 20, currentY);
+                            }
+                        } else {
+                            // No members visible
+                            doc.setFont('Helvetica');
+                            doc.text("No members match the current filter criteria.", 105, 100, { align: 'center' });
+                        }
+                    }
+                }
+                
+                function addSummaryPage(doc) {
+                    // Add summary page
+                    doc.addPage();
+                    doc.setFont('Helvetica-Bold');
+                    doc.setFontSize(16);
+                    doc.text("Analytics Summary", 105, 20, { align: 'center' });
+                    
+                    doc.setFont('Helvetica');
+                    doc.setFontSize(12);
+                    
+                    // Get metrics with proper formatting
+                    const gymName = document.querySelector('.gym-info h2').innerText;
+                    const gymLocation = document.querySelector('.gym-info p').innerText.replace(/^.*?\s/, "");
+                    const date = new Date().toLocaleDateString();
+                    
+                    // Get member counts from filtering
+                    const memberCounts = window.filteredMemberCounts || {
+                        active: document.querySelector('.member-stat-card.active .stat-value')?.textContent || '0',
+                        inactive: document.querySelector('.member-stat-card.inactive .stat-value')?.textContent || '0',
+                        total: document.querySelector('.member-stat-card.total .stat-value')?.textContent || '0'
+                    };
+                    
+                    // Get metrics with clean formats
+                    let ratingValue = document.querySelector('.metric-card[data-type="ratings"] .number')?.textContent || '0';
+                    ratingValue = ratingValue.replace(/[⭐+P±]/g, '').trim();
+                    
+                    let revenueValue = document.querySelector('.metric-card[data-type="revenue"] .number')?.textContent || '₱0';
+                    revenueValue = "PHP " + revenueValue.replace(/[₱]/g, '').trim();
+                    
+                    const reviewsValue = document.querySelector('.metric-card[data-type="reviews"] .number')?.textContent || '0';
+                    
+                    // Create summary text
+                    let summaryText = `This report presents a comprehensive analysis of ${gymName} located at ${gymLocation}. `;
+                    summaryText += `The gym currently has ${memberCounts.active} active members and ${memberCounts.inactive} inactive members, for a total of ${memberCounts.total} members. `;
+                    
+                    // Add more details based on included sections
+                    if (includeRatings && includeRatings.checked) {
+                        summaryText += `The average customer satisfaction rating is ${ratingValue} out of 5, `;
+                        if (parseFloat(ratingValue) >= 4) {
+                            summaryText += "indicating excellent customer satisfaction. ";
+                        } else if (parseFloat(ratingValue) >= 3) {
+                            summaryText += "showing good customer satisfaction. ";
+                        } else {
+                            summaryText += "suggesting there are areas for improvement in customer satisfaction. ";
+                        }
+                    }
+                    
+                    if (includeReviews && includeReviews.checked) {
+                        summaryText += `Based on ${reviewsValue} customer reviews, `;
+                    }
+                    
+                    if (includeRevenue && includeRevenue.checked) {
+                        summaryText += `the gym has generated a total revenue of ${revenueValue}. `;
+                    }
+                    
+                    summaryText += `\n\nThis report was generated on ${date} and includes `;
+                    
+                    if (includeCharts && includeCharts.checked) {
+                        summaryText += "visualizations of key performance indicators through charts and graphs. ";
+                    }
+                    
+                    summaryText += "The data provides valuable insights for gym management to make informed decisions ";
+                    summaryText += "regarding membership growth strategies, pricing optimization, and service improvements.";
+                    
+                    // Add the summary text with proper line breaks
+                    const splitText = doc.splitTextToSize(summaryText, 170);
+                    doc.text(splitText, 20, 40);
+                    }
+                    
+                    function finalizeAndSavePDF(doc, gymName, date) {
+                        // Add footer with page numbers
+                        const pageCount = doc.getNumberOfPages();
+                        for (let i = 1; i <= pageCount; i++) {
+                            doc.setPage(i);
+                            doc.setFontSize(10);
+                            doc.setTextColor(150);
+                            doc.text(`${gymName} Analytics Report - Page ${i} of ${pageCount}`, 105, 285, { align: 'center' });
+                        }
+                        
+                        // Remove loading overlay and save
+                        document.body.removeChild(loadingOverlay);
+                        
+                        // Generate filename
+                        const filename = `${gymName.replace(/\s+/g, '_')}_Analytics_${date.replace(/\//g, '-')}.pdf`;
+                        doc.save(filename);
+                    }
+                } catch (error) {
+                    console.error('Error generating PDF:', error);
+                    document.body.removeChild(loadingOverlay);
+                    alert('Error generating PDF. Please try again.');
+                }
+            }, 500);
+        }
     </script>
 </body>
 </html>
