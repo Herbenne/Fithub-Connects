@@ -1413,6 +1413,8 @@ $rating_stats = $stmt->get_result();
                
                function addMembersSection(doc) {
                     doc.addPage();
+
+                    /*
                    // Only add if members section is included
                     const headers = ["Name", "Plan", "Start Date", "End Date", "Status"];
                     const colWidths = [45, 40, 35, 35, 25]; // Wider columns
@@ -1434,7 +1436,7 @@ $rating_stats = $stmt->get_result();
 
                     // Added spacing between rows
                     currentY += rowHeight + 2;
-
+                    */
                    const includeMembers = document.getElementById('include-members');
                    if (!(includeMembers && includeMembers.checked)) return;
                    
