@@ -663,6 +663,7 @@ $members_list = $stmt->get_result();
     .chart-container canvas {
         max-height: 280px !important;
         width: 100% !important;
+        margin-bottom: 20px;
     }
 
     /* Fix for hidden sections and chart display */
@@ -690,7 +691,7 @@ $members_list = $stmt->get_result();
     .chart-container {
         height: 300px;
         position: relative;
-        margin-bottom: 60px;
+        margin-bottom: 30px;
     }
 
     </style>
