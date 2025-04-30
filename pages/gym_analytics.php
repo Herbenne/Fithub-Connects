@@ -959,39 +959,6 @@ $members_list = $stmt->get_result();
                 if (includeRatings && includeRatings.checked) filterText.push('Ratings');
                 if (includeRevenue && includeRevenue.checked) filterText.push('Revenue');
                 doc.text(`Included: ${filterText.join(', ')}`, 20, 45);
-
-                // Add key metrics
-               let currentY = 60;
-               const visibleMetricCards = document.querySelectorAll('.metric-card[data-hidden="false"]');
-               
-               if (visibleMetricCards.length > 0) {
-                   doc.setFont('Helvetica-Bold');
-                   doc.setFontSize(16);
-                   doc.text('Key Performance Metrics', 20, currentY);
-                   currentY += 10;
-                   
-                   doc.setFont('Helvetica');
-                   doc.setFontSize(12);
-                   
-                   visibleMetricCards.forEach((card) => {
-                       const label = card.querySelector('h3').innerText;
-                       let value = card.querySelector('.number').innerText;
-                       
-                       // Clean up values for PDF 
-                       if (label.includes('Rating')) {
-                           value = value.replace(/[⭐+P±]/g, '').trim();
-                           value = value + " rating"; // Add "rating" text instead of star emoji
-                       } else if (label.includes('Revenue')) {
-                           value = value.replace(/[₱]/g, '').trim();
-                           value = "PHP " + value; // Add PHP prefix instead of ₱ symbol
-                       }
-                       
-                       doc.text(`${label}: ${value}`, 20, currentY);
-                       currentY += 10;
-                   });
-                   
-                   currentY += 10;
-               }
                 
                 // Process charts
                 const visibleChartContainers = document.querySelectorAll('.chart-container[data-hidden="false"]');
