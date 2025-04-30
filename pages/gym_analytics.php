@@ -1063,9 +1063,7 @@ $members_list = $stmt->get_result();
                             if (visibleRows.length > 0) {
                                 // Define column headers and positions
                                 const headers = ["Name", "Registration Date", "Plan", "Start Date", "End Date", "Status"];
-                                const colWidths = [40, 45, 30, 35, 35, 20];
-                                const tableWidth = colWidths.reduce((sum, width) => sum + width, 0);
-                                const leftMargin = (210 - tableWidth) / 2; // Center table
+                                const colWidths = [40, 35, 35, 30, 30, 20];
                                 const startY = 90;
                                 const rowHeight = 10;
                                 
