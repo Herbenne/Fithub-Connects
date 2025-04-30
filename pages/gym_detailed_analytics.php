@@ -266,7 +266,6 @@ $rating_stats = $stmt->get_result();
     .chart-container canvas {
         max-height: 280px !important; /* Force canvas height constraint */
         width: 100% !important; /* Make canvas responsive width */
-
     }
 
     .report-actions {
@@ -1415,7 +1414,7 @@ $rating_stats = $stmt->get_result();
                function addMembersSection(doc) {
                     doc.addPage();
                    // Only add if members section is included
-                    //const headers = ["Name", "Plan", "Start Date", "End Date", "Status"];
+                    const headers = ["Name", "Plan", "Start Date", "End Date", "Status"];
                     const colWidths = [45, 40, 35, 35, 25]; // Wider columns
                     const tableWidth = colWidths.reduce((sum, width) => sum + width, 0);
                     const leftMargin = (210 - tableWidth) / 2; // Center table
@@ -1534,6 +1533,7 @@ $rating_stats = $stmt->get_result();
                                doc.text(endDate, currentX + 3, currentY);
                                currentX += colWidths[3];
                                
+                               // Status with color
                                if (status.toLowerCase().includes('active')) {
                                     doc.setTextColor(76, 175, 80); // Green
                                 } else {
