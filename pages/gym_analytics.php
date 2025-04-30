@@ -690,7 +690,7 @@ $members_list = $stmt->get_result();
     .chart-container {
         height: 300px;
         position: relative;
-        margin-bottom: 30px;
+        margin-bottom: 60px;
     }
 
     </style>
