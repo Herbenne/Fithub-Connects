@@ -654,6 +654,17 @@ $members_list = $stmt->get_result();
         display: none;
     }
 
+    .chart-container {
+        height: 350px; /* Fixed height */
+        position: relative;
+        overflow: hidden;
+    }
+
+    .chart-container canvas {
+        max-height: 280px !important;
+        width: 100% !important;
+    }
+
     /* Fix for hidden sections and chart display */
     .members-section[data-hidden="true"],
     .all-members-section[data-hidden="true"],
@@ -1116,12 +1127,24 @@ $members_list = $stmt->get_result();
                                     doc.text(endDate, currentX + 2, currentY);
                                     currentX += colWidths[4];
                                     
-                                    // Status with color
-                                    if (status.toLowerCase().includes('active')) {
-                                        doc.setTextColor(76, 175, 80); // Green
-                                    } else {
-                                        doc.setTextColor(244, 67, 54); // Red
+                                    function formatStatusInPdf(doc, status, currentX, currentY) {
+                                    // Clean up and standardize the status text
+                                    const statusText = status.toString().trim().toLowerCase();
+                                    
+                                    // Set the appropriate color based on status
+                                    if (statusText.includes('active')) {
+                                            doc.setTextColor(76, 175, 80); // Green color for Active
+                                            doc.text('Active', currentX + 3, currentY);
+                                        } else {
+                                            doc.setTextColor(244, 67, 54); // Red color for Inactive
+                                            doc.text('Inactive', currentX + 3, currentY);
+                                        }
+                                        
+                                        // Reset text color back to black
+                                        doc.setTextColor(0, 0, 0);
                                     }
+                                
+                                    formatStatusInPdf(doc, status, currentX, currentY);
                                     
                                     doc.text(status, currentX + 2, currentY);
                                     doc.setTextColor(0); // Reset to black

@@ -843,7 +843,7 @@ $all_members_result = $db_connection->query($all_members_query);
     .gym-cards-grid {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-        gap: 20px;
+        gap: 40px;
         padding: 20px 0;
     }
 
@@ -1030,6 +1030,14 @@ $all_members_result = $db_connection->query($all_members_query);
 
     .stat-card[data-hidden="true"] {
         display: none;
+    }
+
+    .gym-cards-section {
+        margin-bottom: 40px; /* Increased bottom margin */
+    }
+
+    .members-section, .all-members-section {
+        margin-top: 40px; /* Increased top margin */
     }
 
     /* Fix for hidden sections and chart display */
