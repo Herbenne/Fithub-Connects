@@ -1412,31 +1412,6 @@ $rating_stats = $stmt->get_result();
                }
                
                function addMembersSection(doc) {
-                    doc.addPage();
-
-                    /*
-                   // Only add if members section is included
-                    const headers = ["Name", "Plan", "Start Date", "End Date", "Status"];
-                    const colWidths = [45, 40, 35, 35, 25]; // Wider columns
-                    const tableWidth = colWidths.reduce((sum, width) => sum + width, 0);
-                    const leftMargin = (210 - tableWidth) / 2; // Center table
-                    const startY = 90;
-                    const rowHeight = 10;
-
-                    // Draw table header
-                    let currentY = startY;
-                    doc.setFillColor(240, 240, 240);
-                    doc.rect(leftMargin, currentY - 5, tableWidth, rowHeight, 'F');
-
-                    let currentX = leftMargin;
-                    headers.forEach((header, index) => {
-                        doc.text(header, currentX + 3, currentY); // Added padding
-                        currentX += colWidths[index];
-                    });
-
-                    // Added spacing between rows
-                    currentY += rowHeight + 2;
-                    */
                    const includeMembers = document.getElementById('include-members');
                    if (!(includeMembers && includeMembers.checked)) return;
                    
