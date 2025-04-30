@@ -238,23 +238,34 @@ $rating_stats = $stmt->get_result();
     }
 
     .charts-section {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-        gap: 20px;
-        margin-bottom: 30px;
-    }
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    gap: 25px;
+    margin-bottom: 35px;
+}
 
     .chart-container {
         background: white;
-        padding: 20px;
+        padding: 25px;
         border-radius: 10px;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        min-height: 300px;
+        box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+        height: 350px; /* Fixed height instead of min-height */
+        position: relative; /* Added for better positioning */
+        overflow: hidden; /* Prevent content from spilling out */
     }
 
     .chart-container h3 {
-        margin-bottom: 15px;
+        margin-top: 0;
+        margin-bottom: 20px;
         text-align: center;
+        font-size: 16px;
+        color: #333;
+        font-weight: 600;
+    }
+
+    .chart-container canvas {
+        max-height: 280px !important; /* Force canvas height constraint */
+        width: 100% !important; /* Make canvas responsive width */
     }
 
     .report-actions {
@@ -861,6 +872,11 @@ $rating_stats = $stmt->get_result();
         
         console.log("Creating member growth chart");
         
+        // Set explicit dimensions on the canvas
+        memberGrowthCanvas.style.height = '280px';
+        memberGrowthCanvas.height = 280;
+        memberGrowthCanvas.style.width = '100%';
+        
         const formattedLabels = window.chartMonths.map(month => {
             try {
                 return new Date(month + "-01").toLocaleDateString('en-US', { 
@@ -889,6 +905,14 @@ $rating_stats = $stmt->get_result();
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
+                layout: {
+                    padding: {
+                        top: 10,
+                        right: 10,
+                        bottom: 10,
+                        left: 10
+                    }
+                },
                 plugins: {
                     legend: {
                         position: 'top',
@@ -911,6 +935,11 @@ $rating_stats = $stmt->get_result();
         if (!revenueChartCanvas) return;
         
         console.log("Creating revenue chart");
+        
+        // Set explicit dimensions on the canvas
+        revenueChartCanvas.style.height = '280px';
+        revenueChartCanvas.height = 280;
+        revenueChartCanvas.style.width = '100%';
         
         const formattedLabels = window.chartMonths.map(month => {
             try {
@@ -938,6 +967,14 @@ $rating_stats = $stmt->get_result();
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
+                layout: {
+                    padding: {
+                        top: 10,
+                        right: 10,
+                        bottom: 10,
+                        left: 10
+                    }
+                },
                 plugins: {
                     legend: {
                         position: 'top',
@@ -962,6 +999,11 @@ $rating_stats = $stmt->get_result();
         if (!ratingChartCanvas) return;
         
         console.log("Creating rating chart");
+        
+        // Set explicit dimensions on the canvas
+        ratingChartCanvas.style.height = '280px';
+        ratingChartCanvas.height = 280;
+        ratingChartCanvas.style.width = '100%';
         
         window.chartInstances.ratingChart = new Chart(ratingChartCanvas, {
             type: 'doughnut',
@@ -989,9 +1031,20 @@ $rating_stats = $stmt->get_result();
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
+                layout: {
+                    padding: {
+                        top: 10,
+                        right: 10,
+                        bottom: 10,
+                        left: 10
+                    }
+                },
                 plugins: {
                     legend: {
                         position: 'right',
+                        labels: {
+                            boxWidth: 12
+                        }
                     }
                 }
             }
@@ -1337,25 +1390,25 @@ $rating_stats = $stmt->get_result();
                            addSummaryPage(doc);
                            
                            // Add footer and save
-                           finalizeAndSavePDF(doc, gymName, date);
+                           finalizeAndOpenPDF(doc, gymName, date);
                        }).catch(error => {
                            console.error('Error processing charts:', error);
                            // If charts fail, still add members and summary
                            addMembersSection(doc);
                            addSummaryPage(doc);
-                           finalizeAndSavePDF(doc, gymName, date);
+                           finalizeAndOpenPDF(doc, gymName, date);
                        });
                    } else {
                        // No charts to process
                        addMembersSection(doc);
                        addSummaryPage(doc);
-                       finalizeAndSavePDF(doc, gymName, date);
+                       finalizeAndOpenPDF(doc, gymName, date);
                    }
                } else {
                    // Charts not included
                    addMembersSection(doc);
                    addSummaryPage(doc);
-                   finalizeAndSavePDF(doc, gymName, date);
+                   finalizeAndOpenPDF(doc, gymName, date);
                }
                
                function addMembersSection(doc) {
@@ -1574,23 +1627,29 @@ $rating_stats = $stmt->get_result();
                    doc.text(splitText, 20, 40);
                }
                
-               function finalizeAndSavePDF(doc, gymName, date) {
-                   // Add footer with page numbers
-                   const pageCount = doc.getNumberOfPages();
-                   for (let i = 1; i <= pageCount; i++) {
-                       doc.setPage(i);
-                       doc.setFontSize(10);
-                       doc.setTextColor(150);
-                       doc.text(`${gymName} Analytics Report - Page ${i} of ${pageCount}`, 105, 285, { align: 'center' });
-                   }
-                   
-                   // Remove loading overlay and save
-                   document.body.removeChild(loadingOverlay);
-                   
-                   // Generate filename
-                   const filename = `${gymName.replace(/\s+/g, '_')}_Analytics_${date.replace(/\//g, '-')}.pdf`;
-                   doc.save(filename);
-               }
+               function finalizeAndOpenPDF(doc, gymName, date) {
+                    // Add footer with page numbers
+                    const pageCount = doc.getNumberOfPages();
+                    for (let i = 1; i <= pageCount; i++) {
+                        doc.setPage(i);
+                        doc.setFontSize(10);
+                        doc.setTextColor(150);
+                        doc.text(`${gymName} Analytics Report - Page ${i} of ${pageCount}`, 105, 285, { align: 'center' });
+                    }
+                    
+                    // Remove loading overlay
+                    document.body.removeChild(loadingOverlay);
+                    
+                    // Generate filename
+                    const filename = `${gymName.replace(/\\s+/g, '_')}_Analytics_${date.replace(/\\//g, '-')}.pdf`;
+                    
+                    // Instead of saving, create a blob and open in new tab
+                    const pdfBlob = doc.output('blob');
+                    const pdfUrl = URL.createObjectURL(pdfBlob);
+                    
+                    // Open PDF in new tab
+                    window.open(pdfUrl, '_blank');
+                }
            } catch (error) {
                console.error('Error generating PDF:', error);
                document.body.removeChild(loadingOverlay);
