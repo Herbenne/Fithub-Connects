@@ -1534,7 +1534,7 @@ $rating_stats = $stmt->get_result();
                                doc.text(endDate, currentX + 3, currentY);
                                currentX += colWidths[3];
                                
-                               if (status.toLowerCase().includes('Active')) {
+                               if (status.toLowerCase().includes('active')) {
                                     doc.setTextColor(76, 175, 80); // Green
                                 } else {
                                     doc.setTextColor(244, 67, 54); // Red

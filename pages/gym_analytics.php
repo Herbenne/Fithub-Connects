@@ -1130,7 +1130,7 @@ $members_list = $stmt->get_result();
                                     doc.text(endDate, currentX + 2, currentY);
                                     currentX += colWidths[4];
                                     
-                                    if (status.toLowerCase().includes('Active')) {
+                                    if (status.toLowerCase().includes('active')) {
                                         doc.setTextColor(76, 175, 80); // Green
                                     } else {
                                         doc.setTextColor(244, 67, 54); // Red
