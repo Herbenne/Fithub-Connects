@@ -773,185 +773,166 @@ $rating_stats = $stmt->get_result();
 
     <script>
     window.chartsInitialized = false;
-    
+
     document.addEventListener('DOMContentLoaded', function() {
-    console.log("DOM loaded, charts initialized:", window.chartsInitialized);
-    
-    // Only initialize charts once
-    if (!window.chartsInitialized) {
-        console.log("Initializing charts");
+        console.log("DOM loaded, initializing page");
+
+        // Initialize charts first
         initializeCharts();
-        window.chartsInitialized = true;
-    }
-    
-    // Then initialize filtering and PDF functionality
-    initializeFilters();
-    initializeMemberFiltering();
-    
-    // Set up PDF export button
-    const downloadPdfBtn = document.getElementById('downloadPdfBtn');
-    if (downloadPdfBtn) {
-        downloadPdfBtn.removeEventListener('click', generatePDF);
-        downloadPdfBtn.addEventListener('click', generatePDF);
-    }
-});
+        
+        // Then other functionality
+        initializeFilters();
+        initializeMemberFiltering();
+        
+        // Set up PDF export button
+        const downloadPdfBtn = document.getElementById('downloadPdfBtn');
+        if (downloadPdfBtn) {
+            // Remove any existing handlers
+            downloadPdfBtn.replaceWith(downloadPdfBtn.cloneNode(true));
+            
+            // Add the event listener to the fresh button
+            document.getElementById('downloadPdfBtn').addEventListener('click', generatePDF);
+        }
+    });
 
     function initializeCharts() {
+    // Skip if already initialized
+    if (window.chartsInitialized) {
+        console.log("Charts already initialized, skipping");
+        return;
+    }
+    
+    console.log("Starting chart initialization");
+    
+    try {
+        // Check if Chart.js is properly loaded
+        if (typeof Chart === 'undefined') {
+            console.error("Chart.js not loaded!");
+            return;
+        }
+        
+        // Verify data is available
+        if (!window.chartMonths || !window.chartMembers || !window.chartRevenue || !window.chartRatings) {
+            console.error("Chart data not available:", { 
+                months: window.chartMonths, 
+                members: window.chartMembers,
+                revenue: window.chartRevenue,
+                ratings: window.chartRatings
+            });
+            return;
+        }
+        
+        // Destroy any existing charts first
+        const canvases = ['memberGrowthChart', 'revenueChart', 'ratingChart'];
+        canvases.forEach(id => {
+            const canvas = document.getElementById(id);
+            if (canvas && canvas.chart instanceof Chart) {
+                canvas.chart.destroy();
+            }
+        });
+        
         // Member Growth Chart
         const memberGrowthCanvas = document.getElementById('memberGrowthChart');
         if (memberGrowthCanvas) {
-            try {
-                new Chart(memberGrowthCanvas, {
-                    type: 'line',
-                    data: {
-                        labels: window.chartMonths.map(month => {
-                            try {
-                                return new Date(month + "-01").toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
-                            } catch(e) {
-                                return month;
-                            }
-                        }),
-                        datasets: [{
-                            label: 'New Members',
-                            data: window.chartMembers,
-                            backgroundColor: 'rgba(76, 175, 80, 0.2)',
-                            borderColor: '#4CAF50',
-                            borderWidth: 2,
-                            tension: 0.1,
-                            fill: true
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        plugins: {
-                            title: {
-                                display: true,
-                                text: 'Monthly Member Growth',
-                                font: {
-                                    size: 16
-                                }
-                            },
-                            legend: {
-                                position: 'top'
-                            }
-                        },
-                        scales: {
-                            y: {
-                                beginAtZero: true,
-                                ticks: {
-                                    precision: 0
-                                }
-                            }
+            console.log("Creating member growth chart");
+            memberGrowthCanvas.chart = new Chart(memberGrowthCanvas, {
+                type: 'line',
+                data: {
+                    labels: window.chartMonths.map(month => {
+                        try {
+                            return new Date(month + "-01").toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+                        } catch(e) {
+                            return month;
                         }
-                    }
-                });
-            } catch (e) {
-                console.error("Error initializing member growth chart:", e);
-                memberGrowthCanvas.parentNode.innerHTML = '<div class="chart-error">Error loading chart. Please try refreshing the page.</div>';
-            }
+                    }),
+                    datasets: [{
+                        label: 'New Members',
+                        data: window.chartMembers,
+                        backgroundColor: 'rgba(76, 175, 80, 0.2)',
+                        borderColor: '#4CAF50',
+                        borderWidth: 2,
+                        tension: 0.1,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false
+                }
+            });
         }
 
         // Revenue Chart
         const revenueChartCanvas = document.getElementById('revenueChart');
         if (revenueChartCanvas) {
-            try {
-                new Chart(revenueChartCanvas, {
-                    type: 'bar',
-                    data: {
-                        labels: window.chartMonths.map(month => {
-                            try {
-                                return new Date(month + "-01").toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
-                            } catch(e) {
-                                return month;
-                            }
-                        }),
-                        datasets: [{
-                            label: 'Monthly Revenue (₱)',
-                            data: window.chartRevenue,
-                            backgroundColor: 'rgba(33, 150, 243, 0.2)',
-                            borderColor: 'rgba(33, 150, 243, 1)',
-                            borderWidth: 2
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        plugins: {
-                            title: {
-                                display: true,
-                                text: 'Monthly Revenue',
-                                font: {
-                                    size: 16
-                                }
-                            },
-                            legend: {
-                                position: 'top'
-                            }
-                        },
-                        scales: {
-                            y: {
-                                beginAtZero: true
-                            }
+            console.log("Creating revenue chart");
+            revenueChartCanvas.chart = new Chart(revenueChartCanvas, {
+                type: 'bar',
+                data: {
+                    labels: window.chartMonths.map(month => {
+                        try {
+                            return new Date(month + "-01").toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+                        } catch(e) {
+                            return month;
                         }
-                    }
-                });
-            } catch (e) {
-                console.error("Error initializing revenue chart:", e);
-                revenueChartCanvas.parentNode.innerHTML = '<div class="chart-error">Error loading chart. Please try refreshing the page.</div>';
-            }
+                    }),
+                    datasets: [{
+                        label: 'Monthly Revenue (₱)',
+                        data: window.chartRevenue,
+                        backgroundColor: 'rgba(33, 150, 243, 0.2)',
+                        borderColor: 'rgba(33, 150, 243, 1)',
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false
+                }
+            });
         }
 
         // Rating Chart
         const ratingChartCanvas = document.getElementById('ratingChart');
         if (ratingChartCanvas) {
-            try {
-                new Chart(ratingChartCanvas, {
-                    type: 'doughnut',
-                    data: {
-                        labels: ['1 Star', '2 Stars', '3 Stars', '4 Stars', '5 Stars'],
-                        datasets: [{
-                            data: window.chartRatings,
-                            backgroundColor: [
-                                'rgba(255, 99, 132, 0.2)',
-                                'rgba(255, 159, 64, 0.2)',
-                                'rgba(255, 205, 86, 0.2)',
-                                'rgba(75, 192, 192, 0.2)',
-                                'rgba(54, 162, 235, 0.2)'
-                            ],
-                            borderColor: [
-                                'rgb(255, 99, 132)',
-                                'rgb(255, 159, 64)',
-                                'rgb(255, 205, 86)',
-                                'rgb(75, 192, 192)',
-                                'rgb(54, 162, 235)'
-                            ],
-                            borderWidth: 2
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        plugins: {
-                            title: {
-                                display: true,
-                                text: 'Rating Distribution',
-                                font: {
-                                    size: 16
-                                }
-                            },
-                            legend: {
-                                position: 'right'
-                            }
-                        }
-                    }
-                });
-            } catch (e) {
-                console.error("Error initializing rating chart:", e);
-                ratingChartCanvas.parentNode.innerHTML = '<div class="chart-error">Error loading chart. Please try refreshing the page.</div>';
-            }
+            console.log("Creating rating chart");
+            ratingChartCanvas.chart = new Chart(ratingChartCanvas, {
+                type: 'doughnut',
+                data: {
+                    labels: ['1 Star', '2 Stars', '3 Stars', '4 Stars', '5 Stars'],
+                    datasets: [{
+                        data: window.chartRatings,
+                        backgroundColor: [
+                            'rgba(255, 99, 132, 0.2)',
+                            'rgba(255, 159, 64, 0.2)',
+                            'rgba(255, 205, 86, 0.2)',
+                            'rgba(75, 192, 192, 0.2)',
+                            'rgba(54, 162, 235, 0.2)'
+                        ],
+                        borderColor: [
+                            'rgb(255, 99, 132)',
+                            'rgb(255, 159, 64)',
+                            'rgb(255, 205, 86)',
+                            'rgb(75, 192, 192)',
+                            'rgb(54, 162, 235)'
+                        ],
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false
+                }
+            });
         }
+        
+        // Mark as initialized
+        window.chartsInitialized = true;
+        console.log("Chart initialization complete");
+        
+    } catch (e) {
+        console.error("Error in chart initialization:", e);
     }
+}
 
     function initializeFilters() {
         // Initialize filter checkboxes
